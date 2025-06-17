@@ -1,17 +1,25 @@
-//
-//  ValtApp.swift
-//  Valt
-//
-//  Created by Emily Chrisann Hernandez on 6/6/25.
-//
-
 import SwiftUI
+import FirebaseCore
+
+
+class AppDelegate: NSObject, UIApplicationDelegate {
+  func application(_ application: UIApplication,
+                   didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+    FirebaseApp.configure()
+
+    return true
+  }
+}
 
 @main
 struct ValtApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            NavigationView {
+                ContentView()
+            }
         }
     }
 }
