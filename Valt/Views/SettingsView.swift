@@ -1,7 +1,9 @@
 import SwiftUI
+import FirebaseAuth
 
 struct SettingsView: View {
     @Binding var isShowingOverlay: Bool
+    @EnvironmentObject var authViewModel: AuthViewModel
 
     var body: some View {
         VStack {
@@ -27,12 +29,18 @@ struct SettingsView: View {
             Spacer()
             VStack {
                 Button(action: {
-                    print("User signed out.")
+                    do {
+                            try Auth.auth().signOut()
+                            authViewModel.isAuthenticated = false
+                            print("Successfully signed out.")
+                        } catch {
+                            print("Error signing out: \(error.localizedDescription)")
+                        }
                 }) {
                     ZStack {
                         RoundedRectangle(cornerRadius: 10)
                             .frame(width: 150, height: 50)
-                            .background(Color("bubbleColor"))
+                            .background(Color("BubbleColor"))
                         
                         Text("Sign Out")
                             .font(.custom("OpenSans-SemiBold", size: 19))

@@ -1,6 +1,19 @@
 import SwiftUI
 import FirebaseAuth
 import FirebaseFirestore
+import PhotosUI
+import FirebaseCore
+import UIKit
+
+extension UIImage {
+    func resized(to newSize: CGSize, quality: CGFloat = 0.8) -> UIImage? {
+        UIGraphicsBeginImageContextWithOptions(newSize, false, 1.0)
+        self.draw(in: CGRect(x: 0, y: 0, width: newSize.width, height: newSize.height))
+        let newImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return newImage
+    }
+}
 
 struct ProfileView: View {
     @Binding var showSettingsOverlayBinding: Bool
@@ -31,7 +44,7 @@ struct ProfileView: View {
                         ZStack {
                             Ellipse()
                                 .frame(width: 40, height: 40)
-                                .foregroundColor(Color("bubbleColor"))
+                                .foregroundColor(Color("BubbleColor"))
                             
                             Image("settingsIcon")
                                 .frame(width: 38, height: 38)
@@ -46,8 +59,8 @@ struct ProfileView: View {
                 HStack {
                     Ellipse()
                         .frame(width: 115, height: 115)
-                        .foregroundColor(Color("bubbleColor"))
-                    
+                        .foregroundColor(Color("BubbleColor"))
+               
                     VStack (alignment: .leading, spacing: 5) {
                         Text("@username") // MARK: Add username
                             .font(.custom("OpenSans-Regular", size: 23))
@@ -85,15 +98,22 @@ struct ProfileView: View {
                     }
                     .padding(.horizontal, 20)
                 }
+                .scrollIndicators(.hidden)
+                
                 Spacer()
             }
             .background(Color("AppBackgroundColor"))
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            
         }
         .onAppear {
             loadDrafts()
             fetchDraftCount()
         }
+        .task {
+
+        }
+        
     }
     func loadDrafts() {
         guard let userID = Auth.auth().currentUser?.uid else { return }
@@ -118,7 +138,6 @@ struct ProfileView: View {
                 draftCount = snapshot?.documents.count ?? 0
             }
     }
-
 }
 
 

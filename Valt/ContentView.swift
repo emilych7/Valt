@@ -4,7 +4,8 @@ import UIKit
 struct ContentView: View {
     @StateObject private var authViewModel = AuthViewModel()
     @State private var showGlobalSettingsOverlay: Bool = false
-    
+    @StateObject private var bannerManager = BannerManager()
+
     init() {
             let appearance = UITabBarAppearance()
         
@@ -63,25 +64,46 @@ struct ContentView: View {
                     if showGlobalSettingsOverlay {
                         SettingsView(isShowingOverlay: $showGlobalSettingsOverlay)
                             .transition(.move(edge: .trailing).combined(with: .opacity))
+                            .environmentObject(authViewModel)
                     }
                 }
                 .animation(.easeInOut(duration: 0.3), value: showGlobalSettingsOverlay)
+                
+                if bannerManager.isVisible {
+                    VStack {
+                        Text(bannerManager.message)
+                            .font(.custom("OpenSans-Bold", size: 14))
+                            .foregroundColor(.white)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.black.opacity(0.85))
+                            .cornerRadius(8)
+                            .padding(.top, 50)
+                            .padding(.horizontal, 20)
+                        Spacer()
+                    }
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .zIndex(2)
+                    
+                }
             }
+            .environmentObject(bannerManager)
         }
         else {
-            LoginView()
+            OnBoardingView()
                 .environmentObject(authViewModel)
         }
     }
     
 }
+    
 
 extension UIFont {
     static func customFont(name: String, size: CGFloat) -> UIFont? {
         if let font = UIFont(name: name, size: size) {
             return font
         } else {
-            print("Warning: Custom font '\(name)' not found. Using system font.")
+            print("Warning: Font '\(name)' not found. Using default.")
             return nil
         }
     }

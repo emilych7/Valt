@@ -1,5 +1,6 @@
 import FirebaseFirestore
 
+
 func fetchDrafts(for userID: String, completion: @escaping ([Draft]) -> Void) {
     let db = Firestore.firestore()
     db.collection("drafts")
