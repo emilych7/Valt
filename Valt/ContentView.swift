@@ -20,8 +20,8 @@ struct ContentView: View {
                 .font: UIFont.customFont(name: "OpenSans-Bold", size: 10) ?? UIFont.systemFont(ofSize: 14, weight: .semibold), // Selected text font
                 .foregroundColor: UIColor(Color("TextColor")) // Selected text color
             ]
-
-            appearance.stackedLayoutAppearance.normal.iconColor = UIColor.systemGray // Unselected icon color
+            
+        appearance.stackedLayoutAppearance.normal.iconColor = UIColor.systemGray// Unselected icon color
             appearance.stackedLayoutAppearance.normal.titleTextAttributes = [
                 .font: UIFont.customFont(name: "OpenSans-Bold", size: 10) ?? UIFont.systemFont(ofSize: 14, weight: .semibold), // Unselected text font
                 .foregroundColor: UIColor.systemGray // Unselected text color

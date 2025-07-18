@@ -1,17 +1,28 @@
 import SwiftUI
-import Firebase
-import FirebaseAuth
-import FirebaseFirestore
 
-struct HomeView : View {
-    @State private var isEditing = false
+struct FullNoteView: View {
+    let lastSaved: Date
+    let content: String
     @State private  var isFavorited = false
-    @State private var draftText = ""
-    @FocusState private var isTextFieldFocused: Bool
-    @EnvironmentObject var bannerManager: BannerManager
+    
+    private var formattedDate: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM d, yyyy"
+        return formatter.string(from: lastSaved)
+    }
 
+
+    
     var body: some View {
         VStack {
+            ZStack {
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(Color("TextColor"))
+                    .frame(width: 150, height: 5)
+            }
+            .padding(.top, 20)
+            .padding(.horizontal, 50)
+            
             HStack (spacing: 10){
                 Spacer()
                 
@@ -41,7 +52,7 @@ struct HomeView : View {
                 // MARK: Save Icon
                 Button(action: {
                     withAnimation {
-                        saveDraftToFirebase()
+                        // saveDraftToFirebase()
                     }
                 }) {
                     ZStack {
@@ -75,64 +86,25 @@ struct HomeView : View {
             .padding(.horizontal, 30)
             .padding(.top, 20)
             
-            ZStack(alignment: .topLeading) {
-                if draftText.isEmpty && !isTextFieldFocused {
-                    Text("Start your draft here")
-                        .font(.custom("OpenSans-Regular", size: 17))
-                        .foregroundColor(Color("TextColor").opacity(0.3))
-                        .padding(EdgeInsets(top: 12, leading: 10, bottom: 0, trailing: 0))
+            
+            VStack (alignment: .leading, spacing: 15)  {
+                HStack {
+                    Text(formattedDate)
+                        .font(.custom("OpenSans-SemiBold", size: 16))
+                        .foregroundColor(Color("TextColor").opacity(0.7))
+                    
+                    Spacer()
                 }
-
-                TextEditor(text: $draftText)
-                    .font(.custom("OpenSans-Regular", size: 17))
+                
+                Text(content)
+                    .font(.custom("OpenSans-Regular", size: 16))
                     .foregroundColor(Color("TextColor"))
-                    .scrollContentBackground(.hidden)
-                    .focused($isTextFieldFocused)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color("AppBackgroundColor"))
-            .cornerRadius(10)
-            .padding(.bottom, 20)
-            .padding(.horizontal, 25)
-            .onTapGesture {
-                isTextFieldFocused = true
-            }
-
-
+            .padding(.horizontal, 30)
+            
+            Spacer()
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color("AppBackgroundColor"))
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
-    private func saveDraftToFirebase() {
-        guard let userID = Auth.auth().currentUser?.uid else {
-            print("User is not authenticated.")
-            return
-        }
-
-        let db = Firestore.firestore()
-        let draftData: [String: Any] = [
-            "userID": userID,
-            "title": "Title",
-            "content": draftText,
-            "timestamp": FieldValue.serverTimestamp(),
-            "isFavorited": isFavorited
-        ]
-
-        db.collection("drafts").addDocument(data: draftData) { error in
-            if let error = error {
-                print("Error saving draft to Firestore: \(error.localizedDescription)")
-            } else {
-                print("Successfully saved in Firestore.")
-                draftText = ""
-                isEditing = false
-                bannerManager.show("Saved")
-            }
-        }
-    }
-
-}
-
-
-#Preview {
-    HomeView()
 }

@@ -23,6 +23,28 @@ struct ProfileView: View {
     @State private var drafts: [Draft] = []
     @State private var draftCount: Int = 0
     
+    @State private var selectedFilter: Filter? = nil
+    @State private var showFilterOptions: Bool = false
+    
+    
+    @State private var showNote: Bool = false
+    var filteredDrafts: [Draft] {
+        guard let selectedFilter = selectedFilter else {
+            return drafts
+        }
+
+        switch selectedFilter {
+        case .mostRecent:
+            return drafts.sorted { $0.timestamp > $1.timestamp }
+        case .favorites:
+            return drafts.filter { $0.isFavorited }
+        case .hidden:
+            return drafts.filter { $0.isHidden }
+        }
+    }
+
+    
+    
     var body: some View {
         ZStack {
             VStack {
@@ -30,16 +52,15 @@ struct ProfileView: View {
                     HStack (spacing: 15) {
                         GlowingView()
                         
-                        Text("Welcome, username") // MARK: Add username later
-                            .font(.custom("OpenSans-SemiBold", size: 24))
+                        Text("Welcome, username")
+                            .font(.custom("OpenSans-Regular", size: 24))
                     }
                     
                     Spacer()
                     
                     Button(action: {
-                        withAnimation {
                             showSettingsOverlayBinding.toggle()
-                        }
+                        
                     }) {
                         ZStack {
                             Ellipse()
@@ -60,13 +81,13 @@ struct ProfileView: View {
                     Ellipse()
                         .frame(width: 115, height: 115)
                         .foregroundColor(Color("BubbleColor"))
-               
+                    
                     VStack (alignment: .leading, spacing: 5) {
                         Text("@username") // MARK: Add username
-                            .font(.custom("OpenSans-Regular", size: 23))
+                            .font(.custom("OpenSans-SemiBold", size: 23))
                         
-                        Text("\(draftCount) drafts") // MARK: Add total note count
-                            .font(.custom("OpenSans-Bold", size: 16))
+                        Text("\(draftCount) notes") // MARK: Add total note count
+                            .font(.custom("OpenSans-Regular", size: 16))
                         
                         Text("# published") // MARK: Add total published count
                             .font(.custom("OpenSans-Regular", size: 16))
@@ -82,21 +103,45 @@ struct ProfileView: View {
                 
                 HStack {
                     Text("Archives")
-                        .font(.custom("OpenSans-SemiBold", size: 20))
+                        .font(.custom("OpenSans-SemiBold", size: 18))
                         .foregroundColor(Color("TextColor"))
                     
                     Spacer()
+                    
+                    ZStack {
+                        Rectangle()
+                            .frame(width: 80, height: 30)
+                            .cornerRadius(10)
+                            .foregroundColor(Color("BubbleColor"))
+                        Button(action: {
+                            showFilterOptions.toggle()
+                        }
+                        ) {
+                            HStack (spacing: 5) {
+                                Text("Filter")
+                                    .font(.custom("OpenSans-Regular", size: 14))
+                                    .foregroundColor(Color("TextColor"))
+                                Image("filterIcon")
+                                    .frame(width: 15, height: 15)
+                            }
+                        }
+                        
+                    }
+                    .popover(isPresented: $showFilterOptions, content: {
+                        FilterOptionsView(selection: $selectedFilter)
+                            .presentationCompactAdaptation(.popover)
+                    })
                 }
                 .padding(.top, 10)
-                .padding(.leading, 25)
+                .padding(.horizontal, 25)
                 
                 ScrollView {
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-                        ForEach(drafts) { draft in
-                            CardView(title: draft.title, content: draft.content)
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 20) {
+                        ForEach(filteredDrafts) { draft in
+                            CardView(title: draft.title, content: draft.content, timestamp: draft.timestamp)
                         }
                     }
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, 25)
                 }
                 .scrollIndicators(.hidden)
                 
