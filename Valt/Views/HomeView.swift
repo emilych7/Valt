@@ -9,6 +9,8 @@ struct HomeView : View {
     @State private var draftText = ""
     @FocusState private var isTextFieldFocused: Bool
     @EnvironmentObject var bannerManager: BannerManager
+    @State private var selectedMoreOption: MoreOption? = nil
+    @State private var showMoreOptions: Bool = false
 
     var body: some View {
         VStack {
@@ -58,7 +60,7 @@ struct HomeView : View {
                 // MARK: More Icon
                 Button(action: {
                     withAnimation {
-                        // do something
+                        showMoreOptions.toggle()
                     }
                 }) {
                     ZStack {
@@ -71,6 +73,10 @@ struct HomeView : View {
                     }
                 }
                 .buttonStyle(PlainButtonStyle())
+                .popover(isPresented: $showMoreOptions, content: {
+                    MoreOptionsView(selection: $selectedMoreOption)
+                        .presentationCompactAdaptation(.popover)
+                })
             }
             .padding(.horizontal, 30)
             .padding(.top, 20)

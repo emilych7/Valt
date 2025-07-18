@@ -211,7 +211,7 @@ struct PromptsView: View {
     private func callChatGPTAPI(history: [Message]) async throws -> String {
         // IMPORTANT: Replace with your actual OpenAI API Key.
         // For production apps, store this securely (e.g., in environment variables or a backend).
-        let openAIAPIKey = "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" // Get your key from https://platform.openai.com/account/api-keys
+        let openAIAPIKey = "FILL"
         let urlString = "https://api.openai.com/v1/chat/completions"
         guard let url = URL(string: urlString) else {
             throw NSError(domain: "ChatAppError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid OpenAI API URL"])
