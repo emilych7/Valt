@@ -3,6 +3,7 @@ import SwiftUI
 struct OnBoardingView: View {
     @State var offset: CGFloat = 0
     @State private var showingLoginSheet = false
+    @State private var showingSignUpSheet = false
 
     var body: some View {
         OffsetPageTabView(offset: $offset) {
@@ -14,6 +15,9 @@ struct OnBoardingView: View {
         }
         .sheet(isPresented: $showingLoginSheet) {
             LoginView()
+        }
+        .sheet(isPresented: $showingSignUpSheet) {
+            SignUpView()
         }
         .background(ellipseBackground, alignment: .leading)
         .background(dynamicScreenColor)
@@ -71,7 +75,7 @@ struct OnBoardingView: View {
                 }
 
                 Button {
-                    // Sign up action here
+                    showingSignUpSheet = true
                 } label: {
                     Text("Sign Up")
                         .fontWeight(.semibold)
