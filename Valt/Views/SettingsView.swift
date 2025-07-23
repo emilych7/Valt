@@ -24,9 +24,80 @@ struct SettingsView: View {
             }
             .padding(.leading, 25)
             .padding(.trailing, 25)
-            .padding(.top, 25)
+            VStack (spacing: 10) {
+                ZStack {
+                    HStack (spacing: 8) {
+                        Image("generalIcon")
+                            .frame(width: 20, height: 20)
+                        Text("General")
+                            .foregroundColor(Color("TextColor"))
+                            .font(.custom("OpenSans-Regular", size: 17))
+                        
+                        Spacer()
+                    }
+                    .padding(.horizontal, 15)
+                    
+                    RoundedRectangle(cornerRadius: 10)
+                        .foregroundStyle(Color("BubbleColor"))
+                        .frame(maxWidth: .infinity, maxHeight: 45)
+                }
+                
+                ZStack {
+                    HStack (spacing: 8) {
+                        Image("activityIcon")
+                            .frame(width: 20, height: 20)
+                        Text("Activity")
+                            .foregroundColor(Color("TextColor"))
+                            .font(.custom("OpenSans-Regular", size: 17))
+                        
+                        Spacer()
+                    }
+                    .padding(.horizontal, 15)
+                    
+                    RoundedRectangle(cornerRadius: 10)
+                        .foregroundStyle(Color("BubbleColor"))
+                        .frame(maxWidth: .infinity, maxHeight: 45)
+                }
+                
+                ZStack {
+                    HStack (spacing: 8) {
+                        Image("appearanceIcon")
+                            .frame(width: 20, height: 20)
+                        Text("Appearance")
+                            .foregroundColor(Color("TextColor"))
+                            .font(.custom("OpenSans-Regular", size: 17))
+                        
+                        Spacer()
+                    }
+                    .padding(.horizontal, 15)
+                    
+                    RoundedRectangle(cornerRadius: 10)
+                        .foregroundStyle(Color("BubbleColor"))
+                        .frame(maxWidth: .infinity, maxHeight: 45)
+                }
+                
+                ZStack {
+                    HStack (spacing: 8) {
+                        Image("securityIcon")
+                            .frame(width: 20, height: 20)
+                        Text("Security")
+                            .foregroundColor(Color("TextColor"))
+                            .font(.custom("OpenSans-Regular", size: 17))
+                        
+                        Spacer()
+                    }
+                    .padding(.horizontal, 15)
+                    
+                    RoundedRectangle(cornerRadius: 10)
+                        .foregroundStyle(Color("BubbleColor"))
+                        .frame(maxWidth: .infinity, maxHeight: 45)
+                }
+                
+            }
+            .padding(.horizontal, 30)
             
             Spacer()
+            
             VStack {
                 Button(action: {
                     do {
@@ -38,22 +109,20 @@ struct SettingsView: View {
                         }
                 }) {
                     ZStack {
-                        RoundedRectangle(cornerRadius: 10)
-                            .frame(width: 150, height: 50)
-                            .background(Color("BubbleColor"))
-                        
                         Text("Sign Out")
                             .font(.custom("OpenSans-SemiBold", size: 19))
                             .foregroundColor(.white)
+                        RoundedRectangle(cornerRadius: 10)
+                            .frame(width: 150, height: 50)
+                            .background(Color("BubbleColor"))
                     }
                 }
             }
-            
-            Spacer()
         }
+        .padding(.vertical, 70)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color("AppBackgroundColor")) // Distinct background for Settings overlay
+        .background(Color("AppBackgroundColor"))
         .padding(.leading, UIScreen.main.bounds.width * 0.20)
-        // .ignoresSafeArea(.all, edges: .all) // Covers status bar and tab bar when active
+        .ignoresSafeArea(.all, edges: .all)
     }
 }
