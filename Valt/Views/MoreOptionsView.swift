@@ -8,12 +8,13 @@ struct MoreOptionsView: View {
     let rows = [GridItem(.adaptive(minimum: 100), spacing: 3)]
     
     var body: some View {
-        ScrollView {
-            LazyVGrid(columns: rows) {
+        LazyVGrid(columns: rows) {
                 ForEach(MoreOption.allCases) { option in
                     Button(action: {
-                        selection = option
-                        dismiss()
+                        withAnimation {
+                            selection = option
+                        }
+                        // dismiss()
                     }) {
                         HStack (spacing: 5) {
                             Image("checkmarkIcon")
@@ -28,7 +29,6 @@ struct MoreOptionsView: View {
                         }
                     }
                 }
-            }
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 20)

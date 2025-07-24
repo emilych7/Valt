@@ -12,21 +12,25 @@ struct FilterOptionsView: View {
             LazyVGrid(columns: rows) {
                 ForEach(Filter.allCases) { filter in
                     Button(action: {
-                        selection = filter
-                        dismiss()
+                        withAnimation {
+                            selection = filter
+                        }
+                        // dismiss()
                     }) {
-                        HStack (spacing: 5) {
+                        HStack(spacing: 10) {
                             Image("checkmarkIcon")
+                                .resizable()
                                 .frame(width: 15, height: 15)
-                            
+                                .opacity(selection == filter ? 1 : 0)
+
                             Text(filter.rawValue)
-                            // .background(selection == filter ? Color.blue : Color.gray)
                                 .foregroundColor(Color("TextColor"))
                                 .font(.custom("OpenSans-Regular", size: 17))
-                            
+
                             Spacer()
                         }
                     }
+
                 }
             }
         }
