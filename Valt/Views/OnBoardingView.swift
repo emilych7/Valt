@@ -20,7 +20,7 @@ struct OnBoardingView: View {
             SignUpView()
         }
         .background(ellipseBackground, alignment: .leading)
-        .background(dynamicScreenColor)
+        .background(Color("AppBackgroundColor"))
         .ignoresSafeArea(.container, edges: .all)
         .overlay(bottomButtons, alignment: .bottom)
         .overlay(topNavigationBar, alignment: .top)
@@ -42,8 +42,7 @@ struct OnBoardingView: View {
 
     private var ellipseBackground: some View {
         Ellipse()
-            .fill(Color("AppBackgroundColor"))
-            // .stroke(Color("BorderColor"), lineWidth: 2)
+            .fill(Color("TextFieldBackground"))
             .frame(width: getScreenBounds().width - 100, height: getScreenBounds().width - 10)
             .scaleEffect(2)
             .rotationEffect(.degrees(-30))
@@ -51,47 +50,41 @@ struct OnBoardingView: View {
             .offset(y: -getScreenBounds().width + 55)
     }
 
-    private var dynamicScreenColor: some View {
-        Color("screen\(getIndex() + 1)")
-            .animation(.easeInOut, value: getIndex())
-    }
-
     private var bottomButtons: some View {
         VStack {
             HStack(spacing: 25) {
                 Button {
-                    showingLoginSheet = true
-                } label: {
-                    Text("Login")
-                        .fontWeight(.semibold)
-                        .foregroundColor(Color("TextColor"))
-                        .padding(.vertical, 20)
-                        .frame(maxWidth: .infinity)
-                        .background(Color("BubbleColor"), in: RoundedRectangle(cornerRadius: 12))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color("BorderColor"), lineWidth: 1)
-                        )
-                }
-
-                Button {
                     showingSignUpSheet = true
                 } label: {
                     Text("Sign Up")
-                        .fontWeight(.semibold)
-                        .foregroundColor(Color("TextColor"))
+                        .font(.custom("OpenSans-Bold", size: 20))
+                        .foregroundColor(Color("OnBoardingButtons"))
                         .padding(.vertical, 20)
                         .frame(maxWidth: .infinity)
-                        .background(Color("BubbleColor"), in: RoundedRectangle(cornerRadius: 12))
+                        .background(Color("AppBackgroundColor"), in: RoundedRectangle(cornerRadius: 12))
                         .overlay(
                             RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color("BorderColor"), lineWidth: 1)
+                                .stroke(Color("OnBoardingButtons"), lineWidth: 2)
+                        )
+                }
+                
+                Button {
+                    showingLoginSheet = true
+                } label: {
+                    Text("Login")
+                        .font(.custom("OpenSans-Bold", size: 20))
+                        .foregroundColor(Color("OnBoardingButtonText"))
+                        .padding(.vertical, 20)
+                        .frame(maxWidth: .infinity)
+                        .background(Color("OnBoardingButtons"), in: RoundedRectangle(cornerRadius: 12))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color("OnBoardingButtons"), lineWidth: 2)
                         )
                 }
             }
         }
-        .padding()
-        .padding(.bottom, 10)
+        .padding(.horizontal, 30)
     }
 
     private var topNavigationBar: some View {
@@ -101,15 +94,17 @@ struct OnBoardingView: View {
                     offset = max(offset - getScreenBounds().width, 0)
                 }
             }
-            .fontWeight(.semibold)
+            .font(.custom("OpenSans-SemiBold", size: 14))
             .foregroundColor(Color("TextColor"))
             .buttonStyle(.borderedProminent)
             .cornerRadius(14)
-            .tint(Color("BubbleColor"))
+            .tint(Color("OnBoardingNavigation"))
+            .opacity(getIndex() == 0 ? 0 : 1)
             .disabled(getIndex() == 0)
             .overlay(
                 RoundedRectangle(cornerRadius: 14)
-                    .stroke(Color("BorderColor"), lineWidth: 1)
+                    .stroke(Color("OnBoardingNavigation"), lineWidth: 1)
+                    .opacity(getIndex() == 0 ? 0 : 1)
             )
 
             Spacer()
@@ -117,7 +112,7 @@ struct OnBoardingView: View {
             HStack(spacing: 3) {
                 ForEach(boardingScreens.indices, id: \.self) { index in
                     Circle()
-                        .fill(Color("TextColor"))
+                        .fill(Color("TextFieldBackground"))
                         .opacity(index == getIndex() ? 1 : 0.4)
                         .frame(width: 8, height: 8)
                         .scaleEffect(index == getIndex() ? 1.2 : 0.75)
@@ -133,18 +128,20 @@ struct OnBoardingView: View {
                     offset = min(offset + getScreenBounds().width, getScreenBounds().width * 3)
                 }
             }
-            .fontWeight(.semibold)
+            .font(.custom("OpenSans-SemiBold", size: 14))
             .foregroundColor(Color("TextColor"))
             .buttonStyle(.borderedProminent)
             .cornerRadius(14)
-            .tint(Color("BubbleColor"))
+            .opacity(getIndex() == 2 ? 0 : 1)
             .disabled(getIndex() == 2)
+            .tint(Color("OnBoardingNavigation"))
             .overlay(
                 RoundedRectangle(cornerRadius: 14)
-                    .stroke(Color("BorderColor"), lineWidth: 1)
+                    .stroke(Color("OnBoardingNavigation"), lineWidth: 1)
+                    .opacity(getIndex() == 2 ? 0 : 1)
             )
         }
-        .padding()
+        .padding(.horizontal, 25)
     }
 }
 
@@ -152,28 +149,32 @@ struct OnBoardingPage: View {
     let screen: BoardingScreen
 
     var body: some View {
-        VStack(spacing: 5) {
+        VStack {
             Spacer()
 
             Image(screen.image)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(width: getScreenBounds().width - 100,
-                       height: getScreenBounds().width - 100)
-                .scaleEffect(getScreenBounds().height < 750 ? 0.9 : 1)
+                .frame(width: 420, height: 240)
+                // .scaleEffect(getScreenBounds().height < 750 ? 0.9 : 1)
                 .offset(y: getScreenBounds().height < 750 ? -100 : -120)
 
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 15) {
                 Text(screen.title)
-                    .font(.largeTitle.bold())
+                    .font(.custom("OpenSans-Bold", size: 30))
                     .foregroundColor(Color("TextColor"))
-                    .padding(.top, 20)
+                
+                Text(screen.subtitle)
+                    .font(.custom("OpenSans-SemiBold", size: 22))
+                    .foregroundColor(Color("TextColor"))
 
                 Text(screen.description)
+                    .font(.custom("OpenSans-Regular", size: 17))
                     .foregroundColor(Color("TextColor"))
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .offset(y: -50)
+            .padding(.horizontal, 20)
+            .offset(y: -30)
 
             Spacer()
         }
