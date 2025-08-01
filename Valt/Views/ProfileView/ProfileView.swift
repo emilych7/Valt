@@ -1,23 +1,20 @@
 import SwiftUI
 import PhotosUI
-import UIKit
-
-extension UIImage {
-    func resized(to newSize: CGSize, quality: CGFloat = 0.8) -> UIImage? {
-        UIGraphicsBeginImageContextWithOptions(newSize, false, 1.0)
-        self.draw(in: CGRect(x: 0, y: 0, width: newSize.width, height: newSize.height))
-        let newImage = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        return newImage
-    }
-}
 
 struct ProfileView: View {
     @StateObject private var viewModel = ProfileViewModel()
+    
     @Binding var showSettingsOverlayBinding: Bool
+    
+    // Filter selection state
     @State private var selectedFilter: Filter? = nil
     @State private var showFilterOptions: Bool = false
+    
+    // Show full note state
     @State private var showNote: Bool = false
+    
+    // Profile picture picker state
+    @State private var selectedItem: PhotosPickerItem? = nil
     
     var filteredDrafts: [Draft] {
         guard let selectedFilter = selectedFilter else {
@@ -34,15 +31,11 @@ struct ProfileView: View {
         }
     }
     
-    // 3-column grid layout
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 15), count: 3)
-
     var body: some View {
         ZStack {
             VStack {
-                // MARK: Header
                 HStack {
-                    HStack(spacing: 15) {
+                    HStack (spacing: 15) {
                         GlowingView()
                         Text("Welcome, username")
                             .font(.custom("OpenSans-Regular", size: 24))
@@ -66,31 +59,60 @@ struct ProfileView: View {
                 .padding(.top, 20)
                 .padding(.trailing, 25)
                 
-                // MARK: Profile Info
+                // Profile Section
                 HStack {
-                    Ellipse()
-                        .frame(width: 115, height: 115)
-                        .foregroundColor(Color("BubbleColor"))
+                    PhotosPicker(selection: $selectedItem, matching: .images, photoLibrary: .shared()) {
+                        ZStack {
+                            if let profileImage = viewModel.profileImage {
+                                Image(uiImage: profileImage)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 115, height: 115)
+                                    .clipShape(Ellipse())
+                            } else {
+                                Ellipse()
+                                    .frame(width: 115, height: 115)
+                                    .foregroundColor(Color("BubbleColor"))
+                                    .overlay(
+                                        Image(systemName: "camera.fill")
+                                            .foregroundColor(.gray)
+                                            .font(.system(size: 24))
+                                    )
+                            }
+                        }
+                    }
+                    .frame(width: 115, height: 115)
+                    .onChange(of: selectedItem) { oldValue, newValue in
+                        Task {
+                            if let item = newValue,
+                               let data = try? await item.loadTransferable(type: Data.self),
+                               let uiImage = UIImage(data: data) {
+                                viewModel.uploadProfilePicture(uiImage)
+                            }
+                        }
+                    }
+
                     
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text("@username") // TODO: Add username
+                    VStack (alignment: .leading, spacing: 5) {
+                        Text("@username") // Replace with actual username if available
                             .font(.custom("OpenSans-SemiBold", size: 23))
                         
-                        Text("\(viewModel.draftCount) notes") // TODO: Add total note count
+                        Text("\(viewModel.draftCount) notes")
                             .font(.custom("OpenSans-Regular", size: 16))
                         
-                        Text("# published") // TODO: Add published count
+                        Text("# published") // Replace with published count if available
                             .font(.custom("OpenSans-Regular", size: 16))
                     }
                     .padding(.horizontal, 5)
                     .foregroundColor(Color("TextColor"))
                     
                     Spacer()
+                    
                 }
                 .padding(.leading, 35)
                 .padding(.trailing, 20)
                 
-                // MARK: Archives Header
+                // Archives Header
                 HStack {
                     Text("Archives")
                         .font(.custom("OpenSans-SemiBold", size: 18))
@@ -103,8 +125,9 @@ struct ProfileView: View {
                             .foregroundColor(Color("BubbleColor"))
                         Button(action: {
                             showFilterOptions.toggle()
-                        }) {
-                            HStack(spacing: 5) {
+                        }
+                        ) {
+                            HStack (spacing: 5) {
                                 Text("Filter")
                                     .font(.custom("OpenSans-Regular", size: 14))
                                     .foregroundColor(Color("TextColor"))
@@ -113,30 +136,24 @@ struct ProfileView: View {
                             }
                         }
                     }
-                    .popover(isPresented: $showFilterOptions) {
+                    .popover(isPresented: $showFilterOptions, content: {
                         FilterOptionsView(selection: $selectedFilter)
                             .presentationCompactAdaptation(.popover)
-                    }
+                    })
                 }
                 .padding(.top, 10)
                 .padding(.horizontal, 25)
                 
-                // MARK: Draft Grid
+                // Drafts Grid
                 ScrollView {
-                    LazyVGrid(columns: columns, spacing: 20) {
+                    LazyVGrid(columns: [
+                        GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())
+                    ], spacing: 20) {
                         ForEach(filteredDrafts) { draft in
-                            CardView(
-                                title: draft.title,
-                                content: draft.content,
-                                timestamp: draft.timestamp
-                            )
-                            .frame(
-                                maxWidth: (UIScreen.main.bounds.width - 60) / 3
-                            ) // 3 columns with spacing
+                            CardView(title: draft.title, content: draft.content, timestamp: draft.timestamp)
                         }
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 10)
+                    .padding(.horizontal, 25)
                 }
                 .scrollIndicators(.hidden)
                 Spacer()
@@ -147,6 +164,7 @@ struct ProfileView: View {
         .onAppear {
             viewModel.loadDrafts()
             viewModel.fetchDraftCount()
+            viewModel.fetchProfilePicture()
         }
     }
 }

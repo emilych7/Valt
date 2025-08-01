@@ -1,34 +1,54 @@
 import SwiftUI
 import UIKit
 
+enum ContentTabViewSelection {
+    case profile
+    case home
+    case prompts
+
+    var label: some View {
+        switch self {
+        case .profile:
+            return Label("Profile", image: "profileIcon")
+        case .home:
+            return Label("Create", image: "createIcon")
+        case .prompts:
+            return Label("Prompts", image: "promptsIcon")
+        }
+    }
+}
+
 struct ContentView: View {
     @StateObject private var authViewModel = AuthViewModel()
     @State private var showGlobalSettingsOverlay: Bool = false
     @StateObject private var bannerManager = BannerManager()
+    @StateObject private var userVM = UserViewModel()
+    @State private var selection: ContentTabViewSelection = .profile
+
+    @Environment(\.colorScheme) var colorScheme
 
     init() {
-            let appearance = UITabBarAppearance()
-        
-            appearance.backgroundColor = UIColor(Color("AppBackgroundColor"))
-                appearance.shadowImage = UIImage() // Removes the default shadow line
-                appearance.shadowColor = .clear
+        let appearance = UITabBarAppearance()
+        appearance.backgroundColor = UIColor(Color("AppBackgroundColor"))
+        appearance.shadowImage = UIImage()
+        appearance.shadowColor = .clear
 
-            // Selected items
-            appearance.selectionIndicatorImage = UIImage() // Removes default selection indicator
-            appearance.stackedLayoutAppearance.selected.iconColor = UIColor(Color("TextColor")) // Selected icon color
-            appearance.stackedLayoutAppearance.selected.titleTextAttributes = [
-                .font: UIFont.customFont(name: "OpenSans-Bold", size: 10) ?? UIFont.systemFont(ofSize: 14, weight: .semibold), // Selected text font
-                .foregroundColor: UIColor(Color("TextColor")) // Selected text color
-            ]
-            
-        appearance.stackedLayoutAppearance.normal.iconColor = UIColor.systemGray// Unselected icon color
-            appearance.stackedLayoutAppearance.normal.titleTextAttributes = [
-                .font: UIFont.customFont(name: "OpenSans-Bold", size: 10) ?? UIFont.systemFont(ofSize: 14, weight: .semibold), // Unselected text font
-                .foregroundColor: UIColor.systemGray // Unselected text color
-            ]
-            UITabBar.appearance().scrollEdgeAppearance = appearance
-        }
-    
+        // ✅ Fixed font to always return a UIFont (no optional)
+        appearance.stackedLayoutAppearance.selected.iconColor = UIColor(Color("TextColor"))
+        appearance.stackedLayoutAppearance.selected.titleTextAttributes = [
+            .font: UIFont(name: "OpenSans-Bold", size: 10) ?? UIFont.systemFont(ofSize: 10, weight: .semibold),
+            .foregroundColor: UIColor(Color("TextColor"))
+        ]
+
+        appearance.stackedLayoutAppearance.normal.iconColor = UIColor.systemGray
+        appearance.stackedLayoutAppearance.normal.titleTextAttributes = [
+            .font: UIFont(name: "OpenSans-Bold", size: 10) ?? UIFont.systemFont(ofSize: 10, weight: .semibold),
+            .foregroundColor: UIColor.systemGray
+        ]
+
+        UITabBar.appearance().scrollEdgeAppearance = appearance
+    }
+
     var body: some View {
         if authViewModel.isAuthenticated {
             ZStack {
@@ -37,18 +57,22 @@ struct ContentView: View {
                         .tabItem {
                             Label("Create", image: "createIcon")
                         }
+
                     PromptsView()
                         .tabItem {
                             Label("Prompts", image: "promptsIcon")
                         }
+
                     ProfileView(showSettingsOverlayBinding: $showGlobalSettingsOverlay)
+                        .tag(ContentTabViewSelection.profile)
+                        .environmentObject(userVM)
                         .tabItem {
-                            Label("Profile", image: "profileIcon")
-                            
+                            profileTabItemLabel()
                         }
                 }
                 .tint(Color("TextColor"))
-                
+
+                // Settings Overlay
                 ZStack {
                     if showGlobalSettingsOverlay {
                         Color.black.opacity(0.2)
@@ -60,7 +84,7 @@ struct ContentView: View {
                             }
                             .transition(.opacity)
                     }
-                    
+
                     if showGlobalSettingsOverlay {
                         SettingsView(isShowingOverlay: $showGlobalSettingsOverlay)
                             .transition(.move(edge: .trailing).combined(with: .opacity))
@@ -68,7 +92,8 @@ struct ContentView: View {
                     }
                 }
                 .animation(.easeInOut(duration: 0.3), value: showGlobalSettingsOverlay)
-                
+
+                // Banner Manager
                 if bannerManager.isVisible {
                     VStack {
                         Text(bannerManager.message)
@@ -84,27 +109,60 @@ struct ContentView: View {
                     }
                     .transition(.move(edge: .top).combined(with: .opacity))
                     .zIndex(2)
-                    
                 }
             }
             .environmentObject(bannerManager)
-        }
-        else {
+        } else {
             OnBoardingView()
                 .environmentObject(authViewModel)
         }
     }
-    
+
+    private var binding: Binding<ContentTabViewSelection> {
+        .init {
+            selection
+        } set: { selection in
+            self.selection = selection
+        }
+    }
+
 }
 
-extension UIFont {
-    static func customFont(name: String, size: CGFloat) -> UIFont? {
-        if let font = UIFont(name: name, size: size) {
-            return font
-        } else {
-            print("Warning: Font '\(name)' not found. Using default.")
-            return nil
+private extension ContentView {
+    @ViewBuilder
+    private func profileTabItemLabel() -> some View {
+        ZStack {
+            Label {
+                Text("Profile")
+            } icon: {
+                if let profilePicture = (userVM.profilePicture)?.createTabItemLabelFromImage(selection == .profile) {
+                    Image(uiImage: profilePicture)
+                } else {
+                    ContentTabViewSelection.profile.label
+                }
+            }
         }
+        .animation(.none, value: colorScheme)
+    }
+}
+
+fileprivate extension UIImage {
+    func createTabItemLabelFromImage(_ isSelected: Bool) -> UIImage? {
+        let imageSize = CGSize(width: 24, height: 24)
+        return UIGraphicsImageRenderer(size: imageSize).image { context in
+            let rect = CGRect(origin: .init(x: 0, y: 0), size: imageSize)
+            let clipPath = UIBezierPath(ovalIn: rect)
+            clipPath.addClip()
+            self.draw(in: rect)
+
+            if isSelected {
+                context.cgContext.setStrokeColor(UIColor.black.cgColor)
+                context.cgContext.setLineJoin(.round)
+                context.cgContext.setLineCap(.round)
+                clipPath.lineWidth = 3
+                clipPath.stroke()
+            }
+        }.withRenderingMode(.alwaysOriginal)
     }
 }
 
