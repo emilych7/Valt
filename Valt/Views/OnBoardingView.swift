@@ -47,7 +47,7 @@ struct OnBoardingView: View {
             .scaleEffect(2)
             .rotationEffect(.degrees(-30))
             .rotationEffect(.degrees(getRotation()))
-            .offset(y: -getScreenBounds().width + 55)
+            .offset(y: -getScreenBounds().width + 35)
     }
 
     private var bottomButtons: some View {
@@ -85,38 +85,32 @@ struct OnBoardingView: View {
             }
         }
         .padding(.horizontal, 30)
+        .padding(.bottom, 40)
     }
 
     private var topNavigationBar: some View {
         HStack {
             Button("Back") {
-                withAnimation {
-                    offset = max(offset - getScreenBounds().width, 0)
-                }
+                offset = max(offset - getScreenBounds().width, 0)
             }
-            .font(.custom("OpenSans-SemiBold", size: 14))
+            .font(.custom("OpenSans-SemiBold", size: 13))
             .foregroundColor(Color("TextColor"))
             .buttonStyle(.borderedProminent)
             .cornerRadius(14)
-            .tint(Color("OnBoardingNavigation"))
+            .tint(Color("OnBoardingNavigation").opacity(0.50))
             .opacity(getIndex() == 0 ? 0 : 1)
             .disabled(getIndex() == 0)
-            .overlay(
-                RoundedRectangle(cornerRadius: 14)
-                    .stroke(Color("OnBoardingNavigation"), lineWidth: 1)
-                    .opacity(getIndex() == 0 ? 0 : 1)
-            )
 
             Spacer()
 
             HStack(spacing: 3) {
                 ForEach(boardingScreens.indices, id: \.self) { index in
                     Circle()
-                        .fill(Color("TextFieldBackground"))
+                        .fill(Color("TextColor"))
                         .opacity(index == getIndex() ? 1 : 0.4)
                         .frame(width: 8, height: 8)
                         .scaleEffect(index == getIndex() ? 1.2 : 0.75)
-                        .animation(.easeInOut, value: getIndex())
+                        .animation(.smooth, value: getIndex())
                 }
             }
             .frame(maxWidth: .infinity)
@@ -124,22 +118,16 @@ struct OnBoardingView: View {
             Spacer()
 
             Button("Next") {
-                withAnimation {
-                    offset = min(offset + getScreenBounds().width, getScreenBounds().width * 3)
-                }
+                offset = min(offset + getScreenBounds().width, getScreenBounds().width * 3)
+                
             }
-            .font(.custom("OpenSans-SemiBold", size: 14))
+            .font(.custom("OpenSans-SemiBold", size: 13))
             .foregroundColor(Color("TextColor"))
             .buttonStyle(.borderedProminent)
             .cornerRadius(14)
             .opacity(getIndex() == 2 ? 0 : 1)
             .disabled(getIndex() == 2)
-            .tint(Color("OnBoardingNavigation"))
-            .overlay(
-                RoundedRectangle(cornerRadius: 14)
-                    .stroke(Color("OnBoardingNavigation"), lineWidth: 1)
-                    .opacity(getIndex() == 2 ? 0 : 1)
-            )
+            .tint(Color("OnBoardingNavigation").opacity(0.50))
         }
         .padding(.horizontal, 25)
     }
@@ -159,7 +147,7 @@ struct OnBoardingPage: View {
                 // .scaleEffect(getScreenBounds().height < 750 ? 0.9 : 1)
                 .offset(y: getScreenBounds().height < 750 ? -100 : -120)
 
-            VStack(alignment: .leading, spacing: 15) {
+            VStack(alignment: .leading, spacing: 10) {
                 Text(screen.title)
                     .font(.custom("OpenSans-Bold", size: 30))
                     .foregroundColor(Color("TextColor"))
@@ -171,6 +159,7 @@ struct OnBoardingPage: View {
                 Text(screen.description)
                     .font(.custom("OpenSans-Regular", size: 17))
                     .foregroundColor(Color("TextColor"))
+                    .padding(.top, 15)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 20)
@@ -178,7 +167,6 @@ struct OnBoardingPage: View {
 
             Spacer()
         }
-        .padding()
         .frame(width: getScreenBounds().width)
         .frame(maxHeight: .infinity)
     }

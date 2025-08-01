@@ -96,7 +96,6 @@ struct ContentView: View {
     }
     
 }
-    
 
 extension UIFont {
     static func customFont(name: String, size: CGFloat) -> UIFont? {

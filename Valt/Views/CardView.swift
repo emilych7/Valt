@@ -10,24 +10,36 @@ struct CardView: View {
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 10)
-                .foregroundColor(.white)
+                .foregroundColor(Color("TextFieldBackground"))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color("TextColor").opacity(0.2), lineWidth: 1) // border
+                    )
+                .shadow(color: Color.black.opacity(0.25), radius: 4, x: 0, y: 2)
             
-            VStack(alignment: .leading, spacing: 10) {
-                /*
-                Text(title)
-                    .font(.custom("OpenSans-SemiBold", size: 14))
-                    .foregroundColor(Color("TextColor"))
-                    .lineLimit(2)
-                 */
-                Text(content)
-                    .font(.custom("OpenSans-Regular", size: 10))
-                    .foregroundColor(.black)
-                    .lineLimit(1)
-                Spacer()
+            VStack {
+                HStack (spacing: 5) {
+                    Spacer()
+                    Image("promptsIcon")
+                        .resizable()
+                        .frame(width: 15, height: 15)
+                    
+                    Image("Favorite-Active")
+                        .resizable()
+                        .frame(width: 15, height: 15)
+                }
+                VStack (alignment: .leading) {
+                    Text(content)
+                        .font(.custom("OpenSans-Regular", size: 6))
+                        .foregroundColor(Color("TextColor"))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Spacer()
+                }
+                .frame(width: 90, height: 110)
             }
-            // .frame(width: 150, height: 255)
+            .padding(10)
         }
-        .frame(width: 160, height: 245)
+        .frame(width: 110, height: 155)
         .onTapGesture {
             showFullNote = true
         }
@@ -37,3 +49,6 @@ struct CardView: View {
         }
     }
 }
+
+
+
