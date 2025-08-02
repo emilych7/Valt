@@ -1,2 +1,12 @@
-Constants.swift
+# Ignore your local secrets file
+Valt/Constants.swift
 
+# Optional: if you use a Secrets.plist or .env file
+Secrets.plist
+.env
+
+# Xcode and macOS default ignores
+.DS_Store
+xcuserdata/
+DerivedData/
+build/

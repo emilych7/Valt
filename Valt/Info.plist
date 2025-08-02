@@ -2,21 +2,38 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>UIAppFonts</key>
-	<array>
-		<string>OpenSans-Bold.ttf</string>
-		<string>OpenSans-ExtraBold.ttf</string>
-		<string>OpenSans-Light.ttf</string>
-		<string>OpenSans-Medium.ttf</string>
-		<string>OpenSans-Regular.ttf</string>
-		<string>OpenSans-SemiBold.ttf</string>
-	</array>
-	<key>UILaunchScreen</key>
-	<dict>
-		<key>UIColorName</key>
-		<string>AppBackgroundColor</string>
-		<key>UIImageName</key>
-		<string>launchscreen</string>
-	</dict>
+    <key>UIAppFonts</key>
+    <array>
+        <string>OpenSans-Bold.ttf</string>
+        <string>OpenSans-ExtraBold.ttf</string>
+        <string>OpenSans-Light.ttf</string>
+        <string>OpenSans-Medium.ttf</string>
+        <string>OpenSans-Regular.ttf</string>
+        <string>OpenSans-SemiBold.ttf</string>
+    </array>
+    <key>UILaunchScreen</key>
+    <dict>
+        <key>UIColorName</key>
+        <string>AppBackgroundColor</string>
+        <key>UIImageName</key>
+        <string>launchscreen</string>
+    </dict>
+
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSExceptionDomains</key>
+        <dict>
+            <key>api.openai.com</key>
+            <dict>
+                <key>NSIncludesSubdomains</key>
+                <true/>
+                <key>NSExceptionAllowsInsecureHTTPLoads</key>
+                <true/>
+                <key>NSExceptionRequiresForwardSecrecy</key>
+                <false/>
+            </dict>
+        </dict>
+    </dict>
+
 </dict>
 </plist>

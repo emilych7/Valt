@@ -30,13 +30,13 @@ struct PromptsView: View {
             
             HStack (spacing: 15) {
                 ZStack {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color("TextFieldBackground"))
+                        .stroke(Color("TextFieldBorder"), lineWidth: 1)
                     Text(viewModel.generatedPrompt)
                         .font(.custom("OpenSans-Regular", size: 15))
                         .foregroundColor(Color("TextColor"))
                         .padding(.horizontal, 10)
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color("TextFieldBackground"))
-                        .stroke(Color("TextFieldBorder"), lineWidth: 1)
                 }
                 .frame(maxWidth: .infinity, maxHeight: 75)
             }

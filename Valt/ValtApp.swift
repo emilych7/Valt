@@ -1,6 +1,5 @@
 import SwiftUI
 import FirebaseCore
-import FirebaseAppCheck
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(
@@ -9,7 +8,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     ) -> Bool {
 
         FirebaseApp.configure()
-
+/*
         #if DEBUG
         let providerFactory = AppCheckDebugProviderFactory()
         AppCheck.setAppCheckProviderFactory(providerFactory)
@@ -24,7 +23,9 @@ class AppDelegate: NSObject, UIApplicationDelegate {
                 print("No App Check token returned")
             }
         }
+        
         #endif
+ */
 
         return true
     }

@@ -8,30 +8,35 @@ struct MoreOptionsView: View {
     let rows = [GridItem(.adaptive(minimum: 100), spacing: 3)]
     
     var body: some View {
-        LazyVGrid(columns: rows) {
-                ForEach(MoreOption.allCases) { option in
+        ScrollView {
+            LazyVGrid(columns: rows) {
+                ForEach(MoreOption.allCases) { moreOption in
                     Button(action: {
                         withAnimation {
-                            selection = option
+                            selection = moreOption
                         }
                         // dismiss()
                     }) {
-                        HStack (spacing: 5) {
+                        HStack(spacing: 10) {
                             Image("checkmarkIcon")
+                                .resizable()
                                 .frame(width: 15, height: 15)
-                            
-                            Text(option.rawValue)
-                            // .background(selection == filter ? Color.blue : Color.gray)
+                                .opacity(selection == moreOption ? 1 : 0)
+
+                            Text(moreOption.rawValue)
                                 .foregroundColor(Color("TextColor"))
                                 .font(.custom("OpenSans-Regular", size: 17))
-                            
+
                             Spacer()
                         }
                     }
+
                 }
+            }
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 20)
         .background(Color("AppBackgroundColor"))
     }
 }
+

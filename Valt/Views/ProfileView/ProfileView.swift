@@ -154,6 +154,7 @@ struct ProfileView: View {
                         }
                     }
                     .padding(.horizontal, 25)
+                    .padding(.vertical, 10)
                 }
                 .scrollIndicators(.hidden)
                 Spacer()
