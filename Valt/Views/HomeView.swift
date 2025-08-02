@@ -117,7 +117,7 @@ struct HomeView : View {
 
         let db = Firestore.firestore()
         let draftData: [String: Any] = [
-            "userID": userID,
+            "userID": userID,                          // Must match rules
             "title": "Title",
             "content": draftText,
             "timestamp": FieldValue.serverTimestamp(),
@@ -127,6 +127,7 @@ struct HomeView : View {
         db.collection("drafts").addDocument(data: draftData) { error in
             if let error = error {
                 print("Error saving draft to Firestore: \(error.localizedDescription)")
+                bannerManager.show("Failed to save: \(error.localizedDescription)")
             } else {
                 print("Successfully saved in Firestore.")
                 draftText = ""
@@ -135,6 +136,7 @@ struct HomeView : View {
             }
         }
     }
+
 
 }
 

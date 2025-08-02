@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SignUpView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
+    @State private var username = ""
     @State private var email = ""
     @State private var password = ""
     
@@ -16,9 +17,10 @@ struct SignUpView: View {
             }
             .padding(.top, 110)
             
+            // Username Field
             VStack (spacing: 5){
                 HStack {
-                    Text("Username or Email")
+                    Text("Username")
                         .font(.custom("OpenSans-Regular", size: 17))
                         .foregroundColor(Color("TextColor"))
                     
@@ -34,7 +36,7 @@ struct SignUpView: View {
                                 .stroke(Color("TextFieldBorder"), lineWidth: 1) // border
                             )
                     
-                    TextField("              ", text: $email)
+                    TextField(" ", text: $username)
                         .textFieldStyle(.plain)
                         .keyboardType(.emailAddress)
                         .autocapitalization(.none)
@@ -43,6 +45,35 @@ struct SignUpView: View {
                 }
             }
             .padding(.top, 20)
+            .padding(.bottom, 5)
+            
+            // Email Field
+            VStack (spacing: 5){
+                HStack {
+                    Text("Email")
+                        .font(.custom("OpenSans-Regular", size: 17))
+                        .foregroundColor(Color("TextColor"))
+                    
+                    Spacer ()
+                }
+                
+                ZStack {
+                    RoundedRectangle(cornerRadius: 10)
+                        .frame(height: 50)
+                        .foregroundColor(Color("TextFieldBackground"))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color("TextFieldBorder"), lineWidth: 1) // border
+                            )
+                    
+                    TextField(" ", text: $email)
+                        .textFieldStyle(.plain)
+                        .keyboardType(.emailAddress)
+                        .autocapitalization(.none)
+                        .disableAutocorrection(true)
+                        .padding(.horizontal)
+                }
+            }
             .padding(.bottom, 5)
             
             VStack (spacing: 5){
@@ -96,7 +127,7 @@ struct SignUpView: View {
             VStack {
                 Button("Sign Up") {
                     Task {
-                        await authViewModel.signIn(email: email, password: password)
+                        await authViewModel.signUp(email: email, password: password, username: username)
                     }
                 }
                 .foregroundColor(.white)

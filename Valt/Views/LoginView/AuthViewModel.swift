@@ -30,7 +30,7 @@ class AuthViewModel: ObservableObject {
 
     // MARK: Email and Password Authentication
 
-    func signUp(email: String, password: String) async {
+    func signUp(email: String, password: String, username: String) async {
         errorMessage = nil
         do {
             let result = try await Auth.auth().createUser(withEmail: email, password: password)
@@ -39,7 +39,9 @@ class AuthViewModel: ObservableObject {
             let userData: [String: Any] = [
                 "uid": result.user.uid,
                 "email": result.user.email ?? "",
+                "username": username,
                 "createdAt": FieldValue.serverTimestamp()
+                
             ]
             try await db.collection("users").document(result.user.uid).setData(userData)
             print("User data saved to Firestore.")

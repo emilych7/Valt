@@ -76,9 +76,6 @@ final class PromptsViewModel: ObservableObject {
     }
     
     func callChatGPTAPI(history: [Message]) async throws -> String {
-
-        
-        
         let urlString = "https://api.openai.com/v1/chat/completions"
         guard let url = URL(string: urlString) else {
             throw NSError(domain: "ChatAppError", code: 1,
@@ -88,8 +85,15 @@ final class PromptsViewModel: ObservableObject {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue("Bearer \(Constants.openAIAPIKey)", forHTTPHeaderField: "Authorization")
+        guard let apiKey = ProcessInfo.processInfo.environment["OPENAI_API_KEY"], !apiKey.isEmpty else {
+            throw NSError(domain: "ChatAppError", code: 0,
+                          userInfo: [NSLocalizedDescriptionKey: "Missing OpenAI API key in environment variables"])
+        }
+        request.addValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
 
+
+        
+        
         let openAIMessages: [[String: String]] = history.map { message in
             let role: String = (message.sender == .user) ? "user" : "assistant"
             return ["role": role, "content": message.content]
@@ -134,7 +138,6 @@ final class PromptsViewModel: ObservableObject {
             throw NSError(domain: "ChatAppError", code: 3,
                           userInfo: [NSLocalizedDescriptionKey: "No valid response from OpenAI API"])
         }
-        
         return firstChoice.message.content.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
