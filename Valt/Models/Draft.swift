@@ -7,5 +7,6 @@ struct Draft: Identifiable {
     var timestamp: Date
     var isFavorited: Bool
     var isHidden: Bool
+    var isArchived: Bool
 }
 
