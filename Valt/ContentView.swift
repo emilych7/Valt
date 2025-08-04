@@ -32,8 +32,6 @@ struct ContentView: View {
         appearance.backgroundColor = UIColor(Color("AppBackgroundColor"))
         appearance.shadowImage = UIImage()
         appearance.shadowColor = .clear
-
-        // ✅ Fixed font to always return a UIFont (no optional)
         appearance.stackedLayoutAppearance.selected.iconColor = UIColor(Color("TextColor"))
         appearance.stackedLayoutAppearance.selected.titleTextAttributes = [
             .font: UIFont(name: "OpenSans-Bold", size: 10) ?? UIFont.systemFont(ofSize: 10, weight: .semibold),

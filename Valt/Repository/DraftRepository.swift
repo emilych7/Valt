@@ -26,7 +26,8 @@ final class DraftRepository: DraftRepositoryProtocol {
                         content: data["content"] as? String ?? "",
                         timestamp: (data["timestamp"] as? Timestamp)?.dateValue() ?? Date(),
                         isFavorited: data["isFavorited"] as? Bool ?? false,
-                        isHidden: data["isHidden"] as? Bool ?? false
+                        isHidden: data["isHidden"] as? Bool ?? false,
+                        isArchived: data["isArchived"] as? Bool ?? false
                     )
                 } ?? []
                 

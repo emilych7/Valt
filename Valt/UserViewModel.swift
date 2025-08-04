@@ -13,19 +13,19 @@ final class UserViewModel: ObservableObject {
 
     func loadUserProfile() {
         guard let userID = Auth.auth().currentUser?.uid else {
-            print("❌ No user logged in")
+            print("No user logged in")
             return
         }
 
         // 1️⃣ Fetch user document
         db.collection("users").document(userID).getDocument { [weak self] snapshot, error in
             if let error = error {
-                print("❌ Error fetching user document: \(error.localizedDescription)")
+                print("Error fetching user document: \(error.localizedDescription)")
                 return
             }
 
             guard let data = snapshot?.data() else {
-                print("❌ No data for user document")
+                print("No data for user document")
                 return
             }
 
@@ -44,7 +44,7 @@ final class UserViewModel: ObservableObject {
         
         storageRef.getData(maxSize: 2 * 1024 * 1024) { [weak self] data, error in
             if let error = error {
-                print("❌ Error downloading image: \(error.localizedDescription)")
+                print("Error downloading image: \(error.localizedDescription)")
                 return
             }
             if let data = data, let image = UIImage(data: data) {

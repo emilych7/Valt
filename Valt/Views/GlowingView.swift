@@ -17,7 +17,6 @@ struct GlowingView: View {
         }
     }
 
-
 struct Glow: ViewModifier {
     @State private var throb = false
     
@@ -29,7 +28,6 @@ struct Glow: ViewModifier {
                 .onAppear {
                     throb.toggle()
                 }
-            
             content
         }
     }

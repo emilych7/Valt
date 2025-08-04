@@ -76,6 +76,7 @@ struct SignUpView: View {
             }
             .padding(.bottom, 5)
             
+            // Password Field
             VStack (spacing: 5){
                 HStack {
                     Text("Password")
@@ -100,6 +101,7 @@ struct SignUpView: View {
             }
             .padding(.top, 5)
             
+            // Re-Enter Password Field
             VStack (spacing: 5){
                 HStack {
                     Text("Re-Enter Password")
