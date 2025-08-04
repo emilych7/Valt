@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct CardView: View {
+    let id: String
     let title: String
     let content: String
     let timestamp: Date

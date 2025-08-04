@@ -1,9 +1,3 @@
-//
-//  GlowingView.swift
-//  Valt
-//
-//  Created by Emily Chrisann Hernandez on 6/11/25.
-//
 import SwiftUI
 
 struct GlowingView: View {

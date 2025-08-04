@@ -1,28 +1,23 @@
 import SwiftUI
 
-struct FullNoteView: View {
-    let lastSaved: Date
+struct EditView : View {
+    let id: String
     let content: String
-    @State private  var isFavorited = false
-    @StateObject private var viewModel = HomeViewModel()
+    let time: String
+    @State var isFavorited: Bool = false
+    private let repository: DraftRepositoryProtocol
     
+    /*
     private var formattedDate: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMMM d, yyyy"
         return formatter.string(from: lastSaved)
     }
+     */
     
     var body: some View {
         VStack {
-            ZStack {
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(Color("TextColor"))
-                    .frame(width: 150, height: 5)
-            }
-            .padding(.top, 20)
-            .padding(.horizontal, 50)
-            
-            HStack (spacing: 10){
+            HStack (spacing: 10) {
                 Spacer()
                 
                 // Favorite Button
@@ -68,7 +63,7 @@ struct FullNoteView: View {
                 // More Button
                 Button(action: {
                     withAnimation {
-                        viewModel.showMoreOptions.toggle()
+                        // do something
                     }
                 }) {
                     ZStack {
@@ -79,29 +74,39 @@ struct FullNoteView: View {
                         Image("moreIcon")
                             .frame(width: 38, height: 38)
                     }
-                    
                 }
-                // .buttonStyle(PlainButtonStyle())
-                .popover(isPresented: $viewModel.showMoreOptions, content: {
-                    MoreOptionsView(selection: $viewModel.selectedMoreOption)
-                        .presentationCompactAdaptation(.popover)
-                        .frame(width: 130, height: 170)
-                })
+                .buttonStyle(PlainButtonStyle())
+                
+                // Exit Button
+                Button(action: {
+                    withAnimation {
+                        // try await repository.deleteDraft(draftID: id)
+                    }
+                }) {
+                    ZStack {
+                        Ellipse()
+                            .frame(width: 40, height: 40)
+                            .foregroundColor(.red)
+                        
+                        Image("exitIcon")
+                            .frame(width: 38, height: 38)
+                    }
+                }
+                .buttonStyle(PlainButtonStyle())
             }
             .padding(.horizontal, 30)
             .padding(.top, 20)
             
-            
             VStack (alignment: .leading, spacing: 15)  {
                 HStack {
-                    Text(formattedDate)
+                    Text("Month Day Year") // substitute with formatted date
                         .font(.custom("OpenSans-SemiBold", size: 16))
                         .foregroundColor(Color("TextColor").opacity(0.7))
                     
                     Spacer()
                 }
                 
-                Text(content)
+                Text("Test") // substitute with draft content
                     .font(.custom("OpenSans-Regular", size: 16))
                     .foregroundColor(Color("TextColor"))
             }
@@ -113,5 +118,6 @@ struct FullNoteView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
+
 
 

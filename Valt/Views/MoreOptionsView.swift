@@ -5,10 +5,10 @@ struct MoreOptionsView: View {
     @Binding var selection: MoreOption?
     @State private var isSelected: Bool = false
 
-    let rows = [GridItem(.adaptive(minimum: 100), spacing: 3)]
+    let rows = [GridItem(.flexible(minimum: 100), spacing: 3)]
     
     var body: some View {
-        ScrollView {
+        ZStack {
             LazyVGrid(columns: rows) {
                 ForEach(MoreOption.allCases) { moreOption in
                     Button(action: {
@@ -17,26 +17,23 @@ struct MoreOptionsView: View {
                         }
                         // dismiss()
                     }) {
-                        HStack(spacing: 10) {
-                            Image("checkmarkIcon")
+                        HStack (spacing: 5) {
+                            Image(moreOption.imageName)
                                 .resizable()
-                                .frame(width: 15, height: 15)
-                                .opacity(selection == moreOption ? 1 : 0)
-
+                                .frame(width: 20, height: 20)
+                            
                             Text(moreOption.rawValue)
                                 .foregroundColor(Color("TextColor"))
                                 .font(.custom("OpenSans-Regular", size: 17))
-
+                            
                             Spacer()
                         }
                     }
-
                 }
             }
         }
         .padding(.horizontal, 20)
-        .padding(.vertical, 20)
+        .frame(width: 130, height: 170)
         .background(Color("AppBackgroundColor"))
     }
 }
-

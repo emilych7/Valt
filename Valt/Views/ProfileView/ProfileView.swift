@@ -150,7 +150,7 @@ struct ProfileView: View {
                         GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())
                     ], spacing: 20) {
                         ForEach(filteredDrafts) { draft in
-                            CardView(title: draft.title, content: draft.content, timestamp: draft.timestamp)
+                            CardView(id: draft.id, title: draft.title, content: draft.content, timestamp: draft.timestamp)
                         }
                     }
                     .padding(.horizontal, 25)
