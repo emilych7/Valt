@@ -1,16 +1,13 @@
 import Foundation
-import SwiftUI
 import FirebaseAuth
 import FirebaseFirestore
 import FirebaseCore
 import FirebaseStorage
 
 final class ProfileViewModel: ObservableObject {
-    // MARK: - Existing Published Properties
     @Published var draftCount: Int = 0
     @Published var drafts: [Draft] = []
     
-    // MARK: - New for Profile Picture
     @Published var profileImage: UIImage? = nil
     @Published var profilePictureURL: URL? = nil
 
@@ -20,10 +17,10 @@ final class ProfileViewModel: ObservableObject {
         self.repository = repository
         fetchDraftCount()
         loadDrafts()
-        fetchProfilePicture() // Load profile picture on init
+        fetchProfilePicture() // Load profile picture and drafts on init
     }
     
-    // MARK: - Drafts
+    // Fetch drafts
     func fetchDraftCount() {
         guard let userID = Auth.auth().currentUser?.uid else { return }
 
@@ -49,9 +46,7 @@ final class ProfileViewModel: ObservableObject {
         }
     }
     
-    // MARK: - Profile Picture Handling
-    
-    /// Fetch existing profile picture from Firebase Storage
+    // Fetch profile picture
     func fetchProfilePicture() {
         guard let uid = Auth.auth().currentUser?.uid else { return }
         let storageRef = Storage.storage().reference().child("profilePictures/\(uid).jpg")
@@ -59,7 +54,7 @@ final class ProfileViewModel: ObservableObject {
         storageRef.downloadURL { [weak self] url, error in
             guard let self = self else { return }
             if let error = error {
-                print("No existing profile picture or error: \(error.localizedDescription)")
+                print("Error fetching existing profile picture: \(error.localizedDescription)")
                 return
             }
             self.profilePictureURL = url
@@ -77,20 +72,17 @@ final class ProfileViewModel: ObservableObject {
         }
     }
     
-    /// Upload a new profile picture to Firebase Storage
+    // Upload a new profile picture
     func uploadProfilePicture(_ image: UIImage) {
         guard let uid = Auth.auth().currentUser?.uid else { return }
         let storageRef = Storage.storage().reference().child("profilePictures/\(uid).jpg")
-        
         guard let imageData = image.jpegData(compressionQuality: 0.8) else { return }
-        
         storageRef.putData(imageData, metadata: nil) { [weak self] _, error in
             guard let self = self else { return }
             if let error = error {
                 print("Error uploading profile picture: \(error.localizedDescription)")
                 return
             }
-            
             // Update Published property so UI updates immediately
             DispatchQueue.main.async {
                 self.profileImage = image

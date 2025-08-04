@@ -4,6 +4,7 @@ struct MoreOptionsView: View {
     @Environment(\.dismiss) var dismiss
     @Binding var selection: MoreOption?
     @State private var isSelected: Bool = false
+    var onSelect: (MoreOption) -> Void
 
     let rows = [GridItem(.flexible(minimum: 100), spacing: 3)]
     
@@ -14,8 +15,8 @@ struct MoreOptionsView: View {
                     Button(action: {
                         withAnimation {
                             selection = moreOption
+                            onSelect(moreOption) // notifying parent FullNoteView
                         }
-                        // dismiss()
                     }) {
                         HStack (spacing: 5) {
                             Image(moreOption.imageName)

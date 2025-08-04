@@ -65,10 +65,14 @@ struct HomeView : View {
                     }
                 }
                 .buttonStyle(PlainButtonStyle())
-                .popover(isPresented: $viewModel.showMoreOptions, content: {
-                    MoreOptionsView(selection: $viewModel.selectedMoreOption)
-                        .presentationCompactAdaptation(.popover)
-                })
+                .popover(isPresented: $viewModel.showMoreOptions) {
+                    MoreOptionsView(selection: $viewModel.selectedMoreOption) { option in
+                        if option == .edit {
+                            viewModel.showMoreOptions = false
+                        }
+                    }
+                    .presentationCompactAdaptation(.popover)
+                }
             }
             .padding(.horizontal, 30)
             .padding(.top, 20)
