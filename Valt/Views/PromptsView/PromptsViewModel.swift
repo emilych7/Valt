@@ -24,7 +24,6 @@ final class PromptsViewModel: ObservableObject {
             return
         }
 
-        // 2. Fetch drafts for the logged-in user.
         repository.fetchDrafts(for: userID) { [weak self] drafts in
             guard let self = self else { return }
             
@@ -35,12 +34,10 @@ final class PromptsViewModel: ObservableObject {
                 return
             }
 
-            // 3. Combine all drafts into a context string.
             let draftContext = drafts.map { draft in
                 "Title: \(draft.title)\nContent: \(draft.content)"
             }.joined(separator: "\n\n---\n\n")
 
-            // 4. Build the meta-prompt with your detailed instructions.
             let metaPrompt = """
             Based on the themes and content of the following drafts, please generate a single, new, and creative writing prompt that is related. The new prompt should inspire the reader to want to expand on the strongest themes and deepest content from the drafts. The new prompt should also be framed as a question that gets them to respond in the first person like a personal narrative or diary entry. The goal of the new prompt is to encourage the reader to reveal more about their thoughts and feelings, so they can save the note for review later. The user should feel like the question is personalized for them. It should not be generic. Make the prompt no longer than 15 words and only one question.
             
@@ -54,7 +51,6 @@ final class PromptsViewModel: ObservableObject {
             
             let initialMessage = Message(sender: .user, content: metaPrompt, timestamp: Date())
 
-            // 5. Call the ChatGPT API asynchronously.
             Task { [weak self] in
                 guard let self = self else { return }
                 do {
