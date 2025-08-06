@@ -31,8 +31,10 @@ struct ProfileView: View {
     var body: some View {
         ZStack {
             VStack {
-                // Header
-                HStack {
+                HStack (spacing: 10) {
+                    GlowingView()
+                        .frame(width: 20, height: 20)
+                    
                     Text("Welcome, username")
                         .font(.custom("OpenSans-Regular", size: 24))
                     Spacer()
@@ -50,7 +52,7 @@ struct ProfileView: View {
                 .padding(.horizontal, 25)
                 .padding(.top, 20)
                 
-                // Profile Section
+                // Profile section
                 HStack {
                     PhotosPicker(selection: $selectedItem, matching: .images, photoLibrary: .shared()) {
                         ZStack {

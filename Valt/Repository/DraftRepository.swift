@@ -5,7 +5,6 @@ protocol DraftRepositoryProtocol {
     func fetchDrafts(for userID: String) async throws -> [Draft]
     func fetchDraftsForUsername(username: String) async throws -> [Draft]
     func deleteDraft(draftID: String) async throws
-    // Added the missing function to the protocol
     func saveDraft(draft: Draft) async throws
 }
 
@@ -13,19 +12,14 @@ final class DraftRepository: DraftRepositoryProtocol {
     let db = Firestore.firestore()
     
     func fetchDraftsForUsername(username: String) async throws -> [Draft] {
-        // 1. Asynchronously query the "users" collection.
         let usersQuery = db.collection("users").whereField("username", isEqualTo: username).limit(to: 1)
         let querySnapshot = try await usersQuery.getDocuments()
         
-        // 2. Check if a user document was found. If not, throw a specific error.
         if let userDocument = querySnapshot.documents.first {
-            // If found, get the userID.
             let userID = userDocument.documentID
-            
-            // 3. Call the other async function to fetch the drafts and return the result directly.
+    
             return try await fetchDrafts(for: userID)
         } else {
-            // If no user is found, print a message and return an empty array.
             print("User with username '\(username)' not found.")
             return []
         }
@@ -55,10 +49,10 @@ final class DraftRepository: DraftRepositoryProtocol {
                 isFavorited: data["isFavorited"] as? Bool ?? false,
                 isHidden: data["isHidden"] as? Bool ?? false,
                 isArchived: data["isArchived"] as? Bool ?? false,
-                isPublished: data["isPublished"] as? Bool ?? false
+                isPublished: data["isPublished"] as? Bool ?? false,
+                isPrompted: data["isPrompted"] as? Bool ?? false
             )
         }
-        
         return drafts
     }
 
@@ -85,7 +79,8 @@ final class DraftRepository: DraftRepositoryProtocol {
                         isFavorited: data["isFavorited"] as? Bool ?? false,
                         isHidden: data["isHidden"] as? Bool ?? false,
                         isArchived: data["isArchived"] as? Bool ?? false,
-                        isPublished: data["isPublished"] as? Bool ?? false
+                        isPublished: data["isPublished"] as? Bool ?? false,
+                        isPrompted: data["isPrompted"] as? Bool ?? false
                     )
                 } ?? []
                 
@@ -93,7 +88,7 @@ final class DraftRepository: DraftRepositoryProtocol {
             }
     }
     
-    // Added the missing function to save a draft to Firestore
+    // Save a draft to Firestore
     func saveDraft(draft: Draft) async throws {
         let draftData: [String: Any] = [
             "id": draft.id,

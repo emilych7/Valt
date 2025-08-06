@@ -5,6 +5,5 @@ enum Filter: String, CaseIterable, Identifiable {
     case favorites = "Favorites"
     case hidden = "Hidden"
     
-
     var id: Self { self }
 }

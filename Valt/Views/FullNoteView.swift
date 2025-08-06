@@ -33,7 +33,7 @@ struct FullNoteView: View {
                             Ellipse()
                                 .frame(width: 40, height: 40)
                                 .foregroundColor(Color("BubbleColor"))
-                            if isFavorited {
+                            if (draft.isFavorited || isFavorited) {
                                 Image("Favorite-Active")
                                     .frame(width: 38, height: 38)
                             }
@@ -79,25 +79,18 @@ struct FullNoteView: View {
                         }
                     }
                     .popover(isPresented: $showMoreOptions) {
-                        // The callback now handles the selection from your MoreOption enum
                         MoreOptionsView(selection: $selectedMoreOption) { option in
                             switch option {
-                            case .edit:
-                                // Handle edit functionality here
-                                print("Edit option selected.")
                             case .publish:
                                 print("Publish option selected.")
                             case .hide:
                                 print("Hide option selected.")
                             case .delete:
-                                // Call the delete function from UserViewModel
                                 Task {
                                     await userViewModel.deleteDraft(draftID: draft.id)
-                                    // Dismiss the view after successful deletion
                                     dismiss()
                                 }
                             }
-                            // Reset the selection and dismiss the popover
                             selectedMoreOption = nil
                             showMoreOptions = false
                         }

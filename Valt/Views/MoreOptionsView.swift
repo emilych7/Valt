@@ -3,38 +3,39 @@ import SwiftUI
 struct MoreOptionsView: View {
     @Environment(\.dismiss) var dismiss
     @Binding var selection: MoreOption?
-    @State private var isSelected: Bool = false
+    var options: [MoreOption] = MoreOption.allCases
     var onSelect: (MoreOption) -> Void
-
+    
     let rows = [GridItem(.flexible(minimum: 100), spacing: 3)]
     
     var body: some View {
-        ZStack {
-            LazyVGrid(columns: rows) {
-                ForEach(MoreOption.allCases) { moreOption in
-                    Button(action: {
-                        withAnimation {
-                            selection = moreOption
-                            onSelect(moreOption) // notifying parent FullNoteView
-                        }
-                    }) {
-                        HStack (spacing: 5) {
-                            Image(moreOption.imageName)
-                                .resizable()
-                                .frame(width: 20, height: 20)
-                            
-                            Text(moreOption.rawValue)
-                                .foregroundColor(Color("TextColor"))
-                                .font(.custom("OpenSans-Regular", size: 17))
-                            
-                            Spacer()
-                        }
+        LazyVGrid(columns: rows, spacing: 8) {
+            ForEach(options) { moreOption in
+                Button {
+                    selection = moreOption
+                    onSelect(moreOption)
+                    dismiss()
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(moreOption.imageName)
+                            .resizable()
+                            .frame(width: 20, height: 20)
+                        
+                        Text(moreOption.rawValue)
+                            .foregroundColor(Color("TextColor"))
+                            .font(.custom("OpenSans-Regular", size: 17))
+                        
+                        Spacer(minLength: 0)
                     }
+                    .padding(.horizontal, 8)
+                    .frame(maxWidth: .infinity, minHeight: 35)
+                    .cornerRadius(6)
                 }
             }
         }
-        .padding(.horizontal, 20)
-        .frame(width: 130, height: 170)
+        .padding(12)
         .background(Color("AppBackgroundColor"))
+        .cornerRadius(12)
+        .fixedSize()
     }
 }

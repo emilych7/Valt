@@ -10,5 +10,6 @@ struct Draft: Identifiable {
     var isHidden: Bool
     var isArchived: Bool
     var isPublished: Bool
+    var isPrompted: Bool
 }
 

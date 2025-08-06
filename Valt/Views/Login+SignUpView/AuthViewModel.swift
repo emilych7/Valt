@@ -37,7 +37,7 @@ class AuthViewModel: ObservableObject {
             print("Successfully signed up user: \(result.user.uid)")
 
             let userData: [String: Any] = [
-                "uid": result.user.uid,
+                "userID": result.user.uid,
                 "email": result.user.email ?? "",
                 "username": username,
                 "createdAt": FieldValue.serverTimestamp()

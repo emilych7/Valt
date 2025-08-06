@@ -1,5 +1,6 @@
 import SwiftUI
 
+@MainActor
 struct HomeView: View {
     @FocusState private var isTextFieldFocused: Bool
     @EnvironmentObject private var userViewModel: UserViewModel
@@ -14,21 +15,53 @@ struct HomeView: View {
 
     var body: some View {
         VStack {
-            // --- Header Buttons (same as before)
-            headerButtons
+            HStack(spacing: 10) {
+                Spacer()
+                viewModel.button(icon: viewModel.isFavorited ? "Favorite-Active" : "Favorite-Inactive") {
+                    withAnimation { viewModel.isFavorited.toggle() }
+                }
+                viewModel.button(icon: "saveIcon") {
+                    withAnimation {
+                        viewModel.saveDraftToFirebase()
+                        dismissKeyboardSmoothly()
+                    }
+                }
+                viewModel.button(icon: "moreIcon") {
+                    withAnimation { viewModel.showMoreOptions.toggle() }
+                }
+                .popover(isPresented: $viewModel.showMoreOptions) {
+                    MoreOptionsView(
+                        selection: $viewModel.selectedMoreOption,
+                        options: [MoreOption.publish, MoreOption.hide]
+                    ) { option in
+                        switch option {
+                        case .publish:
+                            print("Publish option selected.")
+                        case .hide:
+                            print("Hide option selected.")
+                        default:
+                            break
+                        }
+                        viewModel.selectedMoreOption = nil
+                        viewModel.showMoreOptions = false
+                    }
+                    .presentationCompactAdaptation(.popover)
+                }
+            }
+            .padding(.horizontal, 30)
+            .padding(.top, 20)
             
-            // --- Draft Editor
             ZStack(alignment: .topLeading) {
                 if viewModel.draftText.isEmpty && !isTextFieldFocused {
                     Text("Start your draft here")
-                        .font(.custom("OpenSans-Regular", size: 17))
-                        .foregroundColor(Color("TextColor").opacity(0.3))
+                        .font(.custom("OpenSans-Regular", size: 16))
+                        .foregroundColor(Color("TextColor").opacity(0.4))
                         .padding(.top, 12)
                         .padding(.leading, 10)
                 }
 
                 TextEditor(text: $viewModel.draftText)
-                    .font(.custom("OpenSans-Regular", size: 17))
+                    .font(.custom("OpenSans-Regular", size: 16))
                     .foregroundColor(Color("TextColor"))
                     .scrollContentBackground(.hidden)
                     .focused($isTextFieldFocused)
@@ -46,7 +79,7 @@ struct HomeView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color("AppBackgroundColor"))
         
-        // MARK: - Full-width Toolbar above Keyboard
+        // Toolbar above the keyboard
         .safeAreaInset(edge: .bottom) {
             if isTextFieldFocused {
                 HStack {
@@ -54,6 +87,7 @@ struct HomeView: View {
                         viewModel.draftText = ""
                     }
                     .foregroundColor(.red)
+                    .padding(.horizontal, 15)
                     
                     Spacer()
                     
@@ -63,6 +97,7 @@ struct HomeView: View {
                         Image(systemName: "keyboard.chevron.compact.down")
                             .foregroundColor(Color("TextColor"))
                     }
+                    .padding(.horizontal, 15)
                     
                     Spacer()
                     
@@ -71,6 +106,7 @@ struct HomeView: View {
                         dismissKeyboardSmoothly()
                     }
                     .foregroundColor(Color("TextColor"))
+                    .padding(.horizontal, 15)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, 20)
@@ -81,7 +117,7 @@ struct HomeView: View {
             }
         }
         
-        // Auto-focus once on appear to fix first-tap issue
+        // Auto-focus to fix first-tap issue
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 if !hasFocusedOnce {
@@ -92,50 +128,8 @@ struct HomeView: View {
         }
     }
     
-    // MARK: - Header Buttons
-    private var headerButtons: some View {
-        HStack(spacing: 10) {
-            Spacer()
-            button(icon: viewModel.isFavorited ? "Favorite-Active" : "Favorite-Inactive") {
-                withAnimation { viewModel.isFavorited.toggle() }
-            }
-            button(icon: "saveIcon") {
-                withAnimation {
-                    viewModel.saveDraftToFirebase()
-                    dismissKeyboardSmoothly()
-                }
-            }
-            button(icon: "moreIcon") {
-                withAnimation { viewModel.showMoreOptions.toggle() }
-            }
-            .popover(isPresented: $viewModel.showMoreOptions) {
-                MoreOptionsView(selection: $viewModel.selectedMoreOption) { option in
-                    if option == .edit { viewModel.showMoreOptions = false }
-                }
-                .presentationCompactAdaptation(.popover)
-            }
-        }
-        .padding(.horizontal, 30)
-        .padding(.top, 20)
-    }
-    
-    // MARK: - Helper Buttons
-    private func button(icon: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            ZStack {
-                Ellipse()
-                    .frame(width: 40, height: 40)
-                    .foregroundColor(Color("BubbleColor"))
-                Image(icon)
-                    .frame(width: 38, height: 38)
-                    .opacity(icon.contains("Inactive") ? 0.5 : 1)
-            }
-        }
-        .buttonStyle(PlainButtonStyle())
-    }
-    
-    // MARK: - Smooth Keyboard Dismiss
-    private func dismissKeyboardSmoothly() {
+    // Smooth keyboard dismiss
+    func dismissKeyboardSmoothly() {
         DispatchQueue.main.async {
             isTextFieldFocused = false
         }

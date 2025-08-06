@@ -16,9 +16,9 @@ final class HomeViewModel: ObservableObject {
     
     private let userViewModel: UserViewModel
 
-        init(userViewModel: UserViewModel) {
-            self.userViewModel = userViewModel
-        }
+    init(userViewModel: UserViewModel) {
+        self.userViewModel = userViewModel
+    }
 
     func saveDraftToFirebase() {
         guard let userID = Auth.auth().currentUser?.uid else {
@@ -41,7 +41,8 @@ final class HomeViewModel: ObservableObject {
             isFavorited: isFavorited,
             isHidden: false,
             isArchived: false,
-            isPublished: false
+            isPublished: false,
+            isPrompted: false,
         )
         
         Task {
@@ -52,5 +53,20 @@ final class HomeViewModel: ObservableObject {
             self.isFavorited = false
             self.bannerManager.show("Draft Saved!")
         }
+    }
+    
+    // Helper button
+    func button(icon: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            ZStack {
+                Ellipse()
+                    .frame(width: 40, height: 40)
+                    .foregroundColor(Color("BubbleColor"))
+                Image(icon)
+                    .frame(width: 38, height: 38)
+                    .opacity(icon.contains("Inactive") ? 0.5 : 1)
+            }
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 }
