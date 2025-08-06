@@ -60,7 +60,7 @@ struct CardView: View {
                 
                 Text(formattedDate)
                     .foregroundColor(Color("TextColor").opacity(0.7))
-                    .font(.custom("OpenSans-SemiBold", size: 12))
+                    .font(.custom("OpenSans-Regular", size: 12))
                 
                 Spacer()
             }

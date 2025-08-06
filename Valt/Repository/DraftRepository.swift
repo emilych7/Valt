@@ -36,7 +36,6 @@ final class DraftRepository: DraftRepositoryProtocol {
             .whereField("userID", isEqualTo: userID)
             .getDocuments()
 
-        // Manually map the documents to Draft objects, providing default values.
         let drafts = snapshot.documents.map { doc -> Draft in
             let data = doc.data()
             

@@ -17,7 +17,6 @@ struct ProfileView: View {
         guard let selectedFilter = selectedFilter else {
             return userViewModel.drafts
         }
-
         switch selectedFilter {
         case .mostRecent:
             return userViewModel.drafts.sorted { $0.timestamp > $1.timestamp }
@@ -89,10 +88,10 @@ struct ProfileView: View {
                         Text("@username")
                             .font(.custom("OpenSans-SemiBold", size: 23))
                         
-                        Text("\(userViewModel.draftCount) notes")
+                        Text("\(userViewModel.draftCount) drafts")
                             .font(.custom("OpenSans-Regular", size: 16))
                         
-                        Text("# published")
+                        Text("\(userViewModel.publishedDraftCount) published")
                             .font(.custom("OpenSans-Regular", size: 16))
                     }
                     .padding(.horizontal, 5)

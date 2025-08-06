@@ -127,7 +127,7 @@ fileprivate extension UIImage {
                 context.cgContext.setLineJoin(.round)
                 context.cgContext.setLineCap(.round)
                 clipPath.lineWidth = 3
-                clipPath.stroke()
+                // clipPath.stroke()
             }
         }.withRenderingMode(.alwaysOriginal)
     }

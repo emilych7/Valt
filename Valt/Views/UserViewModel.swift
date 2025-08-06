@@ -8,6 +8,7 @@ import UIKit
 @MainActor
 final class UserViewModel: ObservableObject {
     @Published var draftCount: Int = 0
+    @Published var publishedDraftCount: Int = 0
     @Published var drafts: [Draft] = []
     @Published var profileImage: UIImage? = nil
     @Published var profilePictureURL: URL? = nil
@@ -19,6 +20,7 @@ final class UserViewModel: ObservableObject {
         
         // Initial data loading
         fetchDraftCount()
+        fetchPublishedCount()
         loadDrafts()
         fetchProfilePicture()
     }
@@ -40,6 +42,25 @@ final class UserViewModel: ObservableObject {
             }
         }
     }
+    
+    func fetchPublishedCount() {
+            guard let userID = Auth.auth().currentUser?.uid else { return }
+            Task {
+                do {
+                    let snapshot = try await Firestore.firestore()
+                        .collection("drafts")
+                        .whereField("userID", isEqualTo: userID)
+                        .whereField("isPublished", isEqualTo: true) // Only published drafts
+                        .getDocuments()
+                    
+                    self.publishedDraftCount = snapshot.documents.count
+                    print("Published drafts count: \(self.publishedDraftCount)")
+                } catch {
+                    print("Error fetching published drafts count: \(error.localizedDescription)")
+                    self.publishedDraftCount = 0
+                }
+            }
+        }
     
     // Loads all drafts for the current user from Firebase
     func loadDrafts() {
