@@ -62,9 +62,11 @@ final class HomeViewModel: ObservableObject {
                 Ellipse()
                     .frame(width: 40, height: 40)
                     .foregroundColor(Color("BubbleColor"))
-                Image(icon)
-                    .frame(width: 38, height: 38)
-                    .opacity(icon.contains("Inactive") ? 0.5 : 1)
+                HStack {
+                    Image(icon)
+                        .frame(width: 38, height: 38)
+                        .opacity(icon.contains("Inactive") ? 0.5 : 1)
+                }
             }
         }
         .buttonStyle(PlainButtonStyle())

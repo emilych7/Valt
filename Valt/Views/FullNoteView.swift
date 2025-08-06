@@ -4,6 +4,7 @@ struct FullNoteView: View {
     let draft: Draft
     
     @EnvironmentObject private var userViewModel: UserViewModel
+    @EnvironmentObject private var bannerManager: BannerManager
     
     @State private var isFavorited = false
     @Environment(\.dismiss) var dismiss
@@ -88,7 +89,10 @@ struct FullNoteView: View {
                             case .delete:
                                 Task {
                                     await userViewModel.deleteDraft(draftID: draft.id)
-                                    dismiss()
+                                    withAnimation {
+                                        dismiss()
+                                    }
+                                    bannerManager.show("Deleted draft")
                                 }
                             }
                             selectedMoreOption = nil

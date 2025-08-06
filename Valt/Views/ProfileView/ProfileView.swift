@@ -59,11 +59,11 @@ struct ProfileView: View {
                                 Image(uiImage: profileImage)
                                     .resizable()
                                     .scaledToFill()
-                                    .frame(width: 115, height: 115)
+                                    .frame(width: 105, height: 105)
                                     .clipShape(Ellipse())
                             } else {
                                 Ellipse()
-                                    .frame(width: 115, height: 115)
+                                    .frame(width: 105, height: 105)
                                     .foregroundColor(Color("BubbleColor"))
                                     .overlay(
                                         Image(systemName: "camera.fill")
@@ -130,19 +130,30 @@ struct ProfileView: View {
                 .padding(.top, 10)
                 .padding(.horizontal, 25)
                 
-                // Drafts Grid
-                ScrollView {
-                    LazyVGrid(columns: [
-                        GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())
-                    ], spacing: 20) {
-                        ForEach(filteredDrafts) { draft in
-                            CardView(draft: draft)
+                if userViewModel.draftCount != 0 {
+                    // Drafts Grid
+                    ScrollView {
+                        LazyVGrid(columns: [
+                            GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())
+                        ], spacing: 20) {
+                            ForEach(filteredDrafts) { draft in
+                                CardView(draft: draft)
+                            }
                         }
+                        .padding(.horizontal, 25)
+                        .padding(.vertical, 10)
                     }
-                    .padding(.horizontal, 25)
+                    .scrollIndicators(.hidden)
+                }
+                else {
+                    ZStack {
+                        Image("noDrafts")
+                            .resizable()
+                            .frame(width: 220, height: 220)
+                            .padding()
+                    }
                     .padding(.vertical, 10)
                 }
-                .scrollIndicators(.hidden)
                 
                 Spacer()
             }

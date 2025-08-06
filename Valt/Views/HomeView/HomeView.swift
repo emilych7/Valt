@@ -4,8 +4,8 @@ import SwiftUI
 struct HomeView: View {
     @FocusState private var isTextFieldFocused: Bool
     @EnvironmentObject private var userViewModel: UserViewModel
+    @EnvironmentObject private var bannerManager: BannerManager
     @StateObject private var viewModel: HomeViewModel
-    
     @State private var hasFocusedOnce = false
     @State private var keyboardVisible = false
     
@@ -14,70 +14,77 @@ struct HomeView: View {
     }
 
     var body: some View {
-        VStack {
-            HStack(spacing: 10) {
-                Spacer()
-                viewModel.button(icon: viewModel.isFavorited ? "Favorite-Active" : "Favorite-Inactive") {
-                    withAnimation { viewModel.isFavorited.toggle() }
-                }
-                viewModel.button(icon: "saveIcon") {
-                    withAnimation {
-                        viewModel.saveDraftToFirebase()
-                        dismissKeyboardSmoothly()
+        ZStack {
+            VStack {
+                HStack(spacing: 10) {
+                    Spacer()
+                    viewModel.button(icon: viewModel.isFavorited ? "Favorite-Active" : "Favorite-Inactive") {
+                        withAnimation { viewModel.isFavorited.toggle() }
                     }
-                }
-                viewModel.button(icon: "moreIcon") {
-                    withAnimation { viewModel.showMoreOptions.toggle() }
-                }
-                .popover(isPresented: $viewModel.showMoreOptions) {
-                    MoreOptionsView(
-                        selection: $viewModel.selectedMoreOption,
-                        options: [MoreOption.publish, MoreOption.hide]
-                    ) { option in
-                        switch option {
-                        case .publish:
-                            print("Publish option selected.")
-                        case .hide:
-                            print("Hide option selected.")
-                        default:
-                            break
+                    viewModel.button(icon: "saveIcon") {
+                        withAnimation {
+                            viewModel.saveDraftToFirebase()
+                            dismissKeyboardSmoothly()
+                            bannerManager.show("Saved Draft")
                         }
-                        viewModel.selectedMoreOption = nil
-                        viewModel.showMoreOptions = false
                     }
-                    .presentationCompactAdaptation(.popover)
+                    
+                    // PAUSED FOR NOW
+                    /*
+                    viewModel.button(icon: "moreIcon") {
+                        withAnimation { viewModel.showMoreOptions.toggle() }
+                    }
+                    .popover(isPresented: $viewModel.showMoreOptions) {
+                        MoreOptionsView(
+                            selection: $viewModel.selectedMoreOption,
+                            options: [MoreOption.publish, MoreOption.hide]
+                        ) { option in
+                            switch option {
+                            case .publish:
+                                print("Publish option selected.")
+                            case .hide:
+                                print("Hide option selected.")
+                            default:
+                                break
+                            }
+                            viewModel.selectedMoreOption = nil
+                            viewModel.showMoreOptions = false
+                        }
+                        .presentationCompactAdaptation(.popover)
+                    }
+                    */
                 }
-            }
-            .padding(.horizontal, 30)
-            .padding(.top, 20)
-            
-            ZStack(alignment: .topLeading) {
-                if viewModel.draftText.isEmpty && !isTextFieldFocused {
-                    Text("Start your draft here")
+                .padding(.horizontal, 30)
+                .padding(.top, 20)
+                
+                ZStack(alignment: .topLeading) {
+                    if viewModel.draftText.isEmpty && !isTextFieldFocused {
+                        Text("Start your draft here")
+                            .font(.custom("OpenSans-Regular", size: 16))
+                            .foregroundColor(Color("TextColor").opacity(0.4))
+                            .padding(.top, 12)
+                            .padding(.leading, 10)
+                    }
+                    
+                    TextEditor(text: $viewModel.draftText)
                         .font(.custom("OpenSans-Regular", size: 16))
-                        .foregroundColor(Color("TextColor").opacity(0.4))
-                        .padding(.top, 12)
-                        .padding(.leading, 10)
+                        .foregroundColor(Color("TextColor"))
+                        .scrollContentBackground(.hidden)
+                        .focused($isTextFieldFocused)
+                        .onTapGesture {
+                            isTextFieldFocused = true
+                            hasFocusedOnce = true
+                        }
                 }
-
-                TextEditor(text: $viewModel.draftText)
-                    .font(.custom("OpenSans-Regular", size: 16))
-                    .foregroundColor(Color("TextColor"))
-                    .scrollContentBackground(.hidden)
-                    .focused($isTextFieldFocused)
-                    .onTapGesture {
-                        isTextFieldFocused = true
-                        hasFocusedOnce = true
-                    }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color("AppBackgroundColor"))
+                .cornerRadius(10)
+                .padding(.bottom, 20)
+                .padding(.horizontal, 25)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color("AppBackgroundColor"))
-            .cornerRadius(10)
-            .padding(.bottom, 20)
-            .padding(.horizontal, 25)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color("AppBackgroundColor"))
         
         // Toolbar above the keyboard
         .safeAreaInset(edge: .bottom) {
@@ -85,6 +92,7 @@ struct HomeView: View {
                 HStack {
                     Button("Clear") {
                         viewModel.draftText = ""
+                        bannerManager.show("Cleared")
                     }
                     .foregroundColor(.red)
                     .padding(.horizontal, 15)
@@ -104,6 +112,7 @@ struct HomeView: View {
                     Button("Save") {
                         viewModel.saveDraftToFirebase()
                         dismissKeyboardSmoothly()
+                        bannerManager.show("Saved Draft")
                     }
                     .foregroundColor(Color("TextColor"))
                     .padding(.horizontal, 15)

@@ -57,23 +57,35 @@ struct MainTabView: View {
             }
             .animation(.easeInOut(duration: 0.3), value: showGlobalSettingsOverlay)
 
-            // Banner Manager
+            // Notification banner
             if bannerManager.isVisible {
-                VStack {
-                    Text(bannerManager.message)
-                        .font(.custom("OpenSans-Bold", size: 14))
-                        .foregroundColor(.white)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.black.opacity(0.85))
-                        .cornerRadius(8)
-                        .padding(.top, 50)
+                    VStack {
+                        Spacer()
+                        
+                        HStack(spacing: 8) {
+                            if let icon = bannerManager.icon {
+                                Image(systemName: icon)
+                                    .foregroundColor(.white)
+                            }
+                            Text(bannerManager.message)
+                                .foregroundColor(.white)
+                                .font(.custom("OpenSans-Regular", size: 15))
+                                .multilineTextAlignment(.center)
+                        }
                         .padding(.horizontal, 20)
-                    Spacer()
+                        .padding(.vertical, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(bannerManager.backgroundColor)
+                        )
+                        .padding(.horizontal, 40)
+                        .shadow(radius: 8)
+                        
+                        Spacer()
+                    }
+                    .transition(.scale.combined(with: .opacity))
+                    .animation(.spring(response: 0.4, dampingFraction: 0.7), value: bannerManager.isVisible)
                 }
-                .transition(.move(edge: .top).combined(with: .opacity))
-                .zIndex(2)
-            }
         }
         .onAppear {
             let appearance = UITabBarAppearance()
