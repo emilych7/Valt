@@ -2,68 +2,59 @@ import SwiftUI
 import PhotosUI
 
 struct ProfileView: View {
-    @StateObject private var viewModel = ProfileViewModel()
-    
+    @EnvironmentObject private var userViewModel: UserViewModel
     @Binding var showSettingsOverlayBinding: Bool
     
-    // Filter selection state
     @State private var selectedFilter: Filter? = nil
     @State private var showFilterOptions: Bool = false
-    
-    // Show full note state
     @State private var showNote: Bool = false
-    
-    // Profile picture picker state
     @State private var selectedItem: PhotosPickerItem? = nil
+
+    // Mirror actor-isolated property
+    @State private var localProfileImage: UIImage? = nil
     
     var filteredDrafts: [Draft] {
         guard let selectedFilter = selectedFilter else {
-            return viewModel.drafts
+            return userViewModel.drafts
         }
 
         switch selectedFilter {
         case .mostRecent:
-            return viewModel.drafts.sorted { $0.timestamp > $1.timestamp }
+            return userViewModel.drafts.sorted { $0.timestamp > $1.timestamp }
         case .favorites:
-            return viewModel.drafts.filter { $0.isFavorited }
+            return userViewModel.drafts.filter { $0.isFavorited }
         case .hidden:
-            return viewModel.drafts.filter { $0.isHidden }
+            return userViewModel.drafts.filter { $0.isHidden }
         }
     }
     
     var body: some View {
         ZStack {
             VStack {
+                // Header
                 HStack {
-                    HStack (spacing: 15) {
-                        GlowingView()
-                        Text("Welcome, username")
-                            .font(.custom("OpenSans-Regular", size: 24))
-                    }
+                    Text("Welcome, username")
+                        .font(.custom("OpenSans-Regular", size: 24))
                     Spacer()
-                    Button(action: {
-                        showSettingsOverlayBinding.toggle()
-                    }) {
+                    Button { showSettingsOverlayBinding.toggle() } label: {
                         ZStack {
                             Ellipse()
                                 .frame(width: 40, height: 40)
                                 .foregroundColor(Color("BubbleColor"))
-                            
                             Image("settingsIcon")
                                 .frame(width: 38, height: 38)
                         }
                     }
                     .buttonStyle(PlainButtonStyle())
                 }
-                .padding(.leading, 25)
+                .padding(.horizontal, 25)
                 .padding(.top, 20)
-                .padding(.trailing, 25)
                 
                 // Profile Section
                 HStack {
                     PhotosPicker(selection: $selectedItem, matching: .images, photoLibrary: .shared()) {
                         ZStack {
-                            if let profileImage = viewModel.profileImage {
+                            if let profileImage = localProfileImage {
                                 Image(uiImage: profileImage)
                                     .resizable()
                                     .scaledToFill()
@@ -82,35 +73,32 @@ struct ProfileView: View {
                         }
                     }
                     .frame(width: 115, height: 115)
-                    .onChange(of: selectedItem) { oldValue, newValue in
+                    .onChange(of: selectedItem) { _, newValue in
                         Task {
                             if let item = newValue,
                                let data = try? await item.loadTransferable(type: Data.self),
                                let uiImage = UIImage(data: data) {
-                                viewModel.uploadProfilePicture(uiImage)
+                                userViewModel.uploadProfilePicture(uiImage)
                             }
                         }
                     }
-
                     
-                    VStack (alignment: .leading, spacing: 5) {
-                        Text("@username") // Replace with actual username if available
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text("@username")
                             .font(.custom("OpenSans-SemiBold", size: 23))
                         
-                        Text("\(viewModel.draftCount) notes")
+                        Text("\(userViewModel.draftCount) notes")
                             .font(.custom("OpenSans-Regular", size: 16))
                         
-                        Text("# published") // Replace with published count if available
+                        Text("# published")
                             .font(.custom("OpenSans-Regular", size: 16))
                     }
                     .padding(.horizontal, 5)
                     .foregroundColor(Color("TextColor"))
                     
                     Spacer()
-                    
                 }
-                .padding(.leading, 35)
-                .padding(.trailing, 20)
+                .padding(.horizontal, 35)
                 
                 // Archives Header
                 HStack {
@@ -123,11 +111,8 @@ struct ProfileView: View {
                             .frame(width: 80, height: 30)
                             .cornerRadius(10)
                             .foregroundColor(Color("BubbleColor"))
-                        Button(action: {
-                            showFilterOptions.toggle()
-                        }
-                        ) {
-                            HStack (spacing: 5) {
+                        Button { showFilterOptions.toggle() } label: {
+                            HStack(spacing: 5) {
                                 Text("Filter")
                                     .font(.custom("OpenSans-Regular", size: 14))
                                     .foregroundColor(Color("TextColor"))
@@ -136,10 +121,10 @@ struct ProfileView: View {
                             }
                         }
                     }
-                    .popover(isPresented: $showFilterOptions, content: {
+                    .popover(isPresented: $showFilterOptions) {
                         FilterOptionsView(selection: $selectedFilter)
                             .presentationCompactAdaptation(.popover)
-                    })
+                    }
                 }
                 .padding(.top, 10)
                 .padding(.horizontal, 25)
@@ -150,26 +135,22 @@ struct ProfileView: View {
                         GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())
                     ], spacing: 20) {
                         ForEach(filteredDrafts) { draft in
-                            CardView(id: draft.id, title: draft.title, content: draft.content, timestamp: draft.timestamp)
+                            CardView(draft: draft)
                         }
                     }
                     .padding(.horizontal, 25)
                     .padding(.vertical, 10)
                 }
                 .scrollIndicators(.hidden)
+                
                 Spacer()
             }
             .background(Color("AppBackgroundColor"))
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .onAppear {
-            viewModel.loadDrafts()
-            viewModel.fetchDraftCount()
-            viewModel.fetchProfilePicture()
+        // Sync actor-isolated property to local @State
+        .onReceive(userViewModel.$profileImage) { newImage in
+            localProfileImage = newImage
         }
     }
-}
-
-#Preview {
-    ProfileView(showSettingsOverlayBinding: .constant(false))
 }

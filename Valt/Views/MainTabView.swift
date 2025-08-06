@@ -2,44 +2,26 @@ import SwiftUI
 import UIKit
 
 struct MainTabView: View {
-    // Passed in from ContentView
-    @StateObject private var authViewModel: AuthViewModel
-    @StateObject private var userVM: UserViewModel
-    @StateObject private var bannerManager: BannerManager
+    // These should be @EnvironmentObject, not @StateObject
+    // This tells SwiftUI to get the objects from the parent's environment.
+    @EnvironmentObject private var authViewModel: AuthViewModel
+    @EnvironmentObject private var userViewModel: UserViewModel
+    @EnvironmentObject private var bannerManager: BannerManager
     
     @State private var showGlobalSettingsOverlay: Bool = false
     @State private var selection: ContentTabViewSelection = .profile
 
     @Environment(\.colorScheme) var colorScheme
 
-    init(authViewModel: AuthViewModel, userVM: UserViewModel, bannerManager: BannerManager) {
-        _authViewModel = StateObject(wrappedValue: authViewModel)
-        _userVM = StateObject(wrappedValue: userVM)
-        _bannerManager = StateObject(wrappedValue: bannerManager)
-
-        // UITabBarAppearance setup
-        let appearance = UITabBarAppearance()
-        appearance.backgroundColor = UIColor(Color("AppBackgroundColor"))
-        appearance.shadowImage = UIImage()
-        appearance.shadowColor = .clear
-        appearance.stackedLayoutAppearance.selected.iconColor = UIColor(Color("TextColor"))
-        appearance.stackedLayoutAppearance.selected.titleTextAttributes = [
-            .font: UIFont(name: "OpenSans-Bold", size: 10) ?? UIFont.systemFont(ofSize: 10, weight: .semibold),
-            .foregroundColor: UIColor(Color("TextColor"))
-        ]
-        appearance.stackedLayoutAppearance.normal.iconColor = UIColor.systemGray
-        appearance.stackedLayoutAppearance.normal.titleTextAttributes = [
-            .font: UIFont(name: "OpenSans-Bold", size: 10) ?? UIFont.systemFont(ofSize: 10, weight: .semibold),
-            .foregroundColor: UIColor.systemGray
-        ]
-        UITabBar.appearance().scrollEdgeAppearance = appearance
-    }
-
+    // The custom initializer is no longer needed.
+    // The UITabBarAppearance setup can be moved to an .onAppear modifier,
+    // or placed in your App struct's init() to run only once.
+    
     var body: some View {
         ZStack {
             TabView(selection: $selection) {
                 // Home tab
-                HomeView()
+                HomeView(userViewModel: userViewModel)
                     .tabItem {
                         Label("Create", image: "createIcon")
                     }
@@ -55,15 +37,18 @@ struct MainTabView: View {
                 // Profile tab
                 ProfileView(showSettingsOverlayBinding: $showGlobalSettingsOverlay)
                     .tag(ContentTabViewSelection.profile)
-                    .environmentObject(userVM)
+                    // You don't need to pass the environment object here if it's already on a parent view
+                    // .environmentObject(userViewModel)
                     .tabItem {
                         profileTabItemLabel()
                     }
             }
             .tint(Color("TextColor"))
-            .environmentObject(authViewModel)
-            .environmentObject(bannerManager)
-            .environmentObject(userVM)
+            // These environment objects are now inherited from ContentView,
+            // so they don't need to be re-injected here.
+            // .environmentObject(authViewModel)
+            // .environmentObject(bannerManager)
+            // .environmentObject(userViewModel)
 
             // Settings Overlay
             ZStack {
@@ -81,7 +66,8 @@ struct MainTabView: View {
                 if showGlobalSettingsOverlay {
                     SettingsView(isShowingOverlay: $showGlobalSettingsOverlay)
                         .transition(.move(edge: .trailing).combined(with: .opacity))
-                        .environmentObject(authViewModel)
+                        // The environment object is available from the parent, no need to re-inject.
+                        // .environmentObject(authViewModel)
                 }
             }
             .animation(.easeInOut(duration: 0.3), value: showGlobalSettingsOverlay)
@@ -104,6 +90,25 @@ struct MainTabView: View {
                 .zIndex(2)
             }
         }
+        // This is a good place to put your one-time UI setup if you don't have
+        // an init().
+        .onAppear {
+            let appearance = UITabBarAppearance()
+            appearance.backgroundColor = UIColor(Color("AppBackgroundColor"))
+            appearance.shadowImage = UIImage()
+            appearance.shadowColor = .clear
+            appearance.stackedLayoutAppearance.selected.iconColor = UIColor(Color("TextColor"))
+            appearance.stackedLayoutAppearance.selected.titleTextAttributes = [
+                .font: UIFont(name: "OpenSans-Bold", size: 10) ?? UIFont.systemFont(ofSize: 10, weight: .semibold),
+                .foregroundColor: UIColor(Color("TextColor"))
+            ]
+            appearance.stackedLayoutAppearance.normal.iconColor = UIColor.systemGray
+            appearance.stackedLayoutAppearance.normal.titleTextAttributes = [
+                .font: UIFont(name: "OpenSans-Bold", size: 10) ?? UIFont.systemFont(ofSize: 10, weight: .semibold),
+                .foregroundColor: UIColor.systemGray
+            ]
+            UITabBar.appearance().scrollEdgeAppearance = appearance
+        }
     }
     
     // Profile pic tab and label
@@ -112,7 +117,7 @@ struct MainTabView: View {
             Label {
                 Text("Profile")
             } icon: {
-                if let profilePicture = (userVM.profilePicture)?.createTabItemLabelFromImage(selection == .profile) {
+                if let profilePicture = (userViewModel.profileImage)?.createTabItemLabelFromImage(selection == .profile) {
                     Image(uiImage: profilePicture)
                 } else {
                     ContentTabViewSelection.profile.label

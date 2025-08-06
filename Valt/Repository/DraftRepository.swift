@@ -5,10 +5,13 @@ protocol DraftRepositoryProtocol {
     func fetchDrafts(for userID: String) async throws -> [Draft]
     func fetchDraftsForUsername(username: String) async throws -> [Draft]
     func deleteDraft(draftID: String) async throws
+    // Added the missing function to the protocol
+    func saveDraft(draft: Draft) async throws
 }
 
 final class DraftRepository: DraftRepositoryProtocol {
     let db = Firestore.firestore()
+    
     func fetchDraftsForUsername(username: String) async throws -> [Draft] {
         // 1. Asynchronously query the "users" collection.
         let usersQuery = db.collection("users").whereField("username", isEqualTo: username).limit(to: 1)
@@ -29,9 +32,9 @@ final class DraftRepository: DraftRepositoryProtocol {
     }
     
     func deleteDraft(draftID: String) async throws {
-       let draftRef = db.collection("drafts").document(draftID)
-       try await draftRef.delete()
-       print("Draft document with ID \(draftID) successfully deleted.")
+        let draftRef = db.collection("drafts").document(draftID)
+        try await draftRef.delete()
+        print("Draft document with ID \(draftID) successfully deleted.")
     }
     
     func fetchDrafts(for userID: String) async throws -> [Draft] {
@@ -88,5 +91,23 @@ final class DraftRepository: DraftRepositoryProtocol {
                 
                 completion(drafts)
             }
+    }
+    
+    // Added the missing function to save a draft to Firestore
+    func saveDraft(draft: Draft) async throws {
+        let draftData: [String: Any] = [
+            "id": draft.id,
+            "userID": draft.userID,
+            "title": draft.title,
+            "content": draft.content,
+            "timestamp": Timestamp(date: draft.timestamp),
+            "isFavorited": draft.isFavorited,
+            "isHidden": draft.isHidden,
+            "isArchived": draft.isArchived,
+            "isPublished": draft.isPublished
+        ]
+        
+        try await db.collection("drafts").document(draft.id).setData(draftData)
+        print("Draft with ID \(draft.id) saved successfully.")
     }
 }

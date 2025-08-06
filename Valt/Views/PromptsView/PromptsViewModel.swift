@@ -14,7 +14,6 @@ final class PromptsViewModel: ObservableObject {
     }
     
     func generatePromptFromDrafts() {
-        print("DEBUG: generatePromptFromDrafts() called")
         isLoading = true
 
         guard let userID = Auth.auth().currentUser?.uid else {

@@ -2,7 +2,10 @@ import Foundation
 import Firebase
 import FirebaseAuth
 import FirebaseFirestore
+import FirebaseStorage
+import SwiftUI
 
+@MainActor
 final class HomeViewModel: ObservableObject {
     @Published var isEditing = false
     @Published var isFavorited = false
@@ -10,33 +13,44 @@ final class HomeViewModel: ObservableObject {
     @Published var selectedMoreOption: MoreOption? = nil
     @Published var showMoreOptions: Bool = false
     @Published var bannerManager: BannerManager = BannerManager()
-
     
+    private let userViewModel: UserViewModel
+
+        init(userViewModel: UserViewModel) {
+            self.userViewModel = userViewModel
+        }
+
     func saveDraftToFirebase() {
         guard let userID = Auth.auth().currentUser?.uid else {
             print("User is not authenticated.")
+            self.bannerManager.show("Error: User not authenticated.")
+            return
+        }
+        print("Function reached")
+        // Draft text cannot be empty
+        guard !draftText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             return
         }
         
-        let db = Firestore.firestore()
-        let draftData: [String: Any] = [
-            "userID": userID,    
-            "title": "Title",
-            "content": draftText,
-            "timestamp": FieldValue.serverTimestamp(),
-            "isFavorited": isFavorited
-        ]
+        let newDraft = Draft(
+            id: UUID().uuidString,
+            userID: userID,
+            title: String(draftText.prefix(20)),
+            content: draftText,
+            timestamp: Date(),
+            isFavorited: isFavorited,
+            isHidden: false,
+            isArchived: false,
+            isPublished: false
+        )
         
-        db.collection("drafts").addDocument(data: draftData) { error in
-            if let error = error {
-                print("Error saving draft to Firestore: \(error.localizedDescription)")
-                self.bannerManager.show("Failed to save: \(error.localizedDescription)")
-            } else {
-                print("Successfully saved in Firestore.")
-                self.draftText = ""
-                self.isEditing = false
-                self.bannerManager.show("Saved")
-            }
+        Task {
+            // Delegate the saving to the shared userViewModel
+            await userViewModel.addDraft(newDraft)
+            self.draftText = ""
+            self.isEditing = false
+            self.isFavorited = false
+            self.bannerManager.show("Draft Saved!")
         }
     }
 }

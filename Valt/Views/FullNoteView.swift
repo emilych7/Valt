@@ -1,22 +1,26 @@
 import SwiftUI
 
 struct FullNoteView: View {
-    let lastSaved: Date
-    let content: String
-    @State private  var isFavorited = false
+    let draft: Draft
+    
+    @EnvironmentObject private var userViewModel: UserViewModel
+    
+    @State private var isFavorited = false
     @Environment(\.dismiss) var dismiss
-    @StateObject private var viewModel = HomeViewModel()
+    
+    @State private var showMoreOptions = false
+    @State private var selectedMoreOption: MoreOption? = nil
     
     private var formattedDate: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMMM d, yyyy"
-        return formatter.string(from: lastSaved)
+        return formatter.string(from: draft.timestamp)
     }
     
     var body: some View {
         NavigationStack {
             VStack {
-                HStack (spacing: 10) {
+                HStack(spacing: 10) {
                     Spacer()
                     
                     // Favorite Button
@@ -30,7 +34,7 @@ struct FullNoteView: View {
                                 .frame(width: 40, height: 40)
                                 .foregroundColor(Color("BubbleColor"))
                             if isFavorited {
-                                Image ("Favorite-Active")
+                                Image("Favorite-Active")
                                     .frame(width: 38, height: 38)
                             }
                             else {
@@ -62,7 +66,7 @@ struct FullNoteView: View {
                     // More Button
                     Button(action: {
                         withAnimation {
-                            viewModel.showMoreOptions.toggle()
+                            showMoreOptions.toggle()
                         }
                     }) {
                         ZStack {
@@ -74,15 +78,31 @@ struct FullNoteView: View {
                                 .frame(width: 38, height: 38)
                         }
                     }
-                    // .buttonStyle(PlainButtonStyle())
-                    .popover(isPresented: $viewModel.showMoreOptions) {
-                        MoreOptionsView(selection: $viewModel.selectedMoreOption) { option in
-                            if option == .edit {
-                                viewModel.showMoreOptions = false
-                                                }
-                                            }
-                                            .presentationCompactAdaptation(.popover)
-                                        }
+                    .popover(isPresented: $showMoreOptions) {
+                        // The callback now handles the selection from your MoreOption enum
+                        MoreOptionsView(selection: $selectedMoreOption) { option in
+                            switch option {
+                            case .edit:
+                                // Handle edit functionality here
+                                print("Edit option selected.")
+                            case .publish:
+                                print("Publish option selected.")
+                            case .hide:
+                                print("Hide option selected.")
+                            case .delete:
+                                // Call the delete function from UserViewModel
+                                Task {
+                                    await userViewModel.deleteDraft(draftID: draft.id)
+                                    // Dismiss the view after successful deletion
+                                    dismiss()
+                                }
+                            }
+                            // Reset the selection and dismiss the popover
+                            selectedMoreOption = nil
+                            showMoreOptions = false
+                        }
+                        .presentationCompactAdaptation(.popover)
+                    }
                     
                     // Exit button
                     Button(action: {
@@ -104,8 +124,7 @@ struct FullNoteView: View {
                 .padding(.horizontal, 30)
                 .padding(.top, 20)
                 
-                
-                VStack (alignment: .leading, spacing: 15)  {
+                VStack(alignment: .leading, spacing: 15) {
                     HStack {
                         Text(formattedDate)
                             .font(.custom("OpenSans-SemiBold", size: 16))
@@ -114,7 +133,7 @@ struct FullNoteView: View {
                         Spacer()
                     }
                     
-                    Text(content)
+                    Text(draft.content)
                         .font(.custom("OpenSans-Regular", size: 16))
                         .foregroundColor(Color("TextColor"))
                 }
@@ -127,5 +146,3 @@ struct FullNoteView: View {
         }
     }
 }
-
-
