@@ -15,15 +15,16 @@ struct ProfileView: View {
     
     var filteredDrafts: [Draft] {
         guard let selectedFilter = selectedFilter else {
-            return userViewModel.drafts
+            return userViewModel.drafts.sorted { $0.timestamp > $1.timestamp }
         }
         switch selectedFilter {
-        case .mostRecent:
-            return userViewModel.drafts.sorted { $0.timestamp > $1.timestamp }
         case .favorites:
             return userViewModel.drafts.filter { $0.isFavorited }
         case .hidden:
             return userViewModel.drafts.filter { $0.isHidden }
+        case .published:
+            // return userViewModel.drafts.sorted { $0.timestamp > $1.timestamp }
+            return userViewModel.drafts.filter { $0.isPublished }
         }
     }
     
@@ -131,19 +132,22 @@ struct ProfileView: View {
                 .padding(.horizontal, 25)
                 
                 if userViewModel.draftCount != 0 {
+                    
                     // Drafts Grid
                     ScrollView {
                         LazyVGrid(columns: [
                             GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())
                         ], spacing: 20) {
                             ForEach(filteredDrafts) { draft in
-                                CardView(draft: draft)
+                                CardView(draftID: draft.id)
                             }
                         }
                         .padding(.horizontal, 25)
                         .padding(.vertical, 10)
                     }
                     .scrollIndicators(.hidden)
+                    
+                    Spacer()
                 }
                 else {
                     ZStack {

@@ -14,7 +14,9 @@ struct MoreOptionsView: View {
                 Button {
                     selection = moreOption
                     onSelect(moreOption)
-                    dismiss()
+                    withAnimation {
+                        dismiss()
+                    }
                 } label: {
                     HStack(spacing: 8) {
                         Image(moreOption.imageName)

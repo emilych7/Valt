@@ -12,6 +12,8 @@ final class UserViewModel: ObservableObject {
     @Published var drafts: [Draft] = []
     @Published var profileImage: UIImage? = nil
     @Published var profilePictureURL: URL? = nil
+    @Published var usernameResults: [String] = []
+    @Published var usernamePublishedDrafts: [Draft] = []
 
     private let repository: DraftRepositoryProtocol
     
@@ -44,23 +46,23 @@ final class UserViewModel: ObservableObject {
     }
     
     func fetchPublishedCount() {
-            guard let userID = Auth.auth().currentUser?.uid else { return }
-            Task {
-                do {
-                    let snapshot = try await Firestore.firestore()
-                        .collection("drafts")
-                        .whereField("userID", isEqualTo: userID)
-                        .whereField("isPublished", isEqualTo: true) // Only published drafts
-                        .getDocuments()
+        guard let userID = Auth.auth().currentUser?.uid else { return }
+        Task {
+            do {
+                let snapshot = try await Firestore.firestore()
+                .collection("drafts")
+                .whereField("userID", isEqualTo: userID)
+                .whereField("isPublished", isEqualTo: true) // Only published drafts
+                .getDocuments()
                     
-                    self.publishedDraftCount = snapshot.documents.count
-                    print("Published drafts count: \(self.publishedDraftCount)")
-                } catch {
-                    print("Error fetching published drafts count: \(error.localizedDescription)")
-                    self.publishedDraftCount = 0
-                }
+                self.publishedDraftCount = snapshot.documents.count
+                print("Published drafts count: \(self.publishedDraftCount)")
+            } catch {
+                print("Error fetching published drafts count: \(error.localizedDescription)")
+                self.publishedDraftCount = 0
             }
         }
+    }
     
     // Loads all drafts for the current user from Firebase
     func loadDrafts() {
@@ -75,12 +77,26 @@ final class UserViewModel: ObservableObject {
         }
     }
     
+    func updateDraft(draftID: String, updatedFields: [String: Any]) async {
+        do {
+            try await repository.updateDraft(draftID: draftID, with: updatedFields)
+            if let index = drafts.firstIndex(where: { $0.id == draftID }) {
+                for (key, value) in updatedFields {
+                    drafts[index].updateField(key: key, value: value)
+                }
+            }
+        } catch {
+            print("Error updating draft: \(error.localizedDescription)")
+        }
+    }
+
+    
     // Deletes a draft from Firestore and updates the local list
     func deleteDraft(draftID: String) async {
         do {
             try await repository.deleteDraft(draftID: draftID)
             
-            // Update local state after success
+            // Update local state after
             if let index = self.drafts.firstIndex(where: { $0.id == draftID }) {
                 self.drafts.remove(at: index)
                 self.draftCount = self.drafts.count // Update count
@@ -97,7 +113,7 @@ final class UserViewModel: ObservableObject {
             try await repository.saveDraft(draft: draft)
             // New draft appears at the top
             self.drafts.insert(draft, at: 0)
-            self.draftCount = self.drafts.count // Update count
+            self.draftCount = self.drafts.count // Update draft count
             print("Draft successfully added to Firestore and UI.")
         } catch {
             print("Error adding draft: \(error.localizedDescription)")
@@ -140,4 +156,36 @@ final class UserViewModel: ObservableObject {
             }
         }
     }
+    
+    func searchUsernames(prefix: String) {
+            // Avoid empty queries
+            let trimmed = prefix.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty else {
+                self.usernameResults = []
+                return
+            }
+
+            Task {
+                do {
+                    let names = try await repository.searchUsernames(prefix: trimmed, limit: 15)
+                    self.usernameResults = names
+                } catch {
+                    print("Error searching usernames: \(error.localizedDescription)")
+                    self.usernameResults = []
+                }
+            }
+        }
+
+        /// Load all published drafts for the selected username
+        func loadPublishedDrafts(for username: String) {
+            Task {
+                do {
+                    let items = try await repository.fetchPublishedDrafts(forUsername: username)
+                    self.usernamePublishedDrafts = items
+                } catch {
+                    print("Error loading published drafts for \(username): \(error.localizedDescription)")
+                    self.usernamePublishedDrafts = []
+                }
+            }
+        }
 }

@@ -1,9 +1,9 @@
 import Foundation
 
 enum Filter: String, CaseIterable, Identifiable {
-    case mostRecent = "Most Recent"
     case favorites = "Favorites"
     case hidden = "Hidden"
+    case published = "Published"
     
     var id: Self { self }
 }

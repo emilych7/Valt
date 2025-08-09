@@ -3,17 +3,66 @@ import FirebaseAuth
 
 @MainActor
 final class PromptsViewModel: ObservableObject {
-    
     @Published var generatedPrompt: String = "Come back when you have at least 3 notes..."
     @Published var isLoading: Bool = false
-    
+
+    // Search state
+    @Published var searchText: String = ""
+    @Published var isSearching: Bool = false
+    @Published var usernameSuggestions: [String] = []
+    @Published var selectedUsername: String? = nil
+    @Published var publishedDraftsForUser: [Draft] = []
+
     private let repository: DraftRepositoryProtocol
-        
+    private var searchTask: Task<Void, Never>? // for debouncing
+
     init(repository: DraftRepositoryProtocol = DraftRepository()) {
         self.repository = repository
     }
-    
-    func generatePromptFromDrafts() {
+
+    // Username search (debounced)
+    func onSearchTextChanged() {
+        let q = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !q.isEmpty else {
+            usernameSuggestions = []
+            return
+        }
+
+        searchTask?.cancel()
+        isSearching = true
+
+        searchTask = Task { [weak self] in
+            guard let self else { return }
+            try? await Task.sleep(nanoseconds: 250_000_000) // ~250ms debounce
+            do {
+                let results = try await repository.searchUsernames(prefix: q, limit: 15)
+                self.usernameSuggestions = results
+            } catch {
+                self.usernameSuggestions = []
+                print("Search error:", error.localizedDescription)
+            }
+            self.isSearching = false
+        }
+    }
+
+    // Load published drafts for username selected
+    func loadPublishedDrafts(for username: String) {
+        selectedUsername = username
+        isLoading = true
+        Task {
+            do {
+                let drafts = try await repository.fetchPublishedDrafts(forUsername: username)
+                self.publishedDraftsForUser = drafts
+            } catch {
+                self.publishedDraftsForUser = []
+                print("Error loading published drafts:", error.localizedDescription)
+            }
+            self.isLoading = false
+        }
+    }
+
+    // Generate prompt from current user’s own drafts
+    func generatePromptFromOwnDrafts() {
         isLoading = true
 
         guard let userID = Auth.auth().currentUser?.uid else {
@@ -25,52 +74,61 @@ final class PromptsViewModel: ObservableObject {
 
         repository.fetchDrafts(for: userID) { [weak self] drafts in
             guard let self = self else { return }
-            
-            guard !drafts.isEmpty else {
-                print("No drafts found for user. Cannot generate a prompt.")
+
+            guard drafts.count >= 3 else {
                 self.generatedPrompt = "Create at least five drafts to get a personalized prompt!"
                 self.isLoading = false
                 return
             }
 
-            let draftContext = drafts.map { draft in
-                "Title: \(draft.title)\nContent: \(draft.content)"
-            }.joined(separator: "\n\n---\n\n")
-
-            let metaPrompt = """
-            Based on the themes and content of the following drafts, please generate a single, new, and creative writing prompt that is related. The new prompt should inspire the reader to want to expand on the strongest themes and deepest content from the drafts. The new prompt should also be framed as a question that gets them to respond in the first person like a personal narrative or diary entry. The goal of the new prompt is to encourage the reader to reveal more about their thoughts and feelings, so they can save the note for review later. The user should feel like the question is personalized for them. It should not be generic. Make the prompt no longer than 15 words and only one question.
-            
-            The question should read like it is coming from a 25-year old best friend who listens to you and offers insightful questions like your therapist. Give abstraction to the question. Make it easy to understand for a demographic of 18 to 30 year olds. 
-
-            Here are the existing drafts for context:
-            \(draftContext)
-
-            New Creative Prompt:
-            """
-            
-            let initialMessage = Message(sender: .user, content: metaPrompt, timestamp: Date())
-
-            Task { [weak self] in
-                guard let self = self else { return }
-                do {
-                    let apiResponse = try await self.callChatGPTAPI(history: [initialMessage])
-                    await MainActor.run {
-                        self.generatedPrompt = apiResponse
-                        self.isLoading = false
-                    }
-                } catch {
-                    print("Error calling ChatGPT API: \(error)")
-                    await MainActor.run {
-                        self.generatedPrompt = "Failed to generate prompt. Error: \(error.localizedDescription)"
-                        self.isLoading = false
-                    }
-                }
-            }
-
+            self.generatePrompt(from: drafts)
         }
     }
-    
-    func callChatGPTAPI(history: [Message]) async throws -> String {
+
+    // Generate prompt from selected username’s published drafts
+    func generatePromptFromPublishedDraftsForSelectedUser() {
+        guard !publishedDraftsForUser.isEmpty else {
+            generatedPrompt = "No published drafts found for that user."
+            return
+        }
+        generatePrompt(from: publishedDraftsForUser)
+    }
+
+    // Prompt generator
+    private func generatePrompt(from drafts: [Draft]) {
+        let draftContext = drafts.map { d in
+            "Title: \(d.title)\nContent: \(d.content)"
+        }.joined(separator: "\n\n---\n\n")
+
+        let metaPrompt = """
+        Based on the themes and content of the following drafts, please generate a single, new, and creative writing prompt that is related. The new prompt should inspire the reader to want to expand on the strongest themes and deepest content from the drafts. The new prompt should also be framed as a question that gets them to respond in the first person like a personal narrative or diary entry. The goal of the new prompt is to encourage the reader to reveal more about their thoughts and feelings, so they can save the note for review later. The user should feel like the question is personalized for them. It should not be generic. Make the prompt no longer than 15 words and only one question.
+
+        The question should read like it is coming from a 25-year old best friend who listens to you and offers insightful questions like your therapist. Give abstraction to the question. Make it easy to understand for a demographic of 18 to 30 year olds.
+
+        Here are the existing drafts for context:
+        \(draftContext)
+
+        New Creative Prompt:
+        """
+
+        let initialMessage = PromptMessage(sender: .user, content: metaPrompt)
+
+        Task { [weak self] in
+            guard let self = self else { return }
+            do {
+                let apiResponse = try await self.callChatGPTAPI(history: [initialMessage])
+                self.generatedPrompt = apiResponse
+                self.isLoading = false
+            } catch {
+                print("Error calling ChatGPT API:", error.localizedDescription)
+                self.generatedPrompt = "Failed to generate prompt. Error: \(error.localizedDescription)"
+                self.isLoading = false
+            }
+        }
+    }
+
+    // OPENAI
+    func callChatGPTAPI(history: [PromptMessage]) async throws -> String {
         let urlString = "https://api.openai.com/v1/chat/completions"
         guard let url = URL(string: urlString) else {
             throw NSError(domain: "ChatAppError", code: 1,
@@ -80,17 +138,15 @@ final class PromptsViewModel: ObservableObject {
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+
         guard let apiKey = ProcessInfo.processInfo.environment["OPENAI_API_KEY"], !apiKey.isEmpty else {
             throw NSError(domain: "ChatAppError", code: 0,
                           userInfo: [NSLocalizedDescriptionKey: "Missing OpenAI API key in environment variables"])
         }
         request.addValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
 
-
-        
-        
         let openAIMessages: [[String: String]] = history.map { message in
-            let role: String = (message.sender == .user) ? "user" : "assistant"
+            let role = (message.sender == .user) ? "user" : "assistant"
             return ["role": role, "content": message.content]
         }
 
@@ -102,22 +158,16 @@ final class PromptsViewModel: ObservableObject {
         request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
 
         let (data, response) = try await URLSession.shared.data(for: request)
-        
-        if let httpResponse = response as? HTTPURLResponse {
-            print("DEBUG: Status code -> \(httpResponse.statusCode)")
-        }
 
-        if let rawResponse = String(data: data, encoding: .utf8) {
-            print("DEBUG: Raw API response -> \(rawResponse)")
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw NSError(domain: "ChatAppError", code: 4,
+                          userInfo: [NSLocalizedDescriptionKey: "No HTTP response"])
         }
-
-        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+        guard httpResponse.statusCode == 200 else {
             let responseString = String(data: data, encoding: .utf8) ?? "No response data"
-            print("OpenAI API Error: Status Code \(statusCode), Response: \(responseString)")
             throw NSError(domain: "ChatAppError", code: 2,
                           userInfo: [NSLocalizedDescriptionKey:
-                                     "OpenAI API request failed with status \(statusCode). Response: \(responseString)"])
+                                     "OpenAI API request failed with status \(httpResponse.statusCode). Response: \(responseString)"])
         }
 
         struct OpenAIResponse: Decodable {

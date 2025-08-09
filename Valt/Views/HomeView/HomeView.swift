@@ -22,39 +22,19 @@ struct HomeView: View {
                         withAnimation { viewModel.isFavorited.toggle() }
                     }
                     viewModel.button(icon: "saveIcon") {
-                        withAnimation {
-                            viewModel.saveDraftToFirebase()
-                            dismissKeyboardSmoothly()
-                            bannerManager.show("Saved Draft")
-                        }
-                    }
-                    
-                    // PAUSED FOR NOW
-                    /*
-                    viewModel.button(icon: "moreIcon") {
-                        withAnimation { viewModel.showMoreOptions.toggle() }
-                    }
-                    .popover(isPresented: $viewModel.showMoreOptions) {
-                        MoreOptionsView(
-                            selection: $viewModel.selectedMoreOption,
-                            options: [MoreOption.publish, MoreOption.hide]
-                        ) { option in
-                            switch option {
-                            case .publish:
-                                print("Publish option selected.")
-                            case .hide:
-                                print("Hide option selected.")
-                            default:
-                                break
+                        if !viewModel.draftText.isEmpty {
+                            withAnimation {
+                                viewModel.saveDraftToFirebase()
+                                bannerManager.show("Saved Draft")
                             }
-                            viewModel.selectedMoreOption = nil
-                            viewModel.showMoreOptions = false
                         }
-                        .presentationCompactAdaptation(.popover)
+                        else {
+                            print("Draft is empty. Not saving.")
+                        }
+                        dismissKeyboardSmoothly()
                     }
-                    */
                 }
-                .padding(.horizontal, 30)
+                .padding(.horizontal, 25)
                 .padding(.top, 20)
                 
                 ZStack(alignment: .topLeading) {
@@ -95,7 +75,8 @@ struct HomeView: View {
                         bannerManager.show("Cleared")
                     }
                     .foregroundColor(.red)
-                    .padding(.horizontal, 15)
+                    .font(.custom("OpenSans-Regular", size: 17))
+                    .padding(.horizontal, 20)
                     
                     Spacer()
                     
@@ -103,41 +84,41 @@ struct HomeView: View {
                         dismissKeyboardSmoothly()
                     } label: {
                         Image(systemName: "keyboard.chevron.compact.down")
+                            .resizable()
                             .foregroundColor(Color("TextColor"))
+                            .frame(width: 25, height: 20)
                     }
-                    .padding(.horizontal, 15)
+                    .padding(.horizontal, 20)
                     
                     Spacer()
                     
                     Button("Save") {
-                        viewModel.saveDraftToFirebase()
+                        if !viewModel.draftText.isEmpty {
+                            withAnimation {
+                                viewModel.saveDraftToFirebase()
+                                bannerManager.show("Saved Draft")
+                            }
+                        }
+                        else {
+                            print("Draft is empty. Not saving.")
+                        }
                         dismissKeyboardSmoothly()
-                        bannerManager.show("Saved Draft")
                     }
                     .foregroundColor(Color("TextColor"))
-                    .padding(.horizontal, 15)
+                    .font(.custom("OpenSans-Regular", size: 17))
+                    .padding(.horizontal, 20)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, 20)
                 .padding(.vertical, 10)
                 .background(Color("TextFieldBackground").ignoresSafeArea())
                 .transition(.move(edge: .bottom))
-                .animation(.easeInOut(duration: 0.25), value: isTextFieldFocused)
-            }
-        }
-        
-        // Auto-focus to fix first-tap issue
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                if !hasFocusedOnce {
-                    isTextFieldFocused = true
-                    hasFocusedOnce = true
-                }
+                .animation(.easeInOut(duration: 0.15), value: isTextFieldFocused)
             }
         }
     }
     
-    // Smooth keyboard dismiss
+    // Smoother keyboard dismiss
     func dismissKeyboardSmoothly() {
         DispatchQueue.main.async {
             isTextFieldFocused = false

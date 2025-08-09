@@ -114,6 +114,10 @@ struct MainTabView: View {
             } icon: {
                 if let profilePicture = (userViewModel.profileImage)?.createTabItemLabelFromImage(selection == .profile) {
                     Image(uiImage: profilePicture)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 24, height: 24)
+                        .clipShape(Circle())
                 } else {
                     ContentTabViewSelection.profile.label
                 }

@@ -21,15 +21,16 @@ final class HomeViewModel: ObservableObject {
     }
 
     func saveDraftToFirebase() {
-        guard let userID = Auth.auth().currentUser?.uid else {
-            print("User is not authenticated.")
-            self.bannerManager.show("Error: User not authenticated.")
-            return
+        guard let userID = Auth.auth().currentUser?.uid
+            else {
+                print("User is not authenticated.")
+                self.bannerManager.show("Error")
+                return
         }
-        print("Function reached")
-        // Draft text cannot be empty
-        guard !draftText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            return
+        guard !draftText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            else {
+                print("Empty draft. Not saving")
+                return
         }
         
         let newDraft = Draft(
@@ -46,12 +47,12 @@ final class HomeViewModel: ObservableObject {
         )
         
         Task {
-            // Delegate the saving to the shared userViewModel
+            // Shared userViewModel
             await userViewModel.addDraft(newDraft)
             self.draftText = ""
             self.isEditing = false
             self.isFavorited = false
-            self.bannerManager.show("Draft Saved!")
+            
         }
     }
     
