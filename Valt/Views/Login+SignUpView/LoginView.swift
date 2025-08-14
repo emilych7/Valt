@@ -4,7 +4,7 @@ struct LoginView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @FocusState private var isTextFieldFocused: Bool
     @Environment(\.dismiss) var dismiss
-    @State private var email = ""
+    @State private var emailOrUsername = ""
     @State private var password = ""
     
     var body: some View {
@@ -38,7 +38,7 @@ struct LoginView: View {
                                             .stroke(Color("TextFieldBorder"), lineWidth: 1) // border
                                     )
                                 
-                                TextField("Username or Email", text: $email)
+                                TextField("Username or Email", text: $emailOrUsername)
                                     .frame(maxWidth: .infinity, maxHeight: 50, alignment: .leading)
                                     .textFieldStyle(.plain)
                                     .keyboardType(.emailAddress)
@@ -62,7 +62,8 @@ struct LoginView: View {
                                 
                                 Button("Forgot Password?") {
                                     Task {
-                                        await authViewModel.resetPassword(email: email)
+                                        // await authViewModel.resetPassword(email: emailOrUsername)
+                                        // navigate to ForgotPasswordView()
                                     }
                                 }
                                 .font(.custom("OpenSans-Regular", size: 15))
@@ -92,7 +93,8 @@ struct LoginView: View {
                             Button(action: {
                                 print("'Log In' button pressed")
                                 Task {
-                                    await authViewModel.signIn(email: email, password: password)
+                                    // await authViewModel.signIn(email: email, password: password)
+                                    await authViewModel.signIn(usernameOrEmail: emailOrUsername, password: password)
                                 }
                             }) {
                                 Text("Log In")
@@ -165,6 +167,8 @@ struct LoginView: View {
             isTextFieldFocused = false
         }
     }
+    
+    
 }
 
 #Preview {

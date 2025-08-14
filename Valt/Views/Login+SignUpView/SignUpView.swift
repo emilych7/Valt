@@ -133,7 +133,13 @@ struct SignUpView: View {
                 VStack {
                     Button("Sign Up") {
                         Task {
-                            await authViewModel.signUp(email: email, password: password, username: username)
+                            if !authViewModel.isValidPassword(password) {
+                                let missing = authViewModel.getMissingValidation(password)
+                                print("Missing: \(missing)")
+                            } else {
+                                await authViewModel.signUp(email: email, password: password, username: username)
+                            }
+                            
                         }
                     }
                     .foregroundColor(.white)
