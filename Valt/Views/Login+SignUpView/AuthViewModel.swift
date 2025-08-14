@@ -33,17 +33,33 @@ class AuthViewModel: ObservableObject {
     func signUp(email: String, password: String, username: String) async {
         errorMessage = nil
         do {
+            let usernameRef = db.collection("usernames").document(username)
+            let documentSnapshot = try await usernameRef.getDocument()
+
+            guard !documentSnapshot.exists else {
+                // If the document exists, the username is taken.
+                self.errorMessage = "This username is already taken. Please choose another one."
+                print("Error: Username '\(username)' is already taken.")
+                return
+            }
             let result = try await Auth.auth().createUser(withEmail: email, password: password)
+            let batch = db.batch()
             print("Successfully signed up user: \(result.user.uid)")
 
+            let userRef = db.collection("users").document(result.user.uid)
             let userData: [String: Any] = [
                 "userID": result.user.uid,
                 "email": result.user.email ?? "",
                 "username": username,
                 "createdAt": FieldValue.serverTimestamp()
-                
             ]
-            try await db.collection("users").document(result.user.uid).setData(userData)
+            batch.setData(userData, forDocument: userRef)
+
+            let newUsernameRef = db.collection("usernames").document(username)
+            batch.setData(["userID": result.user.uid], forDocument: newUsernameRef)
+
+            // 4. Commit the batch. This is the atomic "all-or-nothing" step.
+            try await batch.commit()
             print("User data saved to Firestore.")
 
         } catch {

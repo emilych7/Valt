@@ -36,7 +36,7 @@ struct ProfileView: View {
                         .frame(width: 20, height: 20)
                     
                     Text("Welcome, username")
-                        .font(.custom("OpenSans-Regular", size: 24))
+                        .font(.custom("OpenSans-SemiBold", size: 24))
                     Spacer()
                     Button { showSettingsOverlayBinding.toggle() } label: {
                         ZStack {
@@ -128,7 +128,7 @@ struct ProfileView: View {
                             .presentationCompactAdaptation(.popover)
                     }
                 }
-                .padding(.top, 10)
+                .padding(.top, 5)
                 .padding(.horizontal, 25)
                 
                 if userViewModel.draftCount != 0 {

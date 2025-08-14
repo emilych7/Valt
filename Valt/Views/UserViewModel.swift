@@ -120,7 +120,7 @@ final class UserViewModel: ObservableObject {
         }
     }
     
-    // Fetches the user's profile picture from Firebase Storage
+    // Fetches the profile picture from Firebase Storage
     func fetchProfilePicture() {
         guard let uid = Auth.auth().currentUser?.uid else { return }
         let storageRef = Storage.storage().reference().child("profilePictures/\(uid).jpg")

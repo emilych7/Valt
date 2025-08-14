@@ -113,7 +113,7 @@ struct HomeView: View {
                 .padding(.vertical, 10)
                 .background(Color("TextFieldBackground").ignoresSafeArea())
                 .transition(.move(edge: .bottom))
-                .animation(.easeInOut(duration: 0.15), value: isTextFieldFocused)
+                .animation(.easeInOut(duration: 0.10), value: isTextFieldFocused)
             }
         }
     }

@@ -13,9 +13,14 @@ struct OnBoardingView: View {
                 }
             }
         }
+        .fullScreenCover(isPresented: $showingLoginSheet) {
+            LoginView()
+        }
+        /*
         .sheet(isPresented: $showingLoginSheet) {
             LoginView()
         }
+         */
         .sheet(isPresented: $showingSignUpSheet) {
             SignUpView()
         }
@@ -26,8 +31,7 @@ struct OnBoardingView: View {
         .overlay(topNavigationBar, alignment: .top)
     }
 
-    // MARK: - Helper Functions
-
+    // Helper Functions
     func getRotation() -> Double {
         let progress = offset / (getScreenBounds().width * 4)
         return Double(progress) * 360
@@ -38,8 +42,7 @@ struct OnBoardingView: View {
         return Int(progress)
     }
 
-    // MARK: - Subviews / Computed Views
-
+    // Computed Views
     private var ellipseBackground: some View {
         Ellipse()
             .fill(Color("TextFieldBackground"))
@@ -85,7 +88,7 @@ struct OnBoardingView: View {
             }
         }
         .padding(.horizontal, 30)
-        .padding(.bottom, 40)
+        .padding(.bottom, 20)
     }
 
     private var topNavigationBar: some View {
@@ -97,7 +100,7 @@ struct OnBoardingView: View {
             .foregroundColor(Color("TextColor"))
             .buttonStyle(.borderedProminent)
             .cornerRadius(14)
-            .tint(Color("OnBoardingNavigation").opacity(0.50))
+            .tint(Color("BubbleColor").opacity(0.50))
             .opacity(getIndex() == 0 ? 0 : 1)
             .disabled(getIndex() == 0)
 
@@ -127,7 +130,7 @@ struct OnBoardingView: View {
             .cornerRadius(14)
             .opacity(getIndex() == 2 ? 0 : 1)
             .disabled(getIndex() == 2)
-            .tint(Color("OnBoardingNavigation").opacity(0.50))
+            .tint(Color("BubbleColor").opacity(0.50))
         }
         .padding(.horizontal, 25)
     }
