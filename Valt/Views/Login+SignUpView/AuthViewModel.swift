@@ -2,6 +2,8 @@ import Foundation
 import FirebaseAuth
 import FirebaseFirestore
 import Combine
+import GoogleSignIn
+import GoogleSignInSwift
 
 @MainActor
 class AuthViewModel: ObservableObject {
@@ -150,6 +152,33 @@ class AuthViewModel: ObservableObject {
             print("Error signing in: \(error.localizedDescription)")
         }
     }
+    
+    func signInWithGoogle(presenting viewController: UIViewController) async {
+        guard GIDSignIn.sharedInstance.configuration != nil else {
+            errorMessage = "Google Sign-In not configured."
+            return
+        }
+
+        do {
+            let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: viewController)
+            let user = result.user
+            guard let idToken = user.idToken?.tokenString else {
+                errorMessage = "Missing ID token."
+                return
+            }
+
+            let credential = GoogleAuthProvider.credential(
+                withIDToken: idToken,
+                accessToken: user.accessToken.tokenString
+            )
+            _ = try await Auth.auth().signIn(with: credential)
+            // Handle first-time user logic
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+
 
     // Direct email-only entry point
     func signIn(email: String, password: String) async {

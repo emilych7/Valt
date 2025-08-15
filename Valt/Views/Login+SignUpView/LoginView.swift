@@ -1,4 +1,7 @@
 import SwiftUI
+import FirebaseCore
+import FirebaseAuth
+import GoogleSignIn
 
 struct LoginView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
@@ -126,6 +129,13 @@ struct LoginView: View {
                             HStack(spacing: 25) {
                                 Button {
                                     // Google Sign In
+                                    if let rootVC = UIApplication.shared.connectedScenes
+                                            .compactMap({ ($0 as? UIWindowScene)?.keyWindow?.rootViewController })
+                                            .first {
+                                            Task {
+                                                await authViewModel.signInWithGoogle(presenting: rootVC)
+                                            }
+                                        }
                                 } label: {
                                     Image("Google")
                                         .padding(.vertical, 15)
