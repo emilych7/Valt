@@ -16,12 +16,7 @@ struct OnBoardingView: View {
         .fullScreenCover(isPresented: $showingLoginSheet) {
             LoginView()
         }
-        /*
-        .sheet(isPresented: $showingLoginSheet) {
-            LoginView()
-        }
-         */
-        .sheet(isPresented: $showingSignUpSheet) {
+        .fullScreenCover(isPresented: $showingSignUpSheet) {
             SignUpView()
         }
         .background(ellipseBackground, alignment: .leading)
@@ -57,21 +52,6 @@ struct OnBoardingView: View {
         VStack {
             HStack(spacing: 25) {
                 Button {
-                    showingSignUpSheet = true
-                } label: {
-                    Text("Sign Up")
-                        .font(.custom("OpenSans-Bold", size: 20))
-                        .foregroundColor(Color("OnBoardingButtons"))
-                        .padding(.vertical, 20)
-                        .frame(maxWidth: .infinity)
-                        .background(Color("AppBackgroundColor"), in: RoundedRectangle(cornerRadius: 12))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color("OnBoardingButtons"), lineWidth: 2)
-                        )
-                }
-                
-                Button {
                     showingLoginSheet = true
                 } label: {
                     Text("Login")
@@ -80,6 +60,21 @@ struct OnBoardingView: View {
                         .padding(.vertical, 20)
                         .frame(maxWidth: .infinity)
                         .background(Color("OnBoardingButtons"), in: RoundedRectangle(cornerRadius: 12))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color("OnBoardingButtons"), lineWidth: 2)
+                        )
+                }
+                
+                Button {
+                    showingSignUpSheet = true
+                } label: {
+                    Text("Sign Up")
+                        .font(.custom("OpenSans-Bold", size: 20))
+                        .foregroundColor(Color("OnBoardingButtons"))
+                        .padding(.vertical, 20)
+                        .frame(maxWidth: .infinity)
+                        .background(Color("AppBackgroundColor"), in: RoundedRectangle(cornerRadius: 12))
                         .overlay(
                             RoundedRectangle(cornerRadius: 12)
                                 .stroke(Color("OnBoardingButtons"), lineWidth: 2)
