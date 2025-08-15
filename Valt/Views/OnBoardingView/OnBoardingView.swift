@@ -56,13 +56,13 @@ struct OnBoardingView: View {
                 } label: {
                     Text("Login")
                         .font(.custom("OpenSans-Bold", size: 20))
-                        .foregroundColor(Color("OnBoardingButtonText"))
+                        .foregroundColor(Color("ReverseTextColor"))
                         .padding(.vertical, 20)
                         .frame(maxWidth: .infinity)
-                        .background(Color("OnBoardingButtons"), in: RoundedRectangle(cornerRadius: 12))
+                        .background(Color("TextColor"), in: RoundedRectangle(cornerRadius: 12))
                         .overlay(
                             RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color("OnBoardingButtons"), lineWidth: 2)
+                                .stroke(Color("TextColor"), lineWidth: 2)
                         )
                 }
                 
@@ -71,18 +71,18 @@ struct OnBoardingView: View {
                 } label: {
                     Text("Sign Up")
                         .font(.custom("OpenSans-Bold", size: 20))
-                        .foregroundColor(Color("OnBoardingButtons"))
+                        .foregroundColor(Color("TextColor"))
                         .padding(.vertical, 20)
                         .frame(maxWidth: .infinity)
                         .background(Color("AppBackgroundColor"), in: RoundedRectangle(cornerRadius: 12))
                         .overlay(
                             RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color("OnBoardingButtons"), lineWidth: 2)
+                                .stroke(Color("TextColor"), lineWidth: 2)
                         )
                 }
             }
         }
-        .padding(.horizontal, 30)
+        .padding(.horizontal, 25)
         .padding(.bottom, 20)
     }
 
@@ -128,6 +128,7 @@ struct OnBoardingView: View {
             .tint(Color("BubbleColor").opacity(0.50))
         }
         .padding(.horizontal, 25)
+        .padding(.vertical, 10)
     }
 }
 
@@ -141,17 +142,16 @@ struct OnBoardingPage: View {
             Image(screen.image)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(width: 420, height: 240)
-                // .scaleEffect(getScreenBounds().height < 750 ? 0.9 : 1)
-                .offset(y: getScreenBounds().height < 750 ? -100 : -120)
-
+                .frame(width: 400, height: 220)
+                .offset(y: getScreenBounds().height < 750 ? -40 : -90)
+            
             VStack(alignment: .leading, spacing: 10) {
                 Text(screen.title)
                     .font(.custom("OpenSans-Bold", size: 30))
                     .foregroundColor(Color("TextColor"))
                 
                 Text(screen.subtitle)
-                    .font(.custom("OpenSans-SemiBold", size: 22))
+                    .font(.custom("OpenSans-SemiBold", size: 21))
                     .foregroundColor(Color("TextColor"))
 
                 Text(screen.description)
@@ -160,9 +160,10 @@ struct OnBoardingPage: View {
                     .padding(.top, 15)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 20)
-            .offset(y: -30)
-
+            .padding(.horizontal, 25)
+            .padding(.vertical, 15)
+            // .offset(y: -30)
+            
             Spacer()
         }
         .frame(width: getScreenBounds().width)

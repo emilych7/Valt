@@ -205,6 +205,7 @@ struct SignUpView: View {
                                 Button("Log in.") {
                                         // Navigate to SignUpView later
                                 }
+                                .font(.custom("OpenSans-Regular", size: 17))
                             }
                             .padding(.vertical, 10)
                             
@@ -216,7 +217,7 @@ struct SignUpView: View {
                     }
                     .padding(.horizontal, 40)
                         
-                        Spacer(minLength: geometry.size.height * 0.2)
+                        Spacer(minLength: geometry.size.height * 0.1)
                         
                     }
                 }
@@ -245,7 +246,7 @@ struct SignUpView: View {
 
         }
         .padding(.horizontal, 25)
-        .padding(.bottom, 10)
+        .padding(.vertical, 10)
         .background(Color("AppBackgroundColor"))
     }
     

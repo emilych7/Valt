@@ -7,6 +7,7 @@ import GoogleSignInSwift
 
 @MainActor
 class AuthViewModel: ObservableObject {
+    @Published var bannerManager: BannerManager = BannerManager()
     @Published var currentUser: FirebaseAuth.User?
     @Published var isAuthenticated: Bool = false
     @Published var errorMessage: String?
@@ -43,18 +44,19 @@ class AuthViewModel: ObservableObject {
         
         if !NSPredicate(format: "SELF MATCHES %@", ".*[A-Z]+.*").evaluate(with: trimmedPassword) {
             errors.append("least one uppercase")
+            self.bannerManager.show("Password needs at least one uppercase letter.")
         }
         if !NSPredicate(format: "SELF MATCHES %@", ".*[0-9]+.*").evaluate(with: trimmedPassword) {
-            errors.append("least one digit")
+            errors.append("Password needs at least one digit.")
         }
         if !NSPredicate(format: "SELF MATCHES %@", ".*[!&^%$#@()/]+.*").evaluate(with: trimmedPassword) {
-            errors.append("least one symbol")
+            errors.append("Password needs at least one symbol.")
         }
         if !NSPredicate(format: "SELF MATCHES %@", ".*[a-z]+.*").evaluate(with: trimmedPassword) {
-            errors.append("least one lowercase")
+            errors.append("Password needs at least one lowercase letter.")
         }
         if trimmedPassword.count < 8 {
-            errors.append("min 8 characters total")
+            errors.append("Password needs to be at least 8 characters.")
         }
         return errors
     }
@@ -131,6 +133,7 @@ class AuthViewModel: ObservableObject {
             guard let data = usernameDoc.data(),
                   let userID = data["userID"] as? String else {
                 self.errorMessage = "Username not found."
+                self.bannerManager.show("Username not found.")
                 print("Error: Username '\(uname)' not found.")
                 return
             }

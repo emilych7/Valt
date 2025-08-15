@@ -5,10 +5,9 @@ import GoogleSignIn
 
 struct LoginView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
-    
     @Environment(\.dismiss) var dismiss
+    @FocusState private var isTextFieldFocused: Bool
     @FocusState private var focusedField: Field?
-    
     @State var offset: CGFloat = 0
     @State private var emailOrUsername = ""
     @State private var password = ""
@@ -59,6 +58,9 @@ struct LoginView: View {
                                         .disableAutocorrection(true)
                                         .padding(.horizontal)
                                         .focused($focusedField, equals: .username)
+                                        .onTapGesture {
+                                            isTextFieldFocused = true
+                                        }
                                 }
                             }
                             .padding(.top, 20)
@@ -95,6 +97,10 @@ struct LoginView: View {
                                         .disableAutocorrection(true)
                                         .padding(.horizontal)
                                         .focused($focusedField, equals: .password)
+                                        .onTapGesture {
+                                            isTextFieldFocused = true
+                                        }
+                                    
                                 }
                             }
                             .padding(.top, 5)
@@ -161,6 +167,7 @@ struct LoginView: View {
                                 Button("Let's make one.") {
                                     dismiss()
                                 }
+                                .font(.custom("OpenSans-Regular", size: 17))
                             }
                             .padding(.vertical, 10)
                             
@@ -202,7 +209,14 @@ struct LoginView: View {
 
         }
         .padding(.horizontal, 25)
-        .padding(.bottom, 10)
+        .padding(.vertical, 10)
         .background(Color("AppBackgroundColor"))
+    }
+    
+    // Smoother keyboard dismiss
+    func dismissKeyboardSmoothly() {
+        DispatchQueue.main.async {
+            isTextFieldFocused = false
+        }
     }
 }

@@ -3,8 +3,10 @@ import SwiftUI
 @MainActor
 struct HomeView: View {
     @FocusState private var isTextFieldFocused: Bool
+    
     @EnvironmentObject private var userViewModel: UserViewModel
     @EnvironmentObject private var bannerManager: BannerManager
+    
     @StateObject private var viewModel: HomeViewModel
     @State private var hasFocusedOnce = false
     @State private var keyboardVisible = false
