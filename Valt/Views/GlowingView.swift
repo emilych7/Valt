@@ -4,8 +4,8 @@ struct GlowingView: View {
     var body: some View {
         ZStack {
                 Circle()
-                    .frame(width: 20, height: 20)
-                    .foregroundColor(.pink)
+                    .frame(width: 18, height: 18)
+                    .foregroundColor(Color("ValtRed"))
                     .glow()
             }
         }

@@ -146,10 +146,15 @@ struct OnBoardingPage: View {
                 .offset(y: getScreenBounds().height < 750 ? -40 : -90)
             
             VStack(alignment: .leading, spacing: 10) {
-                Text(screen.title)
-                    .font(.custom("OpenSans-Bold", size: 30))
-                    .foregroundColor(Color("TextColor"))
-                
+                HStack (spacing: 10) {
+                    GlowingView()
+                    
+                    Text(screen.title)
+                        .font(.custom("OpenSans-Bold", size: 30))
+                        .foregroundColor(Color("TextColor"))
+                    
+                    Spacer()
+                }
                 Text(screen.subtitle)
                     .font(.custom("OpenSans-SemiBold", size: 21))
                     .foregroundColor(Color("TextColor"))

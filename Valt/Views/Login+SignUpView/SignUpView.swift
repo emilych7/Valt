@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SignUpView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
+    @EnvironmentObject private var bannerManager: BannerManager
     
     @Environment(\.dismiss) var dismiss
     @FocusState private var focusedField: Field?
@@ -9,9 +10,10 @@ struct SignUpView: View {
     @State private var username = ""
     @State private var email = ""
     @State private var password = ""
+    @State private var passwordConfirmation = ""
     
     enum Field {
-        case username, password
+        case username, password, passwordConfirmation
     }
     
     var body: some View {
@@ -140,13 +142,13 @@ struct SignUpView: View {
                                             RoundedRectangle(cornerRadius: 10)
                                                 .stroke(Color("TextFieldBorder"), lineWidth: 1) // border
                                         )
-                                    SecureField("Re-Enter Password", text: $password)
+                                    SecureField("Re-Enter Password", text: $passwordConfirmation)
                                         .frame(maxWidth: .infinity, maxHeight: 50, alignment: .leading)
                                         .textFieldStyle(.plain)
                                         .textInputAutocapitalization(.never)
                                         .disableAutocorrection(true)
                                         .padding(.horizontal)
-                                        .focused($focusedField, equals: .password)
+                                        .focused($focusedField, equals: .passwordConfirmation)
                                 }
                             }
                             .padding(.top, 5)
@@ -154,13 +156,19 @@ struct SignUpView: View {
                             VStack {
                                 Button("Sign Up") {
                                     Task {
-                                        if !authViewModel.isValidPassword(password) {
-                                            let missing = authViewModel.getMissingValidation(password)
-                                            print("Missing: \(missing)")
-                                        } else {
-                                            await authViewModel.signUp(email: email, password: password, username: username)
+                                        if (password != passwordConfirmation) {
+                                            print("Passwords do not match")
+                                            bannerManager.show("Passwords do not match")
+                                            
+                                            if !authViewModel.isValidPassword(password) {
+                                                let missing = authViewModel.getMissingValidation(password)
+                                                print("Missing: \(missing)")
+                                                bannerManager.show("\(missing)")
+                                            } else {
+                                                await authViewModel.signUp(email: email, password: password, username: username)
+                                            }
+                                            
                                         }
-                                        
                                     }
                                 }
                                 .foregroundColor(.white)

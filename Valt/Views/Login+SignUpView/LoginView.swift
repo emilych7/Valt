@@ -7,14 +7,15 @@ struct LoginView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @Environment(\.dismiss) var dismiss
     @FocusState private var isTextFieldFocused: Bool
-    @FocusState private var focusedField: Field?
+    // @FocusState private var focusedField: Field?
     @State var offset: CGFloat = 0
     @State private var emailOrUsername = ""
     @State private var password = ""
-    
+    /*
     enum Field {
         case username, password
     }
+     */
     
     var body: some View {
         ZStack {
@@ -57,7 +58,8 @@ struct LoginView: View {
                                         .textInputAutocapitalization(.never)
                                         .disableAutocorrection(true)
                                         .padding(.horizontal)
-                                        .focused($focusedField, equals: .username)
+                                        // .focused($focusedField, equals: .username)
+                                        .focused($isTextFieldFocused)
                                         .onTapGesture {
                                             isTextFieldFocused = true
                                         }
@@ -96,7 +98,8 @@ struct LoginView: View {
                                         .textInputAutocapitalization(.never)
                                         .disableAutocorrection(true)
                                         .padding(.horizontal)
-                                        .focused($focusedField, equals: .password)
+                                        // .focused($focusedField, equals: .password)
+                                        .focused($isTextFieldFocused)
                                         .onTapGesture {
                                             isTextFieldFocused = true
                                         }
@@ -187,7 +190,7 @@ struct LoginView: View {
                 .scrollIndicators(.hidden)
                 .background(Color("AppBackgroundColor"))
                 .onTapGesture {
-                    focusedField = nil // Dismiss keyboard
+                    dismissKeyboardSmoothly() 
                 }
             }
             .overlay(topNavigationBar, alignment: .top)
