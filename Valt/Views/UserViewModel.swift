@@ -7,6 +7,7 @@ import UIKit
 
 @MainActor
 final class UserViewModel: ObservableObject {
+    @Published var username: String = "@username"
     @Published var draftCount: Int = 0
     @Published var publishedDraftCount: Int = 0
     @Published var drafts: [Draft] = []
@@ -21,11 +22,39 @@ final class UserViewModel: ObservableObject {
         self.repository = repository
         
         // Initial data loading
+        fetchAuthenticatedUsername()
         fetchDraftCount()
         fetchPublishedCount()
         loadDrafts()
         fetchProfilePicture()
     }
+    
+    // Grabs current user's username
+    func fetchAuthenticatedUsername() {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            print("User not authenticated")
+            return
+        }
+
+        Task {
+            do {
+                let snapshot = try await Firestore.firestore().collection("usernames")
+                    .whereField("userID", isEqualTo: uid)
+                    .getDocuments()
+
+                if let document = snapshot.documents.first {
+                    let username = document.documentID
+                    self.username = username
+                    print("Authenticated user's username: \(username)")
+                } else {
+                    print("No username found for user ID: \(uid)")
+                }
+            } catch {
+                print("Error fetching username: \(error.localizedDescription)")
+            }
+        }
+    }
+
     
     // Fetches the count of drafts from Firebase
     func fetchDraftCount() {
@@ -89,7 +118,6 @@ final class UserViewModel: ObservableObject {
             print("Error updating draft: \(error.localizedDescription)")
         }
     }
-
     
     // Deletes a draft from Firestore and updates the local list
     func deleteDraft(draftID: String) async {
@@ -176,7 +204,7 @@ final class UserViewModel: ObservableObject {
             }
         }
 
-        /// Load all published drafts for the selected username
+        // Load all published drafts for the selected username
         func loadPublishedDrafts(for username: String) {
             Task {
                 do {

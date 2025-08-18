@@ -30,6 +30,7 @@ final class DraftRepository: DraftRepositoryProtocol {
             // Return the canonical `username` field (preserve original casing for display)
             return snapshot.documents.compactMap { $0.data()["username"] as? String }
         }
+    
 
         /// Fetch all published drafts for a given username.
         func fetchPublishedDrafts(forUsername username: String) async throws -> [Draft] {

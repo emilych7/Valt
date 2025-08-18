@@ -35,7 +35,7 @@ struct ProfileView: View {
                     GlowingView()
                         .frame(width: 20, height: 20)
                     
-                    Text("Welcome, username")
+                    Text("My Valt")
                         .font(.custom("OpenSans-SemiBold", size: 24))
                     Spacer()
                     Button { showSettingsOverlayBinding.toggle() } label: {
@@ -86,7 +86,7 @@ struct ProfileView: View {
                     }
                     
                     VStack(alignment: .leading, spacing: 5) {
-                        Text("@username")
+                        Text("\(userViewModel.username)")
                             .font(.custom("OpenSans-SemiBold", size: 23))
                         
                         Text("\(userViewModel.draftCount) drafts")

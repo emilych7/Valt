@@ -77,8 +77,6 @@ class AuthViewModel: ObservableObject {
         errorMessage = nil
         do {
             let uname = normalizedUsername(username)
-
-            // Reserve the username (usernames/{username} -> { userID })
             let usernameRef = db.collection("usernames").document(uname)
             let snapshot = try await usernameRef.getDocument()
 
@@ -88,11 +86,9 @@ class AuthViewModel: ObservableObject {
                 return
             }
 
-            // Create auth user
             let result = try await Auth.auth().createUser(withEmail: email, password: password)
             print("Successfully signed up user: \(result.user.uid)")
 
-            // Atomically write user profile + username mapping
             let batch = db.batch()
 
             let userRef = db.collection("users").document(result.user.uid)
@@ -125,10 +121,8 @@ class AuthViewModel: ObservableObject {
                 return
             }
 
-            // Username flow: lookup userID -> fetch user's email -> sign in with email
             let uname = normalizedUsername(usernameOrEmail)
 
-            // 1) usernames/{username} -> userID
             let usernameDoc = try await db.collection("usernames").document(uname).getDocument()
             guard let data = usernameDoc.data(),
                   let userID = data["userID"] as? String else {
@@ -138,7 +132,6 @@ class AuthViewModel: ObservableObject {
                 return
             }
 
-            // 2) users/{userID} -> email
             let userDoc = try await db.collection("users").document(userID).getDocument()
             guard let userData = userDoc.data(),
                   let email = userData["email"] as? String, !email.isEmpty else {
@@ -175,7 +168,6 @@ class AuthViewModel: ObservableObject {
                 accessToken: user.accessToken.tokenString
             )
             _ = try await Auth.auth().signIn(with: credential)
-            // Handle first-time user logic
         } catch {
             errorMessage = error.localizedDescription
         }

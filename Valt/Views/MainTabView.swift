@@ -32,7 +32,23 @@ struct MainTabView: View {
                 ProfileView(showSettingsOverlayBinding: $showGlobalSettingsOverlay)
                     .tag(ContentTabViewSelection.profile)
                     .tabItem {
-                        profileTabItemLabel()
+                        ZStack {
+                            Label {
+                                Text("Profile")
+                            } icon: {
+                                if let profilePicture = (userViewModel.profileImage)?.createTabItemLabelFromImage(selection == .profile) {
+                                    Image(uiImage: profilePicture)
+                                        .resizable()
+                                        .scaledToFill()
+                                        // .aspectRatio(contentMode: .fill)
+                                        .frame(width: 24, height: 24)
+                                        .clipShape(Circle())
+                                } else {
+                                    ContentTabViewSelection.profile.label
+                                }
+                            }
+                        }
+                        .animation(.none, value: colorScheme)
                     }
             }
             .tint(Color("TextColor"))
@@ -87,6 +103,7 @@ struct MainTabView: View {
                     .animation(.spring(response: 0.4, dampingFraction: 0.7), value: bannerManager.isVisible)
                 }
         }
+        // Tab Bar styling
         .onAppear {
             let appearance = UITabBarAppearance()
             appearance.backgroundColor = UIColor(Color("AppBackgroundColor"))
@@ -115,7 +132,8 @@ struct MainTabView: View {
                 if let profilePicture = (userViewModel.profileImage)?.createTabItemLabelFromImage(selection == .profile) {
                     Image(uiImage: profilePicture)
                         .resizable()
-                        .aspectRatio(contentMode: .fill)
+                        .scaledToFill()
+                        // .aspectRatio(contentMode: .fill)
                         .frame(width: 24, height: 24)
                         .clipShape(Circle())
                 } else {
@@ -125,6 +143,7 @@ struct MainTabView: View {
         }
         .animation(.none, value: colorScheme)
     }
+
 }
 
 
@@ -143,7 +162,6 @@ fileprivate extension UIImage {
                 context.cgContext.setLineJoin(.round)
                 context.cgContext.setLineCap(.round)
                 clipPath.lineWidth = 3
-                // clipPath.stroke()
             }
         }.withRenderingMode(.alwaysOriginal)
     }
