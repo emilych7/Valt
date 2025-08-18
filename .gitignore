@@ -4,3 +4,7 @@ xcuserdata/
 DerivedData/
 build/
 
+Valt/GoogleService-Info.plist
+Valt.xcodeproj/xcshareddata/xcschemes/Valt.xcscheme
+Valt.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+Valt.xcodeproj/project.pbxproj
