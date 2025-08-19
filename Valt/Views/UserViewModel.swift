@@ -7,6 +7,8 @@ import UIKit
 
 @MainActor
 final class UserViewModel: ObservableObject {
+    @Published var loadingState: ContentLoadingState = .loading
+    
     @Published var username: String = "@username"
     @Published var draftCount: Int = 0
     @Published var publishedDraftCount: Int = 0
@@ -49,8 +51,10 @@ final class UserViewModel: ObservableObject {
                 } else {
                     print("No username found for user ID: \(uid)")
                 }
+                // self.loadingState = username.isEmpty ? .empty: .complete
             } catch {
                 print("Error fetching username: \(error.localizedDescription)")
+                self.loadingState = .error(error)
             }
         }
     }
@@ -67,6 +71,9 @@ final class UserViewModel: ObservableObject {
                     .whereField("userID", isEqualTo: userID)
                     .getDocuments()
                 self.draftCount = snapshot.documents.count
+                if self.draftCount == 0 {
+                    self.loadingState = .empty
+                }
             } catch {
                 print("Error fetching drafts count: \(error.localizedDescription)")
                 self.draftCount = 0
@@ -95,14 +102,19 @@ final class UserViewModel: ObservableObject {
     
     // Loads all drafts for the current user from Firebase
     func loadDrafts() {
+        // isLoading = true
         guard let userID = Auth.auth().currentUser?.uid else { return }
         Task {
             do {
                 self.drafts = try await repository.fetchDrafts(for: userID)
+                self.loadingState = username.isEmpty ? .empty: .complete
             } catch {
                 print("Error loading drafts: \(error.localizedDescription)")
+                self.loadingState = .error(error)
                 self.drafts = []
             }
+            
+            // isLoading = false
         }
     }
     

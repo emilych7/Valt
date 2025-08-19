@@ -131,8 +131,29 @@ struct ProfileView: View {
                 .padding(.top, 5)
                 .padding(.horizontal, 25)
                 
-                if userViewModel.draftCount != 0 {
+                switch userViewModel.loadingState {
+                case .loading:
+                    CardLoadingView()
+                case .empty:
+                    ZStack {
+                        Image("noDrafts")
+                            .resizable()
+                            .frame(width: 220, height: 220)
+                            .padding()
+                    }
+                    .padding(.vertical, 10)
                     
+                case .error:
+                    ZStack {
+                        Text("An error occured :(")
+                            .font(.custom("OpenSans-Regular", size: 18))
+                    }
+                    .padding(.vertical, 10)
+                    
+                case .complete:
+                    /*
+                    if userViewModel.draftCount != 0 {
+                    */
                     // Drafts Grid
                     ScrollView {
                         LazyVGrid(columns: [
@@ -148,15 +169,18 @@ struct ProfileView: View {
                     .scrollIndicators(.hidden)
                     
                     Spacer()
-                }
-                else {
-                    ZStack {
-                        Image("noDrafts")
-                            .resizable()
-                            .frame(width: 220, height: 220)
-                            .padding()
+                    /*
                     }
-                    .padding(.vertical, 10)
+                    else {
+                        ZStack {
+                            Image("noDrafts")
+                                .resizable()
+                                .frame(width: 220, height: 220)
+                                .padding()
+                        }
+                        .padding(.vertical, 10)
+                    }
+                */
                 }
                 
                 Spacer()
