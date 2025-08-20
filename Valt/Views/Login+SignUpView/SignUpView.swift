@@ -1,5 +1,6 @@
 import SwiftUI
 
+@MainActor
 struct SignUpView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject private var bannerManager: BannerManager
@@ -155,19 +156,21 @@ struct SignUpView: View {
                             
                             VStack {
                                 Button("Sign Up") {
+                                    print("Reached")
                                     Task {
-                                        if (password != passwordConfirmation) {
+                                        /*
+                                        if ($password != $passwordConfirmation) {
                                             print("Passwords do not match")
                                             bannerManager.show("Passwords do not match")
-                                            
-                                            if !authViewModel.isValidPassword(password) {
-                                                let missing = authViewModel.getMissingValidation(password)
-                                                print("Missing: \(missing)")
-                                                bannerManager.show("\(missing)")
-                                            } else {
-                                                await authViewModel.signUp(email: email, password: password, username: username)
-                                            }
-                                            
+                                        }
+                                         */
+                                        if (!authViewModel.isValidPassword(password)) || (password != passwordConfirmation) {
+                                            let missing = authViewModel.getMissingValidation(password)
+                                            print("Missing: \(missing)")
+                                            // bannerManager.show("\(missing)")
+                                            print("Passwords do not match")
+                                        } else {
+                                            await authViewModel.signUp(email: email, password: password, username: username)
                                         }
                                     }
                                 }

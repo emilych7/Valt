@@ -7,7 +7,8 @@ import UIKit
 
 @MainActor
 final class UserViewModel: ObservableObject {
-    @Published var loadingState: ContentLoadingState = .loading
+    @Published var cardLoadingState: ContentLoadingState = .loading
+    @Published var userLoadingState: ContentLoadingState = .loading
     
     @Published var username: String = "@username"
     @Published var draftCount: Int = 0
@@ -51,10 +52,9 @@ final class UserViewModel: ObservableObject {
                 } else {
                     print("No username found for user ID: \(uid)")
                 }
-                // self.loadingState = username.isEmpty ? .empty: .complete
             } catch {
                 print("Error fetching username: \(error.localizedDescription)")
-                self.loadingState = .error(error)
+                self.userLoadingState = .error(error)
             }
         }
     }
@@ -71,8 +71,11 @@ final class UserViewModel: ObservableObject {
                     .whereField("userID", isEqualTo: userID)
                     .getDocuments()
                 self.draftCount = snapshot.documents.count
+                
                 if self.draftCount == 0 {
-                    self.loadingState = .empty
+                    self.userLoadingState = .empty
+                } else {
+                    self.userLoadingState = .complete
                 }
             } catch {
                 print("Error fetching drafts count: \(error.localizedDescription)")
@@ -102,19 +105,16 @@ final class UserViewModel: ObservableObject {
     
     // Loads all drafts for the current user from Firebase
     func loadDrafts() {
-        // isLoading = true
         guard let userID = Auth.auth().currentUser?.uid else { return }
         Task {
             do {
                 self.drafts = try await repository.fetchDrafts(for: userID)
-                self.loadingState = username.isEmpty ? .empty: .complete
+                self.cardLoadingState = drafts.isEmpty ? .empty: .complete
             } catch {
                 print("Error loading drafts: \(error.localizedDescription)")
-                self.loadingState = .error(error)
+                self.cardLoadingState = .error(error)
                 self.drafts = []
             }
-            
-            // isLoading = false
         }
     }
     
@@ -140,6 +140,11 @@ final class UserViewModel: ObservableObject {
             if let index = self.drafts.firstIndex(where: { $0.id == draftID }) {
                 self.drafts.remove(at: index)
                 self.draftCount = self.drafts.count // Update count
+                if (draftCount == 0) {
+                    self.cardLoadingState = .empty
+                } else {
+                    self.cardLoadingState = .complete
+                }
             }
             print("Draft successfully deleted from Firestore and UI.")
         } catch {
@@ -154,6 +159,7 @@ final class UserViewModel: ObservableObject {
             // New draft appears at the top
             self.drafts.insert(draft, at: 0)
             self.draftCount = self.drafts.count // Update draft count
+            self.cardLoadingState = .complete
             print("Draft successfully added to Firestore and UI.")
         } catch {
             print("Error adding draft: \(error.localizedDescription)")
@@ -167,15 +173,18 @@ final class UserViewModel: ObservableObject {
         
         Task {
             do {
+                self.userLoadingState = .loading
                 let url = try await storageRef.downloadURL()
                 self.profilePictureURL = url
                 
                 let (data, _) = try await URLSession.shared.data(from: url)
                 if let uiImage = UIImage(data: data) {
                     self.profileImage = uiImage
+                    self.userLoadingState = .complete
                 }
             } catch {
                 print("Error fetching profile picture: \(error.localizedDescription)")
+                self.userLoadingState = .error(error)
             }
         }
     }
@@ -188,11 +197,14 @@ final class UserViewModel: ObservableObject {
         
         Task { 
             do {
+                self.userLoadingState = .loading
                 _ = try await storageRef.putDataAsync(imageData, metadata: nil)
                 self.profileImage = image
                 print("Profile picture uploaded and UI updated.")
+                self.userLoadingState = .complete
             } catch {
                 print("Error uploading profile picture: \(error.localizedDescription)")
+                self.userLoadingState = .error(error)
             }
         }
     }

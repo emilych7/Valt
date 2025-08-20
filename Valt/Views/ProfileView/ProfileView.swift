@@ -56,6 +56,45 @@ struct ProfileView: View {
                 HStack {
                     PhotosPicker(selection: $selectedItem, matching: .images, photoLibrary: .shared()) {
                         ZStack {
+                            switch userViewModel.userLoadingState {
+                                case .loading:
+                                    Ellipse()
+                                        .frame(width: 105, height: 105)
+                                        .foregroundColor(Color("BubbleColor"))
+                                        .overlay(
+                                            ProgressView()
+                                                .scaleEffect(1.0, anchor: .center)
+                                                .frame(width: 25, height: 25)
+                                        )
+                                case .empty:
+                                    Ellipse()
+                                        .frame(width: 105, height: 105)
+                                        .foregroundColor(Color("BubbleColor"))
+                                        .overlay(
+                                            Image(systemName: "camera.fill")
+                                                .foregroundColor(.gray)
+                                                .font(.system(size: 24))
+                                        )
+                                case.error:
+                                    Ellipse()
+                                        .frame(width: 105, height: 105)
+                                        .foregroundColor(Color("BubbleColor"))
+                                        .overlay(
+                                            Image(systemName: "camera.fill")
+                                                .foregroundColor(.gray)
+                                                .font(.system(size: 24))
+                                        )
+                                case .complete:
+                                    if let profileImage = localProfileImage {
+                                        Image(uiImage: profileImage)
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 105, height: 105)
+                                            .clipShape(Ellipse())
+                                    }
+                                    
+                            }
+                            /*
                             if let profileImage = localProfileImage {
                                 Image(uiImage: profileImage)
                                     .resizable()
@@ -72,6 +111,7 @@ struct ProfileView: View {
                                             .font(.system(size: 24))
                                     )
                             }
+                            */
                         }
                     }
                     .frame(width: 115, height: 115)
@@ -131,7 +171,7 @@ struct ProfileView: View {
                 .padding(.top, 5)
                 .padding(.horizontal, 25)
                 
-                switch userViewModel.loadingState {
+                switch userViewModel.cardLoadingState {
                 case .loading:
                     CardLoadingView()
                 case .empty:
@@ -151,9 +191,6 @@ struct ProfileView: View {
                     .padding(.vertical, 10)
                     
                 case .complete:
-                    /*
-                    if userViewModel.draftCount != 0 {
-                    */
                     // Drafts Grid
                     ScrollView {
                         LazyVGrid(columns: [
@@ -169,18 +206,6 @@ struct ProfileView: View {
                     .scrollIndicators(.hidden)
                     
                     Spacer()
-                    /*
-                    }
-                    else {
-                        ZStack {
-                            Image("noDrafts")
-                                .resizable()
-                                .frame(width: 220, height: 220)
-                                .padding()
-                        }
-                        .padding(.vertical, 10)
-                    }
-                */
                 }
                 
                 Spacer()
