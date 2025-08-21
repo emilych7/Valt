@@ -22,11 +22,11 @@ struct MainTabView: View {
                     .tag(ContentTabViewSelection.home)
 
                 // Prompts tab
-                PromptsView()
+                ExploreView()
                     .tabItem {
-                        Label("Prompts", image: "promptsIcon")
+                        Label("Explore", image: "promptsIcon")
                     }
-                    .tag(ContentTabViewSelection.prompts)
+                    .tag(ContentTabViewSelection.explore)
 
                 // Profile tab
                 ProfileView(showSettingsOverlayBinding: $showGlobalSettingsOverlay)

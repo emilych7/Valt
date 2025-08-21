@@ -1,14 +1,14 @@
 import SwiftUI
 import FirebaseAuth
 
-struct PromptsView: View {
-    @StateObject private var viewModel = PromptsViewModel()
+struct ExploreView: View {
+    @StateObject private var viewModel = ExploreViewModel()
 
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 15) {
             // Title
             HStack {
-                Text("PromptGen")
+                Text("Find a Prompt")
                     .font(.custom("OpenSans-SemiBold", size: 24))
                 Spacer()
             }
@@ -17,21 +17,37 @@ struct PromptsView: View {
 
             // Search usernames
             VStack(spacing: 8) {
-                HStack {
-                    TextField("Search usernames…", text: $viewModel.searchText)
-                        .textInputAutocapitalization(.never)
-                        .disableAutocorrection(true)
-                        .font(.custom("OpenSans-Regular", size: 15))
-                        .padding(10)
-                        .background(Color("TextFieldBackground"))
-                        .cornerRadius(10)
+                VStack {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color("TextFieldBackground"))
+                            .frame(height: 50)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color("TextFieldBorder"), lineWidth: 1)
+                            )
                         
-                        // <- iOS 14+ signature so it fires on all supported OS versions
-                        .onChange(of: viewModel.searchText) {
-                            viewModel.onSearchTextChanged()
+                        HStack (spacing: 8) {
+                            Image("searchIcon")
+                                .resizable()
+                                .frame(width: 15, height: 15)
+                            
+                            TextField("Search for a username", text: $viewModel.searchText)
+                                .textInputAutocapitalization(.never)
+                                .disableAutocorrection(true)
+                                .font(.custom("OpenSans-Regular", size: 17))
+                                .foregroundColor(Color("TextColor"))
+                            
+                            // <- iOS 14+ signature
+                                .onChange(of: viewModel.searchText) {
+                                    viewModel.onSearchTextChanged()
+                                }
                         }
+                        .padding(.horizontal, 15)
+                        .padding(.vertical, 5)
+                    }
                 }
-                .padding(.horizontal, 20)
+                .padding(.horizontal, 25)
 
                 // Suggestions list
                 if !viewModel.usernameSuggestions.isEmpty {
@@ -90,7 +106,6 @@ struct PromptsView: View {
                             }
                             .padding()
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Color("CardColor"))
                             .cornerRadius(8)
                         }
                     }
@@ -100,63 +115,68 @@ struct PromptsView: View {
             }
 
             Spacer()
-
+            
+            HStack {
+                Text("Suggestions")
+                    .font(.custom("OpenSans-SemiBold", size: 20))
+                    .foregroundColor(Color("TextColor"))
+                
+                Spacer()
+                
+            }
+            .padding(.horizontal, 25)
+            
             // Generated prompt box
             HStack {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color("TextFieldBackground"))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color("TextFieldBorder"), lineWidth: 1)
-                        )
+                    let shell = RoundedRectangle(cornerRadius: 12)
 
-                    Text(viewModel.generatedPrompt)
-                        .font(.custom("OpenSans-Regular", size: 15))
-                        .foregroundColor(Color("TextColor"))
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 8)
+                    shell
+                        .fill(Color("TextFieldBackground"))
+                        .overlay(shell.stroke(Color("TextFieldBorder"), lineWidth: 1))
+
+                    GeometryReader { geo in
+                        // Inner padding must match below
+                        let innerPad: CGFloat = 10
+                        let rowCount = 5
+                        let rowHeight = max(0, (geo.size.height - innerPad * 2) / CGFloat(rowCount))
+
+                        VStack(spacing: 0) {
+                            ForEach(0..<rowCount, id: \.self) { i in
+                                PromptSuggestionView(prompt: viewModel.generatedPrompt)
+                                    .frame(height: rowHeight, alignment: .topLeading)
+                            }
+                        }
+                        .padding(innerPad)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    }
+                    .clipShape(shell)
                 }
-                .frame(maxWidth: .infinity, maxHeight: 90)
             }
-            .padding(.horizontal, 20)
+            .frame(maxHeight: .infinity)
+            .padding(.horizontal, 25)
+            .padding(.bottom, 10)
 
             // Action buttons
             HStack(spacing: 15) {
                 Button {
-                    // Navigate to your writing view if needed
-                } label: {
-                    HStack(spacing: 10) {
-                        Text("Start Writing")
-                            .font(.custom("OpenSans-SemiBold", size: 15))
-                            .foregroundColor(.white)
-                        Image("Write")
-                            .frame(width: 15, height: 15)
-                    }
-                }
-                .frame(height: 45)
-                .frame(maxWidth: .infinity)
-                .background(Color("RequestButtonColor"))
-                .cornerRadius(12)
-
-                Button {
                     viewModel.generatePromptFromOwnDrafts()
                 } label: {
                     HStack(spacing: 10) {
-                        Text("New Prompt")
-                            .font(.custom("OpenSans-SemiBold", size: 15))
+                        Text("Generate Prompts")
+                            .font(.custom("OpenSans-SemiBold", size: 18))
                             .foregroundColor(.white)
                         Image("Refresh")
-                            .frame(width: 15, height: 15)
+                            .frame(width: 17, height: 17)
                     }
                 }
-                .frame(height: 45)
+                .frame(height: 50)
                 .frame(maxWidth: .infinity)
-                .background(Color("RequestButtonNeutral"))
+                .background(Color("RequestButtonColor"))
                 .cornerRadius(12)
             }
             .padding(.horizontal, 20)
-
+            /*
             if let selected = viewModel.selectedUsername {
                 Button {
                     viewModel.generatePromptFromPublishedDraftsForSelectedUser()
@@ -170,6 +190,7 @@ struct PromptsView: View {
                 }
                 .padding(.horizontal, 20)
             }
+            */
 
             Spacer()
         }
@@ -179,5 +200,5 @@ struct PromptsView: View {
 }
 
 #Preview {
-    PromptsView()
+    ExploreView()
 }

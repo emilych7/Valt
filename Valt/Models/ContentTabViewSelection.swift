@@ -4,7 +4,7 @@ import SwiftUI
 enum ContentTabViewSelection {
     case profile
     case home
-    case prompts
+    case explore
 
     var label: some View {
         switch self {
@@ -12,8 +12,8 @@ enum ContentTabViewSelection {
             return Label("Profile", image: "profileIcon")
         case .home:
             return Label("Create", image: "createIcon")
-        case .prompts:
-            return Label("Prompts", image: "promptsIcon")
+        case .explore:
+            return Label("Explore", image: "promptsIcon")
         }
     }
 }

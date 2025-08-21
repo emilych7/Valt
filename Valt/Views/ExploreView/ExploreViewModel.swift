@@ -2,7 +2,7 @@ import Foundation
 import FirebaseAuth
 
 @MainActor
-final class PromptsViewModel: ObservableObject {
+final class ExploreViewModel: ObservableObject {
     @Published var generatedPrompt: String = "Come back when you have at least 3 notes..."
     @Published var isLoading: Bool = false
 
@@ -73,7 +73,7 @@ final class PromptsViewModel: ObservableObject {
 
         guard let userID = Auth.auth().currentUser?.uid else {
             print("User is not logged in.")
-            generatedPrompt = "Please log in to generate a personalized prompt."
+            generatedPrompt = "You need to be logged in."
             isLoading = false
             return
         }
@@ -82,7 +82,7 @@ final class PromptsViewModel: ObservableObject {
             guard let self = self else { return }
 
             guard drafts.count >= 3 else {
-                self.generatedPrompt = "Create at least five drafts to get a personalized prompt!"
+                self.generatedPrompt = "Create at least three drafts to get a personalized prompt."
                 self.isLoading = false
                 return
             }
