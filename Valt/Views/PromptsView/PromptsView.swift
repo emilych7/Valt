@@ -75,6 +75,29 @@ struct PromptsView: View {
                     .background(Color("BorderColor"))
                 }
             }
+            if !viewModel.publishedDraftsForUser.isEmpty {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 10) {
+                        ForEach(viewModel.publishedDraftsForUser) { draft in
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(draft.title)
+                                    .font(.custom("OpenSans-SemiBold", size: 16))
+                                    .foregroundColor(Color("TextColor"))
+                                
+                                Text(draft.content)
+                                    .font(.custom("OpenSans-Regular", size: 14))
+                                    .foregroundColor(Color("TextColor").opacity(0.8))
+                            }
+                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color("CardColor"))
+                            .cornerRadius(8)
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                }
+                .frame(maxHeight: 250) // Adjust height as needed
+            }
 
             Spacer()
 

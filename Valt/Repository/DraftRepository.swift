@@ -17,18 +17,21 @@ final class DraftRepository: DraftRepositoryProtocol {
     
     func searchUsernames(prefix: String, limit: Int = 15) async throws -> [String] {
             let q = prefix.lowercased()
+            if q.isEmpty { return [] }
+
             // Firestore prefix query trick: endAt is prefix + \u{f8ff}
             let end = q + "\u{f8ff}"
+            print(q, end)
 
-            let snapshot = try await db.collection("users")
-                .order(by: "username_lowercase")
+            let snapshot = try await db.collection("usernames")
+                .order(by: FieldPath.documentID())
                 .start(at: [q])
                 .end(at: [end])
                 .limit(to: limit)
                 .getDocuments()
-
+            
             // Return the canonical `username` field (preserve original casing for display)
-            return snapshot.documents.compactMap { $0.data()["username"] as? String }
+            return snapshot.documents.map { $0.documentID }
         }
     
 

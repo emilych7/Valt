@@ -22,28 +22,34 @@ final class PromptsViewModel: ObservableObject {
 
     // Username search (debounced)
     func onSearchTextChanged() {
-        let q = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !q.isEmpty else {
-            usernameSuggestions = []
-            return
-        }
+            let q = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+            searchTask?.cancel()
+            isSearching = true
 
-        searchTask?.cancel()
-        isSearching = true
+            searchTask = Task { [weak self] in
+                guard let self else { return }
+                try? await Task.sleep(nanoseconds: 250_000_000) // ~250ms debounce
+                // Check for cancellation. If the task was cancelled, don't proceed.
+                guard !Task.isCancelled else { return }
+                
+                if q.isEmpty {
+                    self.usernameSuggestions = []
+                    self.isSearching = false
+                    return
+                }
 
-        searchTask = Task { [weak self] in
-            guard let self else { return }
-            try? await Task.sleep(nanoseconds: 250_000_000) // ~250ms debounce
-            do {
-                let results = try await repository.searchUsernames(prefix: q, limit: 15)
-                self.usernameSuggestions = results
-            } catch {
-                self.usernameSuggestions = []
-                print("Search error:", error.localizedDescription)
+                // We are now searching, update the UI state.
+                self.isSearching = true
+                do {
+                    let results = try await repository.searchUsernames(prefix: q, limit: 15)
+                    self.usernameSuggestions = results
+                } catch {
+                    self.usernameSuggestions = []
+                    print("Search error:", error.localizedDescription)
+                }
+                self.isSearching = false
             }
-            self.isSearching = false
         }
-    }
 
     // Load published drafts for username selected
     func loadPublishedDrafts(for username: String) {

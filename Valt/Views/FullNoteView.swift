@@ -145,28 +145,64 @@ struct FullNoteView: View {
                         .foregroundColor(Color("TextColor"))
                         .scrollContentBackground(.hidden)
                         .background(Color.clear)
+                        
                 }
                 .padding(.horizontal, 30)
+                .onTapGesture {
+                    isTextFieldFocused = true
+                }
 
                 Spacer()
             }
             .background(Color("AppBackgroundColor"))
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .onAppear {
-                isTextFieldFocused = true
+                // isTextFieldFocused = true
             }
-            .alert("Delete This Draft?", isPresented: $showDeleteConfirmation) {
+            .alert("Delete Draft?", isPresented: $showDeleteConfirmation) {
                 Button("Delete", role: .destructive) {
                     Task {
                         await userViewModel.deleteDraft(draftID: draft.id)
                         dismiss()
-                        bannerManager.show("Deleted draft", backgroundColor: .red, icon: "trash")
+                        bannerManager.show("Draft deleted", backgroundColor: .red, icon: "trash")
                     }
                 }
                 Button("Cancel", role: .cancel) {}
             } message: {
-                Text("Are you sure you want to delete this draft? This action cannot be undone.")
+                Text("Are you sure you want to permanently delete this draft?")
             }
+        }
+        .safeAreaInset(edge: .bottom) {
+            if isTextFieldFocused {
+                HStack {
+                    
+                    Spacer()
+                    
+                    Button {
+                        dismissKeyboardSmoothly()
+                    } label: {
+                        Image(systemName: "keyboard.chevron.compact.down")
+                            .resizable()
+                            .foregroundColor(Color("TextColor"))
+                            .frame(width: 25, height: 20)
+                    }
+                    .padding(.horizontal, 20)
+                    
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 10)
+                .background(Color("TextFieldBackground").ignoresSafeArea())
+                .transition(.move(edge: .bottom))
+                .animation(.easeInOut(duration: 0.10), value: isTextFieldFocused)
+            }
+        }
+    }
+    
+    func dismissKeyboardSmoothly() {
+        DispatchQueue.main.async {
+            isTextFieldFocused = false
         }
     }
 }
