@@ -1,6 +1,7 @@
 import SwiftUI
 import PhotosUI
 
+@MainActor
 struct ProfileView: View {
     @EnvironmentObject private var userViewModel: UserViewModel
     @Binding var showSettingsOverlayBinding: Bool
@@ -9,23 +10,58 @@ struct ProfileView: View {
     @State private var showFilterOptions: Bool = false
     @State private var showNote: Bool = false
     @State private var selectedItem: PhotosPickerItem? = nil
+    @State private var isPhotoPickerPresented: Bool = false   // ← NEW
 
     // Mirror actor-isolated property
     @State private var localProfileImage: UIImage? = nil
     
+    // (optional) can add @MainActor explicitly, but the struct already is
     var filteredDrafts: [Draft] {
         guard let selectedFilter = selectedFilter else {
             return userViewModel.drafts.sorted { $0.timestamp > $1.timestamp }
         }
         switch selectedFilter {
-        case .favorites:
-            return userViewModel.drafts.filter { $0.isFavorited }
-        case .hidden:
-            return userViewModel.drafts.filter { $0.isHidden }
-        case .published:
-            // return userViewModel.drafts.sorted { $0.timestamp > $1.timestamp }
-            return userViewModel.drafts.filter { $0.isPublished }
+        case .favorites: return userViewModel.drafts.filter { $0.isFavorited }
+        case .hidden:    return userViewModel.drafts.filter { $0.isHidden }
+        case .published: return userViewModel.drafts.filter { $0.isPublished }
         }
+    }
+
+    // Build the avatar UI on the MainActor (safe to read VM/@State here)
+    @ViewBuilder
+    private var avatarView: some View {
+        ZStack {
+            switch userViewModel.userLoadingState {
+            case .loading:
+                Ellipse()
+                    .frame(width: 105, height: 105)
+                    .foregroundColor(Color("BubbleColor"))
+                    .overlay(ProgressView().frame(width: 25, height: 25))
+            case .empty, .error:
+                Ellipse()
+                    .frame(width: 105, height: 105)
+                    .foregroundColor(Color("BubbleColor"))
+                    .overlay(Image(systemName: "camera.fill")
+                                .foregroundColor(.gray)
+                                .font(.system(size: 24)))
+            case .complete:
+                if let profileImage = localProfileImage {
+                    Image(uiImage: profileImage)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 105, height: 105)
+                        .clipShape(Ellipse())
+                } else {
+                    Ellipse()
+                        .frame(width: 105, height: 105)
+                        .foregroundColor(Color("BubbleColor"))
+                        .overlay(Image(systemName: "camera.fill")
+                                    .foregroundColor(.gray)
+                                    .font(.system(size: 24)))
+                }
+            }
+        }
+        .frame(width: 115, height: 115)
     }
     
     var body: some View {
@@ -54,74 +90,26 @@ struct ProfileView: View {
                 
                 // Profile section
                 HStack {
-                    PhotosPicker(selection: $selectedItem, matching: .images, photoLibrary: .shared()) {
-                        ZStack {
-                            switch userViewModel.userLoadingState {
-                                case .loading:
-                                    Ellipse()
-                                        .frame(width: 105, height: 105)
-                                        .foregroundColor(Color("BubbleColor"))
-                                        .overlay(
-                                            ProgressView()
-                                                .scaleEffect(1.0, anchor: .center)
-                                                .frame(width: 25, height: 25)
-                                        )
-                                case .empty:
-                                    Ellipse()
-                                        .frame(width: 105, height: 105)
-                                        .foregroundColor(Color("BubbleColor"))
-                                        .overlay(
-                                            Image(systemName: "camera.fill")
-                                                .foregroundColor(.gray)
-                                                .font(.system(size: 24))
-                                        )
-                                case.error:
-                                    Ellipse()
-                                        .frame(width: 105, height: 105)
-                                        .foregroundColor(Color("BubbleColor"))
-                                        .overlay(
-                                            Image(systemName: "camera.fill")
-                                                .foregroundColor(.gray)
-                                                .font(.system(size: 24))
-                                        )
-                                case .complete:
-                                    if let profileImage = localProfileImage {
-                                        Image(uiImage: profileImage)
-                                            .resizable()
-                                            .scaledToFill()
-                                            .frame(width: 105, height: 105)
-                                            .clipShape(Ellipse())
-                                    }
-                                    
-                            }
-                            /*
-                            if let profileImage = localProfileImage {
-                                Image(uiImage: profileImage)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 105, height: 105)
-                                    .clipShape(Ellipse())
-                            } else {
-                                Ellipse()
-                                    .frame(width: 105, height: 105)
-                                    .foregroundColor(Color("BubbleColor"))
-                                    .overlay(
-                                        Image(systemName: "camera.fill")
-                                            .foregroundColor(.gray)
-                                            .font(.system(size: 24))
-                                    )
-                            }
-                            */
-                        }
-                    }
-                    .frame(width: 115, height: 115)
+                    // Use a normal view for the avatar...
+                    avatarView
+                        .onTapGesture { isPhotoPickerPresented = true }
+                        // ...and attach the PhotosPicker as a modifier (no label closure)
+                        .photosPicker(
+                            isPresented: $isPhotoPickerPresented,
+                            selection: $selectedItem,
+                            matching: .images,
+                            photoLibrary: .shared()
+                        )
+
+                    // Handle selection -> upload
                     .onChange(of: selectedItem) { _, newValue in
                         Task {
-                            if let item = newValue,
-                               let data = try? await item.loadTransferable(type: Data.self),
-                               let uiImage = UIImage(data: data) {
-                                userViewModel.uploadProfilePicture(uiImage)
-                            }
+                            guard
+                                let item = newValue,
+                                let data = try? await item.loadTransferable(type: Data.self),
+                                let uiImage = UIImage(data: data)
+                            else { return }
+                            await userViewModel.uploadProfilePicture(uiImage) // async VM method
                         }
                     }
                     
@@ -182,14 +170,12 @@ struct ProfileView: View {
                             .padding()
                     }
                     .padding(.vertical, 10)
-                    
                 case .error:
                     ZStack {
                         Text("An error occured :(")
                             .font(.custom("OpenSans-Regular", size: 18))
                     }
                     .padding(.vertical, 10)
-                    
                 case .complete:
                     // Drafts Grid
                     ScrollView {
@@ -204,7 +190,6 @@ struct ProfileView: View {
                         .padding(.vertical, 10)
                     }
                     .scrollIndicators(.hidden)
-                    
                     Spacer()
                 }
                 
@@ -213,7 +198,7 @@ struct ProfileView: View {
             .background(Color("AppBackgroundColor"))
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        // Sync actor-isolated property to local @State
+        // still fine; view is @MainActor
         .onReceive(userViewModel.$profileImage) { newImage in
             localProfileImage = newImage
         }
