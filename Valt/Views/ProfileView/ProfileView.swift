@@ -10,12 +10,9 @@ struct ProfileView: View {
     @State private var showFilterOptions: Bool = false
     @State private var showNote: Bool = false
     @State private var selectedItem: PhotosPickerItem? = nil
-    @State private var isPhotoPickerPresented: Bool = false   // ← NEW
-
-    // Mirror actor-isolated property
+    @State private var isPhotoPickerPresented: Bool = false
     @State private var localProfileImage: UIImage? = nil
     
-    // (optional) can add @MainActor explicitly, but the struct already is
     var filteredDrafts: [Draft] {
         guard let selectedFilter = selectedFilter else {
             return userViewModel.drafts.sorted { $0.timestamp > $1.timestamp }
@@ -27,7 +24,7 @@ struct ProfileView: View {
         }
     }
 
-    // Build the avatar UI on the MainActor (safe to read VM/@State here)
+    // Build the avatar UI on the MainActor
     @ViewBuilder
     private var avatarView: some View {
         ZStack {
@@ -90,10 +87,9 @@ struct ProfileView: View {
                 
                 // Profile section
                 HStack {
-                    // Use a normal view for the avatar...
+                    // Normal view for the avatar
                     avatarView
                         .onTapGesture { isPhotoPickerPresented = true }
-                        // ...and attach the PhotosPicker as a modifier (no label closure)
                         .photosPicker(
                             isPresented: $isPhotoPickerPresented,
                             selection: $selectedItem,
@@ -177,6 +173,7 @@ struct ProfileView: View {
                     }
                     .padding(.vertical, 10)
                 case .complete:
+                    
                     // Drafts Grid
                     ScrollView {
                         LazyVGrid(columns: [
@@ -198,7 +195,6 @@ struct ProfileView: View {
             .background(Color("AppBackgroundColor"))
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        // still fine; view is @MainActor
         .onReceive(userViewModel.$profileImage) { newImage in
             localProfileImage = newImage
         }
