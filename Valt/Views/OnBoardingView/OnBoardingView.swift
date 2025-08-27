@@ -27,9 +27,6 @@ struct OnBoardingView: View {
         .overlay(topNavigationBar, alignment: .top)
     }
 
-    
-
-    // Computed Views
     private var ellipseBackground: some View {
         Ellipse()
             .fill(Color("TextFieldBackground"))
@@ -136,20 +133,20 @@ struct OnBoardingPage: View {
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 400, height: 220)
-                .offset(y: onBoardingViewModel.getScreenBounds().height < 750 ? -40 : -90)
+                .offset(y: onBoardingViewModel.getScreenBounds().height < 750 ? -30 : -70)
             
             VStack(alignment: .leading, spacing: 10) {
                 HStack (spacing: 10) {
                     GlowingView()
                     
                     Text(screen.title)
-                        .font(.custom("OpenSans-Bold", size: 30))
+                        .font(.custom("OpenSans-Bold", size: 28))
                         .foregroundColor(Color("TextColor"))
                     
                     Spacer()
                 }
                 Text(screen.subtitle)
-                    .font(.custom("OpenSans-SemiBold", size: 21))
+                    .font(.custom("OpenSans-SemiBold", size: 20))
                     .foregroundColor(Color("TextColor"))
 
                 Text(screen.description)
@@ -166,13 +163,5 @@ struct OnBoardingPage: View {
         }
         .frame(width: onBoardingViewModel.getScreenBounds().width)
         .frame(maxHeight: .infinity)
-    }
-}
-
-struct OnBoarding_Previews: PreviewProvider {
-    static var previews: some View {
-        NavigationStack {
-            OnBoardingView()
-        }
     }
 }

@@ -11,6 +11,9 @@ class AuthViewModel: ObservableObject {
     @Published var currentUser: FirebaseAuth.User?
     @Published var isAuthenticated: Bool = false
     @Published var errorMessage: String?
+    
+    @Published var loginLoadingState: ContentLoadingState = .complete
+    @Published var signUpLoadingState: ContentLoadingState = .complete
 
     private var authHandle: AuthStateDidChangeListenerHandle?
     private let db = Firestore.firestore()
@@ -76,21 +79,22 @@ class AuthViewModel: ObservableObject {
     func signUp(email: String, password: String, username: String) async {
         errorMessage = nil
         do {
+            self.signUpLoadingState = .loading
             let uname = normalizedUsername(username)
             let usernameRef = db.collection("usernames").document(uname)
             let snapshot = try await usernameRef.getDocument()
-
+            
             guard !snapshot.exists else {
                 self.errorMessage = "This username is already taken. Please choose another one."
                 print("Error: Username '\(uname)' is already taken.")
                 return
             }
-
+            
             let result = try await Auth.auth().createUser(withEmail: email, password: password)
             print("Successfully signed up user: \(result.user.uid)")
-
+            
             let batch = db.batch()
-
+            
             let userRef = db.collection("users").document(result.user.uid)
             let userData: [String: Any] = [
                 "userID": result.user.uid,
@@ -99,16 +103,18 @@ class AuthViewModel: ObservableObject {
                 "createdAt": FieldValue.serverTimestamp()
             ]
             batch.setData(userData, forDocument: userRef)
-
+            
             let userNameMappingRef = db.collection("usernames").document(uname)
             batch.setData(["userID": result.user.uid], forDocument: userNameMappingRef)
-
+            
             try await batch.commit()
             print("User data saved to Firestore.")
         } catch {
             self.errorMessage = error.localizedDescription
             print("Error signing up: \(error.localizedDescription)")
         }
+        self.signUpLoadingState = .complete
+    
     }
 
     // Sign In (Username OR Email)

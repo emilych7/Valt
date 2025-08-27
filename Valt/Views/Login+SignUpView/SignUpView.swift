@@ -13,9 +13,7 @@ struct SignUpView: View {
     @State private var password = ""
     @State private var passwordConfirmation = ""
     
-    enum Field {
-        case username, password, passwordConfirmation
-    }
+    enum Field { case username, email, password, passwordConfirmation }
     
     var body: some View {
         ZStack {
@@ -155,30 +153,39 @@ struct SignUpView: View {
                             .padding(.top, 5)
                             
                             VStack {
-                                Button("Sign Up") {
-                                    print("Reached")
-                                    Task {
-                                        /*
-                                        if ($password != $passwordConfirmation) {
-                                            print("Passwords do not match")
-                                            bannerManager.show("Passwords do not match")
+                                switch authViewModel.signUpLoadingState {
+                                    case .loading:
+                                        Button(action: {}) {
+                                            ProgressView()
+                                                .foregroundColor(.white)
                                         }
-                                         */
-                                        if (!authViewModel.isValidPassword(password)) || (password != passwordConfirmation) {
-                                            let missing = authViewModel.getMissingValidation(password)
-                                            print("Missing: \(missing)")
-                                            // bannerManager.show("\(missing)")
-                                            print("Passwords do not match")
-                                        } else {
-                                            await authViewModel.signUp(email: email, password: password, username: username)
+                                        .foregroundColor(.white)
+                                        .font(.custom("OpenSans-Bold", size: 20))
+                                        .frame(maxWidth: .infinity, minHeight: 60)
+                                        .background(.blue)
+                                        .cornerRadius(12)
+                                    
+                                    default:
+                                    
+                                        Button(action: {
+                                            Task {
+                                                if (!authViewModel.isValidPassword(password)) || (password != passwordConfirmation) {
+                                                    let missing = authViewModel.getMissingValidation(password)
+                                                    print("Missing: \(missing)")
+                                                    print("Passwords do not match")
+                                                } else {
+                                                    await authViewModel.signUp(email: email, password: password, username: username)
+                                                }
+                                            }
+                                        }) {
+                                            Text("Sign Up")
                                         }
-                                    }
+                                        .foregroundColor(.white)
+                                        .font(.custom("OpenSans-Bold", size: 20))
+                                        .frame(maxWidth: .infinity, minHeight: 60)
+                                        .background(.blue)
+                                        .cornerRadius(12)
                                 }
-                                .foregroundColor(.white)
-                                .font(.custom("OpenSans-Bold", size: 20))
-                                .frame(maxWidth: .infinity, minHeight: 60)
-                                .background(.blue)
-                                .cornerRadius(12)
                             }
                             .padding(.top, 15)
                             
@@ -260,5 +267,4 @@ struct SignUpView: View {
         .padding(.vertical, 10)
         .background(Color("AppBackgroundColor"))
     }
-    
 }

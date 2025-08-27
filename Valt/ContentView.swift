@@ -4,6 +4,7 @@ struct ContentView: View {
     @StateObject private var authViewModel = AuthViewModel()
     @StateObject private var bannerManager = BannerManager()
     @StateObject private var userViewModel = UserViewModel()
+    @StateObject private var onBoardingViewModel = OnBoardingViewModel()
 
     var body: some View {
         if authViewModel.isAuthenticated {
@@ -14,6 +15,7 @@ struct ContentView: View {
         } else {
             OnBoardingView()
                 .environmentObject(authViewModel)
+                .environmentObject(onBoardingViewModel)
         }
     }
 }

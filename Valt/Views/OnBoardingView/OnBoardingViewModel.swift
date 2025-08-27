@@ -6,7 +6,7 @@ import FirebaseStorage
 import SwiftUI
 
 final class OnBoardingViewModel: ObservableObject {
-    @State var offset: CGFloat = 0
+    @Published var offset: CGFloat = 0
     
     func getRotation() -> Double {
         let progress = offset / (getScreenBounds().width * 4)
