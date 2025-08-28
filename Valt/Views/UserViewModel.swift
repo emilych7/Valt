@@ -9,7 +9,7 @@ import UIKit
 final class UserViewModel: ObservableObject {
     @Published var cardLoadingState: ContentLoadingState = .loading
     @Published var userLoadingState: ContentLoadingState = .loading
-    
+
     @Published var username: String = "@username"
     @Published var draftCount: Int = 0
     @Published var publishedDraftCount: Int = 0
@@ -20,39 +20,42 @@ final class UserViewModel: ObservableObject {
     @Published var usernamePublishedDrafts: [Draft] = []
 
     private let repository: DraftRepositoryProtocol
-    
+
+    // Independent loads in parallel)
     init(repository: DraftRepositoryProtocol = DraftRepository()) {
         self.repository = repository
 
-        // Run initial loads without nesting Tasks inside each method.
         Task {
-            await fetchAuthenticatedUsername()
-            await fetchDraftCount()
-            await fetchPublishedCount()
-            await loadDrafts()
-            await fetchProfilePicture()
+            async let usernameTask: Void = fetchAuthenticatedUsername()
+            async let countTask:    Void = fetchDraftCount()
+            async let pubCountTask: Void = fetchPublishedCount()
+            async let draftsTask:   Void = loadDrafts()
+            async let avatarTask:   Void = fetchProfilePicture()
+            _ = await (usernameTask, countTask, pubCountTask, draftsTask, avatarTask)
         }
     }
-    
-    // MARK: - Loads
 
-    // Grabs current user's username
+    // Loads
+
+    // Grabs current username
     func fetchAuthenticatedUsername() async {
         guard let uid = Auth.auth().currentUser?.uid else {
             print("User not authenticated")
             return
         }
-        do {
-            let snapshot = try await Firestore.firestore()
-                .collection("usernames")
-                .whereField("userID", isEqualTo: uid)
-                .getDocuments()
+        let q = Firestore.firestore()
+            .collection("usernames")
+            .whereField("userID", isEqualTo: uid)
 
-            if let document = snapshot.documents.first {
-                let name = document.documentID
-                self.username = name
-                // (optional) consider a loading state here if username gates other UI
-                print("Authenticated user's username: \(name)")
+        do {
+            // Cache-first
+            if let cached = try? await q.getDocuments(source: .cache).documents.first {
+                self.username = cached.documentID
+            }
+            // Server refresh
+            let fresh = try await q.getDocuments(source: .server)
+            if let doc = fresh.documents.first {
+                self.username = doc.documentID
             } else {
                 print("No username found for user ID: \(uid)")
             }
@@ -62,43 +65,46 @@ final class UserViewModel: ObservableObject {
         }
     }
 
-    // Fetches the count of drafts from Firebase
+    // Uses Firestore aggregation count
     func fetchDraftCount() async {
         guard let userID = Auth.auth().currentUser?.uid else { return }
         do {
-            let snapshot = try await Firestore.firestore()
+            let query = Firestore.firestore()
                 .collection("drafts")
                 .whereField("userID", isEqualTo: userID)
-                .getDocuments()
-            self.draftCount = snapshot.documents.count
-            self.userLoadingState = (self.draftCount == 0) ? .empty : .complete
+
+            let agg = try await query.count.getAggregation(source: .server)
+            self.draftCount = Int(truncating: agg.count)
+            // Don't force .complete here if cards still loading; just avoid 'empty' flicker
+            if self.draftCount == 0 { self.userLoadingState = .empty }
         } catch {
-            print("Error fetching drafts count: \(error.localizedDescription)")
+            print("Count error: \(error.localizedDescription)")
             self.draftCount = 0
         }
     }
-    
+
     func fetchPublishedCount() async {
         guard let userID = Auth.auth().currentUser?.uid else { return }
         do {
-            let snapshot = try await Firestore.firestore()
+            let query = Firestore.firestore()
                 .collection("drafts")
                 .whereField("userID", isEqualTo: userID)
                 .whereField("isPublished", isEqualTo: true)
-                .getDocuments()
-            self.publishedDraftCount = snapshot.documents.count
-            print("Published drafts count: \(self.publishedDraftCount)")
+
+            let agg = try await query.count.getAggregation(source: .server)
+            self.publishedDraftCount = Int(truncating: agg.count)
         } catch {
-            print("Error fetching published drafts count: \(error.localizedDescription)")
+            print("Count error: \(error.localizedDescription)")
             self.publishedDraftCount = 0
         }
     }
-    
-    // Loads all drafts for the current user from Firebase
+
+    // Loads drafts
     func loadDrafts() async {
         guard let userID = Auth.auth().currentUser?.uid else { return }
         do {
-            self.drafts = try await repository.fetchDrafts(for: userID)
+            let asyncFetch: (String) async throws -> [Draft] = repository.fetchDrafts
+            self.drafts = try await asyncFetch(userID)
             self.cardLoadingState = drafts.isEmpty ? .empty : .complete
         } catch {
             print("Error loading drafts: \(error.localizedDescription)")
@@ -106,8 +112,11 @@ final class UserViewModel: ObservableObject {
             self.drafts = []
         }
     }
-    
-    // MARK: - Mutations
+
+
+
+
+    // MARK: - Mutations (unchanged behavior)
 
     func updateDraft(draftID: String, updatedFields: [String: Any]) async {
         do {
@@ -121,7 +130,7 @@ final class UserViewModel: ObservableObject {
             print("Error updating draft: \(error.localizedDescription)")
         }
     }
-    
+
     func deleteDraft(draftID: String) async {
         do {
             try await repository.deleteDraft(draftID: draftID)
@@ -135,7 +144,7 @@ final class UserViewModel: ObservableObject {
             print("Error deleting draft: \(error.localizedDescription)")
         }
     }
-    
+
     func addDraft(_ draft: Draft) async {
         do {
             try await repository.saveDraft(draft: draft)
@@ -147,20 +156,33 @@ final class UserViewModel: ObservableObject {
             print("Error adding draft: \(error.localizedDescription)")
         }
     }
-    
-    // MARK: - Profile Picture
 
+    // Fetch profile picture
     func fetchProfilePicture() async {
         guard let uid = Auth.auth().currentUser?.uid else { return }
-        let storageRef = Storage.storage().reference().child("profilePictures/\(uid).jpg")
+
+        // Try a small thumbnail first (best UX if you create these on upload)
+        let thumbRef = Storage.storage().reference().child("profilePictures/\(uid)_thumb.jpg")
         do {
             self.userLoadingState = .loading
-            let url = try await storageRef.downloadURL()
-            self.profilePictureURL = url
-            
-            let (data, _) = try await URLSession.shared.data(from: url)
-            if let uiImage = UIImage(data: data) {
-                self.profileImage = uiImage
+            if let img = try await downloadImage(ref: thumbRef, maxBytes: 512 * 1024) {
+                self.profileImage = img
+                self.userLoadingState = .complete
+                return
+            }
+        } catch {
+            // fall through to full-size attempt
+        }
+
+        // Fallback: full-size, capped at 2 MB
+        let fullRef = Storage.storage().reference().child("profilePictures/\(uid).jpg")
+        do {
+            if let img = try await downloadImage(ref: fullRef, maxBytes: 2 * 1024 * 1024) {
+                self.profileImage = img
+                // Keep URL
+                if let url = try? await fullRef.downloadURL() {
+                    self.profilePictureURL = url
+                }
                 self.userLoadingState = .complete
             } else {
                 self.userLoadingState = .empty
@@ -170,17 +192,24 @@ final class UserViewModel: ObservableObject {
             self.userLoadingState = .error(error)
         }
     }
-    
-    /// Make this async to avoid capturing a non-Sendable `UIImage` in a `Task` closure.
+
+    private func downloadImage(ref: StorageReference, maxBytes: Int64) async throws -> UIImage? {
+        let url = try await ref.downloadURL()
+        let (data, _) = try await URLSession.shared.data(from: url)
+        return UIImage(data: data)
+    }
+
+    // Async to avoid capturing a non-Sendable UIImage in a Task closure
     func uploadProfilePicture(_ image: UIImage) async {
         guard let uid = Auth.auth().currentUser?.uid else { return }
-        let storageRef = Storage.storage().reference().child("profilePictures/\(uid).jpg")
+        let fullRef = Storage.storage().reference().child("profilePictures/\(uid).jpg")
         guard let imageData = image.jpegData(compressionQuality: 0.8) else { return }
-        
+
         do {
             self.userLoadingState = .loading
-            _ = try await storageRef.putDataAsync(imageData, metadata: nil)
+            _ = try await fullRef.putDataAsync(imageData, metadata: nil)
             self.profileImage = image
+            // (Optional) also generate & upload a thumb to speed future loads
             print("Profile picture uploaded and UI updated.")
             self.userLoadingState = .complete
         } catch {
@@ -188,9 +217,8 @@ final class UserViewModel: ObservableObject {
             self.userLoadingState = .error(error)
         }
     }
-    
-    // MARK: - Search
 
+    // Search
     func searchUsernames(prefix: String) async {
         let trimmed = prefix.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {

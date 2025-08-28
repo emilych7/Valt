@@ -21,7 +21,7 @@ struct LoginView: View {
         ZStack {
             GeometryReader { geometry in
                 ScrollView {
-                    VStack {
+                    VStack (spacing: 0) {
                         Spacer(minLength: geometry.size.height * 0.10)
                         
                         HStack {

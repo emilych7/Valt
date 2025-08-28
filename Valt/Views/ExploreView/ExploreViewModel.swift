@@ -3,7 +3,7 @@ import FirebaseAuth
 
 @MainActor
 final class ExploreViewModel: ObservableObject {
-    @Published var generatedPrompt: String = "Come back when you have at least 3 notes..."
+    @Published var generatedPrompts: [String] = ["Come back when you have at least 3 notes..."]
     @Published var isLoading: Bool = false
 
     // Search state
@@ -67,34 +67,45 @@ final class ExploreViewModel: ObservableObject {
         }
     }
 
-    // Generate prompt from current user’s own drafts
+    // Generate prompt from current user’s own drafts (async/await)
     func generatePromptFromOwnDrafts() {
         isLoading = true
 
         guard let userID = Auth.auth().currentUser?.uid else {
             print("User is not logged in.")
-            generatedPrompt = "You need to be logged in."
+            generatedPrompts = ["You need to be logged in."]
             isLoading = false
             return
         }
 
-        repository.fetchDrafts(for: userID) { [weak self] drafts in
+        Task { [weak self] in
             guard let self = self else { return }
+            do {
+                // ⬇️ Explicitly select the async overload
+                let asyncFetch: (String) async throws -> [Draft] = self.repository.fetchDrafts
+                let drafts = try await asyncFetch(userID)
 
-            guard drafts.count >= 3 else {
-                self.generatedPrompt = "Create at least three drafts to get a personalized prompt."
+                guard drafts.count >= 3 else {
+                    self.generatedPrompts = ["Create at least three drafts to get a personalized prompt."]
+                    self.isLoading = false
+                    return
+                }
+
+                self.generatePrompt(from: drafts)
+            } catch {
+                print("Error fetching drafts:", error.localizedDescription)
+                self.generatedPrompts = ["Failed to load your drafts."]
                 self.isLoading = false
-                return
             }
-
-            self.generatePrompt(from: drafts)
         }
     }
+
+
 
     // Generate prompt from selected username’s published drafts
     func generatePromptFromPublishedDraftsForSelectedUser() {
         guard !publishedDraftsForUser.isEmpty else {
-            generatedPrompt = "No published drafts found for that user."
+            generatedPrompts = ["No published drafts found for that user."]
             return
         }
         generatePrompt(from: publishedDraftsForUser)
@@ -107,9 +118,12 @@ final class ExploreViewModel: ObservableObject {
         }.joined(separator: "\n\n---\n\n")
 
         let metaPrompt = """
-        Based on the themes and content of the following drafts, please generate a single, new, and creative writing prompt that is related. The new prompt should inspire the reader to want to expand on the strongest themes and deepest content from the drafts. The new prompt should also be framed as a question that gets them to respond in the first person like a personal narrative or diary entry. The goal of the new prompt is to encourage the reader to reveal more about their thoughts and feelings, so they can save the note for review later. The user should feel like the question is personalized for them. It should not be generic. Make the prompt no longer than 15 words and only one question.
+        
+        Based on the themes and content of the following drafts, please generate 5 unique and creative writing prompt that is related. The new prompt should inspire the reader to want to expand on the strongest themes and deepest content from the drafts. The new prompt should also be framed as a question that gets them to respond in the first person like a personal narrative or diary entry. The goal of the new prompt is to encourage the reader to reveal more about their thoughts and feelings, so they can save the note for review later. The user should feel like the question is personalized for them. It should not be generic. Make the prompt no longer than 15 words and only one question.
 
         The question should read like it is coming from a 25-year old best friend who listens to you and offers insightful questions like your therapist. Give abstraction to the question. Make it easy to understand for a demographic of 18 to 30 year olds.
+        
+        Please respond with a JSON object that has a single key: "prompts". The value of "prompts" should be an array containing the generated prompt strings.
 
         Here are the existing drafts for context:
         \(draftContext)
@@ -122,12 +136,28 @@ final class ExploreViewModel: ObservableObject {
         Task { [weak self] in
             guard let self = self else { return }
             do {
-                let apiResponse = try await self.callChatGPTAPI(history: [initialMessage])
-                self.generatedPrompt = apiResponse
+                let jsonString = try await self.callChatGPTAPI(history: [initialMessage])
+                // Convert the string to Data for the decoder
+                guard let jsonData = jsonString.data(using: .utf8) else {
+                    throw NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to convert string to data"])
+                }
+
+                // Define the Codable struct inside the function or outside
+                struct PromptResponse: Decodable {
+                    let prompts: [String]
+                }
+
+                // Decode the JSON data directly into your Swift object
+                let response = try JSONDecoder().decode(PromptResponse.self, from: jsonData)
+                print("response")
+                print("count: \(response.prompts.count)")
+                print(response.prompts)
+                
+                self.generatedPrompts = response.prompts
                 self.isLoading = false
             } catch {
                 print("Error calling ChatGPT API:", error.localizedDescription)
-                self.generatedPrompt = "Failed to generate prompt. Error: \(error.localizedDescription)"
+                self.generatedPrompts = ["Failed to generate prompt. Error: \(error.localizedDescription)"]
                 self.isLoading = false
             }
         }
@@ -159,7 +189,8 @@ final class ExploreViewModel: ObservableObject {
         let requestBody: [String: Any] = [
             "model": "gpt-3.5-turbo",
             "messages": openAIMessages,
-            "max_tokens": 150
+            "max_tokens": 150,
+            "response_format": [ "type": "json_object" ]
         ]
         request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
 

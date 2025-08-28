@@ -147,8 +147,8 @@ struct ExploreView: View {
                                 let rowHeight = max(0, (geo.size.height - innerPad * 2) / CGFloat(rowCount))
 
                                 VStack(spacing: 0) {
-                                    ForEach(0..<rowCount, id: \.self) { _ in
-                                        PromptSuggestionView(prompt: viewModel.generatedPrompt)
+                                    ForEach(viewModel.generatedPrompts, id: \.self) { prompt in
+                                        PromptSuggestionView(prompt: prompt)
                                             .frame(height: rowHeight, alignment: .topLeading)
                                     }
                                 }

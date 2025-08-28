@@ -47,51 +47,11 @@ struct SkeletonCardView: View {
                         .stroke(Color("TextColor").opacity(0.2), lineWidth: 1)
                 )
                 .shadow(color: Color.black.opacity(0.25), radius: 4, x: 0, y: 2)
-
-            VStack {
-                VStack(alignment: .leading, spacing: 6) {
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(Color.gray.opacity(0.25))
-                        .frame(height: 14)
-                        .padding(10)
-                    
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(Color.gray.opacity(0.25))
-                        .frame(height: 14)
-                        .padding(10)
-                    Spacer()
-                }
-                .frame(width: 90, height: 110)
-            }
         }
         .frame(width: 110, height: 155)
         .shadow(color: Color.black.opacity(0.25), radius: 4, x: 0, y: 2)
-        // .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         .shimmer()
         .redacted(reason: .placeholder)
-        // image block
-        /*
-        VStack(alignment: .leading, spacing: 6) {
-            RoundedRectangle(cornerRadius: 6)
-                .fill(Color.gray.opacity(0.25))
-                .frame(height: 14)             // title line
-            RoundedRectangle(cornerRadius: 6)
-                .fill(Color.gray.opacity(0.2))
-                .frame(height: 12)
-            RoundedRectangle(cornerRadius: 6)
-                .fill(Color.gray.opacity(0.2))
-                .frame(height: 12)             // subtitle line
-            RoundedRectangle(cornerRadius: 6)
-                .fill(Color.gray.opacity(0.2))
-                .frame(width: 80, height: 12)
-        }
-        .padding(10)
-        .background(Color("TextFieldBackground"))
-        .shadow(color: Color.black.opacity(0.25), radius: 4, x: 0, y: 2)
-        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-        .shimmer()
-        .redacted(reason: .placeholder)
-        */
     }
 }
 

@@ -19,7 +19,7 @@ struct SignUpView: View {
         ZStack {
             GeometryReader { geometry in
                 ScrollView {
-                    VStack {
+                    VStack (spacing: 0) {
                         Spacer(minLength: geometry.size.height * 0.10)
                         
                         HStack {
@@ -89,7 +89,7 @@ struct SignUpView: View {
                                         .textInputAutocapitalization(.never)
                                         .disableAutocorrection(true)
                                         .padding(.horizontal)
-                                        .focused($focusedField, equals: .username)
+                                        .focused($focusedField, equals: .email)
                                 }
                             }
                             .padding(.bottom, 5)
@@ -162,7 +162,7 @@ struct SignUpView: View {
                                         .foregroundColor(.white)
                                         .font(.custom("OpenSans-Bold", size: 20))
                                         .frame(maxWidth: .infinity, minHeight: 60)
-                                        .background(.blue)
+                                        .background(Color("RequestButtonColor"))
                                         .cornerRadius(12)
                                     
                                     default:
@@ -183,7 +183,7 @@ struct SignUpView: View {
                                         .foregroundColor(.white)
                                         .font(.custom("OpenSans-Bold", size: 20))
                                         .frame(maxWidth: .infinity, minHeight: 60)
-                                        .background(.blue)
+                                        .background(Color("RequestButtonColor"))
                                         .cornerRadius(12)
                                 }
                             }
@@ -220,10 +220,17 @@ struct SignUpView: View {
                                 Text("Already have an account?")
                                     .foregroundColor(Color("TextColor"))
                                     .font(.custom("OpenSans-Regular", size: 17))
-                                Button("Log in.") {
-                                        // Navigate to SignUpView later
+                                
+                                Button {
+                                    dismiss()
+                                    
+                                    // LoginView()
+                                    
+                                } label: {
+                                    Text("Log In")
                                 }
                                 .font(.custom("OpenSans-Regular", size: 17))
+                                .buttonStyle(.plain)
                             }
                             .padding(.vertical, 10)
                             
