@@ -51,8 +51,6 @@ final class HomeViewModel: ObservableObject {
             await userViewModel.addDraft(newDraft)
             self.draftText = ""
             self.isEditing = false
-            self.isFavorited = false
-            
         }
     }
     

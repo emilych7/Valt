@@ -99,6 +99,7 @@ struct HomeView: View {
                             withAnimation {
                                 viewModel.saveDraftToFirebase()
                                 bannerManager.show("Saved Draft")
+                            
                             }
                         }
                         else {

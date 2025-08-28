@@ -12,7 +12,7 @@ class BannerManager: ObservableObject {
     }
 
     func show(_ message: String,
-              duration: Double = 2.0,
+              duration: Double = 1.0,
               backgroundColor: Color = Color("RequestButtonColor"),
               icon: String? = nil,
               position: BannerPosition = .center) { 
@@ -21,12 +21,12 @@ class BannerManager: ObservableObject {
         self.icon = icon
         self.position = position
         
-        withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+        withAnimation (.smooth(duration: 0.13)) {
             self.isVisible = true
         }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+            withAnimation (.smooth(duration: 0.13)){
                 self.isVisible = false
             }
         }

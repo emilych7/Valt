@@ -77,6 +77,7 @@ struct MainTabView: View {
             if bannerManager.isVisible {
                     VStack {
                         Spacer()
+                            .frame(height: 300)
                         
                         HStack(spacing: 8) {
                             if let icon = bannerManager.icon {
@@ -100,7 +101,6 @@ struct MainTabView: View {
                         Spacer()
                     }
                     .transition(.scale.combined(with: .opacity))
-                    .animation(.spring(response: 0.4, dampingFraction: 0.7), value: bannerManager.isVisible)
                 }
         }
         // Tab Bar styling
