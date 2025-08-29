@@ -32,7 +32,6 @@ struct FullNoteView: View {
     }
 
     var body: some View {
-        NavigationStack {
             VStack {
                 HStack(spacing: 10) {
                     Spacer()
@@ -132,11 +131,7 @@ struct FullNoteView: View {
                 }
                 .padding(.horizontal, 30)
                 .padding(.top, 20)
-                // 👇 animate layout changes when isDirty toggles
                 .animation(.spring(response: 0.32, dampingFraction: 0.86), value: isDirty)
-
-
-
 
                 VStack(alignment: .leading, spacing: 15) {
                     HStack {
@@ -152,33 +147,27 @@ struct FullNoteView: View {
                         .foregroundColor(Color("TextColor"))
                         .scrollContentBackground(.hidden)
                         .background(Color.clear)
-                        .onChange(of: editedContent) { _, _ in }
                 }
                 .padding(.horizontal, 30)
-                .onTapGesture {
-                    isTextFieldFocused = true
-                }
+                .background(.blue)
 
                 Spacer()
             }
             .background(Color("AppBackgroundColor"))
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .onAppear {
-                // isTextFieldFocused = true
-            }
             .alert("Delete Draft?", isPresented: $showDeleteConfirmation) {
                 Button("Delete", role: .destructive) {
                     Task {
                         await userViewModel.deleteDraft(draftID: draft.id)
                         dismiss()
-                        bannerManager.show("Draft deleted", backgroundColor: .red, icon: "trash")
+                        bannerManager.show("Draft deleted", backgroundColor: Color("ValtRed"), icon: "trash")
                     }
                 }
                 Button("Cancel", role: .cancel) {}
             } message: {
                 Text("Are you sure you want to permanently delete this draft?")
             }
-        }
+        
         .safeAreaInset(edge: .bottom) {
             if isTextFieldFocused {
                 HStack {

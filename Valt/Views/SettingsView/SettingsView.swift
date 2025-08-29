@@ -17,15 +17,16 @@ struct SettingsView: View {
                 
                 Spacer()
                 
-                Button(action: {
-                    withAnimation {
-                        dismiss()
+                Button { dismiss() } label: {
+                    ZStack {
+                        Ellipse()
+                            .frame(width: 40, height: 40)
+                            .foregroundColor(Color("BubbleColor"))
+                        Image("exitDynamicIcon")
+                            .frame(width: 38, height: 38)
                     }
-                }) {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(Color("TextColor"))
-                        .frame(width: 100, height: 100)
                 }
+                .buttonStyle(PlainButtonStyle())
             }
             .padding(.horizontal, 25)
             .padding(.top, 20)
@@ -47,7 +48,7 @@ struct SettingsView: View {
                             )
                         
                         HStack (spacing: 10) {
-                            Image("generalIcon")
+                            Image("userIcon")
                                 .frame(width: 20, height: 20)
                             
                             Text("Account Preferences")
@@ -60,38 +61,60 @@ struct SettingsView: View {
                     }
                 }
                 
-                ZStack {
-                    HStack (spacing: 8) {
-                        Image("activityIcon")
-                            .frame(width: 20, height: 20)
-                        Text("Activity")
-                            .foregroundColor(Color("TextColor"))
-                            .font(.custom("OpenSans-Regular", size: 17))
-                        
-                        Spacer()
+                Button(action: {
+                    withAnimation {
+                        // do something
                     }
-                    .padding(.horizontal, 15)
-                    
-                    RoundedRectangle(cornerRadius: 10)
-                        .foregroundStyle(Color("BubbleColor"))
-                        .frame(maxWidth: .infinity, maxHeight: 45)
+                }) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 12)
+                            .foregroundStyle(Color("TextFieldBackground"))
+                            .frame(height: 50)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color("TextFieldBorder"), lineWidth: 1)
+                            )
+                        
+                        HStack (spacing: 10) {
+                            Image("dataIcon")
+                                .frame(width: 20, height: 20)
+                            
+                            Text("Data Privacy")
+                                .font(.custom("OpenSans-Regular", size: 17))
+                                .foregroundColor(Color("TextColor"))
+                            
+                            Spacer()
+                        }
+                        .padding(.horizontal, 15)
+                    }
                 }
                 
-                ZStack {
-                    HStack (spacing: 8) {
-                        Image("appearanceIcon")
-                            .frame(width: 20, height: 20)
-                        Text("Appearance")
-                            .foregroundColor(Color("TextColor"))
-                            .font(.custom("OpenSans-Regular", size: 17))
-                        
-                        Spacer()
+                Button(action: {
+                    withAnimation {
+                        // do something
                     }
-                    .padding(.horizontal, 15)
-                    
-                    RoundedRectangle(cornerRadius: 10)
-                        .foregroundStyle(Color("BubbleColor"))
-                        .frame(maxWidth: .infinity, maxHeight: 45)
+                }) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 12)
+                            .foregroundStyle(Color("TextFieldBackground"))
+                            .frame(height: 50)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color("TextFieldBorder"), lineWidth: 1)
+                            )
+                        
+                        HStack (spacing: 10) {
+                            Image("activityIcon")
+                                .frame(width: 20, height: 20)
+                            
+                            Text("Activity")
+                                .font(.custom("OpenSans-Regular", size: 17))
+                                .foregroundColor(Color("TextColor"))
+                            
+                            Spacer()
+                        }
+                        .padding(.horizontal, 15)
+                    }
                 }
                 
                 
@@ -123,34 +146,35 @@ struct SettingsView: View {
                     }
                 }
             }
-            .padding(.horizontal, 30)
+            .padding(.horizontal, 25)
             
             Spacer()
             
-            VStack {
+            HStack {
                 Button(action: {
                     do {
-                            try Auth.auth().signOut()
-                            authViewModel.isAuthenticated = false
-                            print("Successfully signed out.")
-                        } catch {
-                            print("Error signing out: \(error.localizedDescription)")
-                        }
+                        try Auth.auth().signOut()
+                        authViewModel.isAuthenticated = false
+                        print("Successfully logged out user")
+                    } catch {
+                        print("Error signing out: \(error.localizedDescription)")
+                    }
                 }) {
                     ZStack {
-                        Text("Sign Out")
-                            .font(.custom("OpenSans-SemiBold", size: 19))
-                            .foregroundColor(.white)
                         RoundedRectangle(cornerRadius: 10)
                             .frame(width: 150, height: 50)
-                            .background(Color("BubbleColor"))
+                            .foregroundStyle(Color("ValtRed"))
+                        
+                        Text("Log Out")
+                            .font(.custom("OpenSans-Bold", size: 19))
+                            .foregroundColor(.white)
                     }
                 }
             }
+            .padding(.bottom, 40)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color("AppBackgroundColor"))
-        // .ignoresSafeArea(.all, edges: .all)
         .fullScreenCover(isPresented: $showAccountPreferences) {
             PreferencesView()
         }
