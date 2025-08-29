@@ -26,7 +26,7 @@ struct CardView: View {
                             RoundedRectangle(cornerRadius: 10)
                                 .stroke(Color("TextColor").opacity(0.2), lineWidth: 1)
                         )
-                        .shadow(color: Color.black.opacity(0.25), radius: 4, x: 0, y: 2)
+                        .shadow(color: Color.black.opacity(0.20), radius: 4, x: 0, y: 2)
 
                     VStack {
                         HStack(spacing: 5) {

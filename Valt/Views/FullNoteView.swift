@@ -10,16 +10,20 @@ struct FullNoteView: View {
     @Environment(\.dismiss) var dismiss
 
     @State private var isFavorited = false
+    @State private var isEditingContent = false
     @State private var showMoreOptions = false
     @State private var selectedMoreOption: MoreOption? = nil
     @State private var showDeleteConfirmation = false
     @State private var editedContent: String
-
+    
     init(draft: Draft) {
         self.draft = draft
         _editedContent = State(initialValue: draft.content)
     }
     
+    private var isDirty: Bool {
+        editedContent != draft.content
+    }
 
     private var formattedDate: String {
         let formatter = DateFormatter()
@@ -33,20 +37,20 @@ struct FullNoteView: View {
                 HStack(spacing: 10) {
                     Spacer()
 
-                    // Favorite Button
+                    // Favorite
                     Button(action: {
-                        withAnimation {
+                        withAnimation(.spring(response: 0.28, dampingFraction: 0.9)) {
                             isFavorited.toggle()
                         }
                         Task {
-                            await userViewModel.updateDraft(draftID: draft.id, updatedFields: ["isFavorited": isFavorited])
-                            print("Favorited draft in Firebase")
+                            await userViewModel.updateDraft(
+                                draftID: draft.id,
+                                updatedFields: ["isFavorited": isFavorited]
+                            )
                         }
-                        
                     }) {
                         ZStack {
-                            Ellipse()
-                                .frame(width: 40, height: 40)
+                            Ellipse().frame(width: 40, height: 40)
                                 .foregroundColor(Color("BubbleColor"))
                             Image(draft.isFavorited || isFavorited ? "Favorite-Active" : "Favorite-Inactive")
                                 .frame(width: 38, height: 38)
@@ -55,81 +59,66 @@ struct FullNoteView: View {
                     }
                     .buttonStyle(PlainButtonStyle())
 
-                    // Save Button
-                    Button(action: {
-                        Task {
-                            if (editedContent != draft.content) {
-                                await userViewModel.updateDraft(draftID: draft.id, updatedFields: ["content": editedContent, "timestamp": updatedDate])
-                                withAnimation {
+                    // Save shows only when dirty
+                    if isDirty {
+                        Button(action: {
+                            Task {
+                                if editedContent != draft.content {
+                                    await userViewModel.updateDraft(
+                                        draftID: draft.id,
+                                        updatedFields: ["content": editedContent, "timestamp": Date()]
+                                    )
+                                    withAnimation { dismiss() }
+                                    bannerManager.show("Saved")
+                                } else {
                                     dismiss()
                                 }
-                                bannerManager.show("Saved")
-                            } else {
-                                print("No changes to save. Closing draft now.")
-                                dismiss()
+                            }
+                        }) {
+                            ZStack {
+                                Ellipse().frame(width: 40, height: 40)
+                                    .foregroundColor(Color("BubbleColor"))
+                                Image("saveIcon").frame(width: 38, height: 38)
                             }
                         }
-                    }) {
+                        .buttonStyle(PlainButtonStyle())
+                        // slide + fade in/out
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .trailing).combined(with: .opacity),
+                            removal:   .move(edge: .trailing).combined(with: .opacity)
+                        ))
+                        // (iOS 17+) makes the icon fade a touch smoother
+                        .contentTransition(.opacity)
+                    }
+
+                    // More
+                    Button(action: { withAnimation { showMoreOptions.toggle() } }) {
                         ZStack {
-                            Ellipse()
-                                .frame(width: 40, height: 40)
+                            Ellipse().frame(width: 40, height: 40)
                                 .foregroundColor(Color("BubbleColor"))
-                            Image("saveIcon")
-                                .frame(width: 38, height: 38)
+                            Image("moreIcon").frame(width: 38, height: 38)
                         }
                     }
                     .buttonStyle(PlainButtonStyle())
+                    .popover(isPresented: $showMoreOptions) { /* ... */ }
 
-                    // More Button
-                    Button(action: {
-                        withAnimation { showMoreOptions.toggle() }
-                    }) {
+                    // Exit
+                    Button(action: { withAnimation { dismiss() } }) {
                         ZStack {
-                            Ellipse()
-                                .frame(width: 40, height: 40)
-                                .foregroundColor(Color("BubbleColor"))
-                            Image("moreIcon")
-                                .frame(width: 38, height: 38)
-                        }
-                    }
-                    .popover(isPresented: $showMoreOptions) {
-                        MoreOptionsView(selection: $selectedMoreOption) { option in
-                            switch option {
-                            case .publish:
-                                Task {
-                                    await userViewModel.updateDraft(draftID: draft.id, updatedFields: ["isPublished": true])
-                                    dismiss()
-                                }
-                            case .hide:
-                                Task {
-                                    await userViewModel.updateDraft(draftID: draft.id, updatedFields: ["isHidden": true])
-                                    dismiss()
-                                }
-                            case .delete:
-                                showMoreOptions = false
-                                showDeleteConfirmation = true
-                            }
-                            selectedMoreOption = nil
-                        }
-                        .presentationCompactAdaptation(.popover)
-                    }
-
-                    // Exit button
-                    Button(action: {
-                        withAnimation { dismiss() }
-                    }) {
-                        ZStack {
-                            Ellipse()
-                                .frame(width: 40, height: 40)
+                            Ellipse().frame(width: 40, height: 40)
                                 .foregroundColor(.red)
-                            Image("exitIcon")
-                                .frame(width: 38, height: 38)
+                            Image("exitIcon").frame(width: 38, height: 38)
                         }
                     }
                     .buttonStyle(PlainButtonStyle())
                 }
                 .padding(.horizontal, 30)
                 .padding(.top, 20)
+                // 👇 animate layout changes when isDirty toggles
+                .animation(.spring(response: 0.32, dampingFraction: 0.86), value: isDirty)
+
+
+
 
                 VStack(alignment: .leading, spacing: 15) {
                     HStack {
@@ -145,7 +134,7 @@ struct FullNoteView: View {
                         .foregroundColor(Color("TextColor"))
                         .scrollContentBackground(.hidden)
                         .background(Color.clear)
-                        
+                        .onChange(of: editedContent) { _, _ in }
                 }
                 .padding(.horizontal, 30)
                 .onTapGesture {
