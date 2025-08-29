@@ -25,10 +25,10 @@ struct HomeView: View {
                     }
                     viewModel.button(icon: "saveIcon") {
                         if !viewModel.draftText.isEmpty {
-                            withAnimation {
+                            //withAnimation {
                                 viewModel.saveDraftToFirebase()
                                 bannerManager.show("Saved Draft")
-                            }
+                            // }
                         }
                         else {
                             print("Draft is empty. Not saving.")
@@ -40,13 +40,30 @@ struct HomeView: View {
                 .padding(.top, 20)
                 
                 ZStack(alignment: .topLeading) {
-                    if viewModel.draftText.isEmpty && !isTextFieldFocused {
-                        Text("Start your draft here")
-                            .font(.custom("OpenSans-Regular", size: 16))
-                            .foregroundColor(Color("TextColor").opacity(0.4))
-                            .padding(.top, 12)
-                            .padding(.leading, 10)
-                    }
+                        switch viewModel.draftLoadingState {
+                            case .loading:
+                            HStack {
+                                
+                                Spacer()
+                                
+                                ProgressView()
+                                    .foregroundColor(Color("TextColor"))
+                                    .frame(width: 40, height: 40)
+                                
+                                Spacer()
+                            }
+                            .frame(maxWidth: .infinity)
+                            
+                            default:
+                                if viewModel.draftText.isEmpty && !isTextFieldFocused {
+                                    Text("Start your draft here")
+                                        .font(.custom("OpenSans-Regular", size: 16))
+                                        .foregroundColor(Color("TextColor").opacity(0.4))
+                                        // .padding(.top, 12)
+                                        // .padding(.leading, 10)
+                                }
+                        }
+                    
                     
                     TextEditor(text: $viewModel.draftText)
                         .font(.custom("OpenSans-Regular", size: 16))
@@ -96,14 +113,12 @@ struct HomeView: View {
                     
                     Button("Save") {
                         if !viewModel.draftText.isEmpty {
-                            withAnimation {
-                                viewModel.saveDraftToFirebase()
-                                bannerManager.show("Saved Draft")
-                            
-                            }
+                            viewModel.saveDraftToFirebase()
+                            bannerManager.show("Saved Draft")
                         }
                         else {
                             print("Draft is empty. Not saving.")
+                            bannerManager.show("Empty Draft")
                         }
                         dismissKeyboardSmoothly()
                     }

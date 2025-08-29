@@ -13,6 +13,7 @@ final class HomeViewModel: ObservableObject {
     @Published var selectedMoreOption: MoreOption? = nil
     @Published var showMoreOptions: Bool = false
     @Published var bannerManager: BannerManager = BannerManager()
+    @Published var draftLoadingState: ContentLoadingState = .complete
     
     private let userViewModel: UserViewModel
 
@@ -21,6 +22,7 @@ final class HomeViewModel: ObservableObject {
     }
 
     func saveDraftToFirebase() {
+        self.draftLoadingState = .loading
         guard let userID = Auth.auth().currentUser?.uid
             else {
                 print("User is not authenticated.")
@@ -47,10 +49,12 @@ final class HomeViewModel: ObservableObject {
         )
         
         Task {
+            self.draftText = ""
             // Shared userViewModel
             await userViewModel.addDraft(newDraft)
-            self.draftText = ""
+            
             self.isEditing = false
+            self.draftLoadingState = .complete
         }
     }
     

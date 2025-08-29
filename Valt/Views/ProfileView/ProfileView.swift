@@ -4,11 +4,11 @@ import PhotosUI
 @MainActor
 struct ProfileView: View {
     @EnvironmentObject private var userViewModel: UserViewModel
-    @Binding var showSettingsOverlayBinding: Bool
     
     @State private var selectedFilter: Filter? = nil
     @State private var showFilterOptions: Bool = false
     @State private var showNote: Bool = false
+    @State private var showSettings: Bool = false
     @State private var selectedItem: PhotosPickerItem? = nil
     @State private var isPhotoPickerPresented: Bool = false
     @State private var localProfileImage: UIImage? = nil
@@ -71,7 +71,7 @@ struct ProfileView: View {
                     Text("My Valt")
                         .font(.custom("OpenSans-SemiBold", size: 24))
                     Spacer()
-                    Button { showSettingsOverlayBinding.toggle() } label: {
+                    Button { showSettings = true } label: {
                         ZStack {
                             Ellipse()
                                 .frame(width: 40, height: 40)
@@ -197,6 +197,10 @@ struct ProfileView: View {
         }
         .onReceive(userViewModel.$profileImage) { newImage in
             localProfileImage = newImage
+        }
+        .fullScreenCover(isPresented: $showSettings) {
+            SettingsView()
+                .presentationCompactAdaptation(.popover)
         }
     }
 }

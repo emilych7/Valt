@@ -29,7 +29,7 @@ struct MainTabView: View {
                     .tag(ContentTabViewSelection.explore)
 
                 // Profile tab
-                ProfileView(showSettingsOverlayBinding: $showGlobalSettingsOverlay)
+                ProfileView()
                     .tag(ContentTabViewSelection.profile)
                     .tabItem {
                         ZStack {
@@ -53,26 +53,6 @@ struct MainTabView: View {
             }
             .tint(Color("TextColor"))
             
-            // Settings Overlay
-            ZStack {
-                if showGlobalSettingsOverlay {
-                    Color.black.opacity(0.2)
-                        .ignoresSafeArea()
-                        .onTapGesture {
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                showGlobalSettingsOverlay = false
-                            }
-                        }
-                        .transition(.opacity)
-                }
-
-                if showGlobalSettingsOverlay {
-                    SettingsView(isShowingOverlay: $showGlobalSettingsOverlay)
-                        .transition(.move(edge: .trailing).combined(with: .opacity))
-                }
-            }
-            .animation(.easeInOut(duration: 0.3), value: showGlobalSettingsOverlay)
-
             // Notification banner
             if bannerManager.isVisible {
                     VStack {
