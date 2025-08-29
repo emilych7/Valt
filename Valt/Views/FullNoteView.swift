@@ -59,7 +59,7 @@ struct FullNoteView: View {
                     }
                     .buttonStyle(PlainButtonStyle())
 
-                    // Save shows only when dirty
+                    // Save button shows only when the edited content is different than the original
                     if isDirty {
                         Button(action: {
                             Task {
@@ -82,12 +82,10 @@ struct FullNoteView: View {
                             }
                         }
                         .buttonStyle(PlainButtonStyle())
-                        // slide + fade in/out
                         .transition(.asymmetric(
                             insertion: .move(edge: .trailing).combined(with: .opacity),
                             removal:   .move(edge: .trailing).combined(with: .opacity)
                         ))
-                        // (iOS 17+) makes the icon fade a touch smoother
                         .contentTransition(.opacity)
                     }
 
@@ -100,7 +98,27 @@ struct FullNoteView: View {
                         }
                     }
                     .buttonStyle(PlainButtonStyle())
-                    .popover(isPresented: $showMoreOptions) { /* ... */ }
+                    .popover(isPresented: $showMoreOptions) {
+                        MoreOptionsView(selection: $selectedMoreOption) { option in
+                            switch option {
+                                case .publish:
+                                    Task {
+                                        await userViewModel.updateDraft(draftID: draft.id, updatedFields: ["isPublished": true])
+                                        dismiss()
+                                    }
+                                case .hide:
+                                    Task {
+                                        await userViewModel.updateDraft(draftID: draft.id, updatedFields: ["isHidden": true])
+                                        dismiss()
+                                    }
+                                case .delete:
+                                    showMoreOptions = false
+                                    showDeleteConfirmation = true
+                            }
+                            selectedMoreOption = nil
+                        }
+                        .presentationCompactAdaptation(.popover)
+                    }
 
                     // Exit
                     Button(action: { withAnimation { dismiss() } }) {
