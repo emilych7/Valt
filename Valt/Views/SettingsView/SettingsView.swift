@@ -33,11 +33,12 @@ struct SettingsView: View {
             
             VStack (spacing: 10) {
                 
-                Button(action: {
-                    withAnimation {
-                        showAccountPreferences = true
-                    }
-                }) {
+                NavigationLink {
+                    PreferencesView()
+                        .toolbar(.hidden, for: .navigationBar)   // hide default nav bar
+                        .navigationBarBackButtonHidden(true)     // hide back chevron
+                        .ignoresSafeArea()
+                } label: {
                     ZStack {
                         RoundedRectangle(cornerRadius: 12)
                             .foregroundStyle(Color("TextFieldBackground"))
@@ -46,26 +47,25 @@ struct SettingsView: View {
                                 RoundedRectangle(cornerRadius: 12)
                                     .stroke(Color("TextFieldBorder"), lineWidth: 1)
                             )
-                        
                         HStack (spacing: 10) {
                             Image("userIcon")
                                 .frame(width: 20, height: 20)
-                            
                             Text("Account Preferences")
                                 .font(.custom("OpenSans-Regular", size: 17))
                                 .foregroundColor(Color("TextColor"))
-                            
                             Spacer()
                         }
                         .padding(.horizontal, 15)
                     }
                 }
+                .buttonStyle(PlainButtonStyle())
                 
-                Button(action: {
-                    withAnimation {
-                        // do something
-                    }
-                }) {
+                NavigationLink {
+                    DataView()
+                        .toolbar(.hidden, for: .navigationBar)   // hide default nav bar
+                        .navigationBarBackButtonHidden(true)     // hide back chevron
+                        .ignoresSafeArea()
+                } label: {
                     ZStack {
                         RoundedRectangle(cornerRadius: 12)
                             .foregroundStyle(Color("TextFieldBackground"))
@@ -74,26 +74,25 @@ struct SettingsView: View {
                                 RoundedRectangle(cornerRadius: 12)
                                     .stroke(Color("TextFieldBorder"), lineWidth: 1)
                             )
-                        
                         HStack (spacing: 10) {
                             Image("dataIcon")
                                 .frame(width: 20, height: 20)
-                            
                             Text("Data Privacy")
                                 .font(.custom("OpenSans-Regular", size: 17))
                                 .foregroundColor(Color("TextColor"))
-                            
                             Spacer()
                         }
                         .padding(.horizontal, 15)
                     }
                 }
+                .buttonStyle(PlainButtonStyle())
                 
-                Button(action: {
-                    withAnimation {
-                        // do something
-                    }
-                }) {
+                NavigationLink {
+                    ActivityView()
+                        .toolbar(.hidden, for: .navigationBar)   // hide default nav bar
+                        .navigationBarBackButtonHidden(true)     // hide back chevron
+                        .ignoresSafeArea()
+                } label: {
                     ZStack {
                         RoundedRectangle(cornerRadius: 12)
                             .foregroundStyle(Color("TextFieldBackground"))
@@ -102,27 +101,26 @@ struct SettingsView: View {
                                 RoundedRectangle(cornerRadius: 12)
                                     .stroke(Color("TextFieldBorder"), lineWidth: 1)
                             )
-                        
                         HStack (spacing: 10) {
                             Image("activityIcon")
                                 .frame(width: 20, height: 20)
-                            
                             Text("Activity")
                                 .font(.custom("OpenSans-Regular", size: 17))
                                 .foregroundColor(Color("TextColor"))
-                            
                             Spacer()
                         }
                         .padding(.horizontal, 15)
                     }
                 }
+                .buttonStyle(PlainButtonStyle())
                 
                 
-                Button(action: {
-                    withAnimation {
-                        showSecurity = true
-                    }
-                }) {
+                NavigationLink {
+                    SecurityView()
+                        .toolbar(.hidden, for: .navigationBar)   // hide default nav bar
+                        .navigationBarBackButtonHidden(true)     // hide back chevron
+                        .ignoresSafeArea()
+                } label: {
                     ZStack {
                         RoundedRectangle(cornerRadius: 12)
                             .foregroundStyle(Color("TextFieldBackground"))
@@ -131,20 +129,18 @@ struct SettingsView: View {
                                 RoundedRectangle(cornerRadius: 12)
                                     .stroke(Color("TextFieldBorder"), lineWidth: 1)
                             )
-                        
                         HStack (spacing: 10) {
                             Image("securityIcon")
                                 .frame(width: 20, height: 20)
-                            
                             Text("Security")
                                 .font(.custom("OpenSans-Regular", size: 17))
                                 .foregroundColor(Color("TextColor"))
-                            
                             Spacer()
                         }
                         .padding(.horizontal, 15)
                     }
                 }
+                .buttonStyle(PlainButtonStyle())
             }
             .padding(.horizontal, 25)
             
@@ -175,11 +171,5 @@ struct SettingsView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color("AppBackgroundColor"))
-        .fullScreenCover(isPresented: $showAccountPreferences) {
-            PreferencesView()
-        }
-        .fullScreenCover(isPresented: $showSecurity) {
-            SecurityView()
-        }
     }
 }

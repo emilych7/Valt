@@ -149,7 +149,6 @@ struct FullNoteView: View {
                         .background(Color.clear)
                 }
                 .padding(.horizontal, 30)
-                .background(.blue)
 
                 Spacer()
             }

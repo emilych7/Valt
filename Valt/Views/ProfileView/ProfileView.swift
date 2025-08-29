@@ -199,8 +199,17 @@ struct ProfileView: View {
             localProfileImage = newImage
         }
         .fullScreenCover(isPresented: $showSettings) {
+            NavigationStack {
+                SettingsView()
+                    .toolbar(.hidden, for: .navigationBar)   // optional: hide nav bar in Settings root
+                    // .ignoresSafeArea()                        // fill entire screen
+            }
+        }
+        /*
+        .fullScreenCover(isPresented: $showSettings) {
             SettingsView()
                 .presentationCompactAdaptation(.popover)
         }
+         */
     }
 }
