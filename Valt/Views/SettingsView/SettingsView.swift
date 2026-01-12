@@ -2,174 +2,125 @@ import SwiftUI
 import FirebaseAuth
 
 struct SettingsView: View {
+    @StateObject private var settingsViewModel = SettingsViewModel()
     @EnvironmentObject var authViewModel: AuthViewModel
     @Environment(\.dismiss) var dismiss
     
-    @State private var showAccountPreferences: Bool = false
-    @State private var showSecurity: Bool = false
-    
-
     var body: some View {
-        VStack {
-            HStack (spacing: 10) {
-                Text("Settings")
-                    .font(.custom("OpenSans-SemiBold", size: 24))
-                
-                Spacer()
-                
-                Button { dismiss() } label: {
-                    ZStack {
-                        Ellipse()
-                            .frame(width: 40, height: 40)
-                            .foregroundColor(Color("BubbleColor"))
-                        Image("exitDynamicIcon")
-                            .frame(width: 38, height: 38)
-                    }
-                }
-                .buttonStyle(PlainButtonStyle())
-            }
-            .padding(.horizontal, 25)
-            .padding(.top, 20)
+        NavigationView {
+        VStack(spacing: 0) {
             
-            VStack (spacing: 10) {
-                
-                NavigationLink {
-                    PreferencesView()
-                        .toolbar(.hidden, for: .navigationBar)   // hide default nav bar
-                        .navigationBarBackButtonHidden(true)     // hide back chevron
-                        .ignoresSafeArea()
-                } label: {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 12)
-                            .foregroundStyle(Color("TextFieldBackground"))
-                            .frame(height: 50)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color("TextFieldBorder"), lineWidth: 1)
-                            )
-                        HStack (spacing: 10) {
-                            Image("userIcon")
-                                .frame(width: 20, height: 20)
-                            Text("Account Preferences")
-                                .font(.custom("OpenSans-Regular", size: 17))
-                                .foregroundColor(Color("TextColor"))
-                            Spacer()
-                        }
-                        .padding(.horizontal, 15)
-                    }
-                }
-                .buttonStyle(PlainButtonStyle())
-                
-                NavigationLink {
-                    DataView()
-                        .toolbar(.hidden, for: .navigationBar)   // hide default nav bar
-                        .navigationBarBackButtonHidden(true)     // hide back chevron
-                        .ignoresSafeArea()
-                } label: {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 12)
-                            .foregroundStyle(Color("TextFieldBackground"))
-                            .frame(height: 50)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color("TextFieldBorder"), lineWidth: 1)
-                            )
-                        HStack (spacing: 10) {
-                            Image("dataIcon")
-                                .frame(width: 20, height: 20)
-                            Text("Data Privacy")
-                                .font(.custom("OpenSans-Regular", size: 17))
-                                .foregroundColor(Color("TextColor"))
-                            Spacer()
-                        }
-                        .padding(.horizontal, 15)
-                    }
-                }
-                .buttonStyle(PlainButtonStyle())
-                
-                NavigationLink {
-                    ActivityView()
-                        .toolbar(.hidden, for: .navigationBar)   // hide default nav bar
-                        .navigationBarBackButtonHidden(true)     // hide back chevron
-                        .ignoresSafeArea()
-                } label: {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 12)
-                            .foregroundStyle(Color("TextFieldBackground"))
-                            .frame(height: 50)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color("TextFieldBorder"), lineWidth: 1)
-                            )
-                        HStack (spacing: 10) {
-                            Image("activityIcon")
-                                .frame(width: 20, height: 20)
-                            Text("Activity")
-                                .font(.custom("OpenSans-Regular", size: 17))
-                                .foregroundColor(Color("TextColor"))
-                            Spacer()
-                        }
-                        .padding(.horizontal, 15)
-                    }
-                }
-                .buttonStyle(PlainButtonStyle())
-                
-                
-                NavigationLink {
-                    SecurityView()
-                        .toolbar(.hidden, for: .navigationBar)   // hide default nav bar
-                        .navigationBarBackButtonHidden(true)     // hide back chevron
-                        .ignoresSafeArea()
-                } label: {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 12)
-                            .foregroundStyle(Color("TextFieldBackground"))
-                            .frame(height: 50)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color("TextFieldBorder"), lineWidth: 1)
-                            )
-                        HStack (spacing: 10) {
-                            Image("securityIcon")
-                                .frame(width: 20, height: 20)
-                            Text("Security")
-                                .font(.custom("OpenSans-Regular", size: 17))
-                                .foregroundColor(Color("TextColor"))
-                            Spacer()
-                        }
-                        .padding(.horizontal, 15)
-                    }
-                }
-                .buttonStyle(PlainButtonStyle())
+            CustomHeader(title: "Settings", buttonTitle: "Exit") {
+                dismiss()
             }
-            .padding(.horizontal, 25)
+            ScrollView {
+                VStack(spacing: 20) {
+                    
+                    VStack(spacing: 0) {
+                        sectionHeader("General Settings")
+                        
+                        NavigationLink(destination: PreferencesView()) {
+                            settingsRow(title: "Account Preferences", icon: "userIcon")
+                        }
+                        
+                        divider
+                        
+                        NavigationLink(destination: DataView()) {
+                            settingsRow(title: "Data Privacy", icon: "dataIcon")
+                        }
+                        
+                        divider
+                        
+                        NavigationLink(destination: ActivityView()) {
+                            settingsRow(title: "Activity", icon: "activityIcon")
+                        }
+                        
+                        divider
+                        
+                        NavigationLink(destination: SecurityView()) {
+                            settingsRow(title: "Security", icon: "securityIcon")
+                        }
+                    }
+                    .background(Color("TextFieldBackground"))
+                    .cornerRadius(12)
+                    
+                    logoutSection
+                }
+                .padding(.top, 10)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 30)
+            }
+        }
+        .background(Color("AppBackgroundColor").ignoresSafeArea())
+        .navigationBarHidden(true)
+        .environmentObject(settingsViewModel)
+            
+        }
+    }
+
+    private func sectionHeader(_ title: String) -> some View {
+        HStack {
+            Text(title)
+                .font(.custom("OpenSans-SemiBold", size: 18))
+                .foregroundColor(Color("TextColor"))
+            Spacer()
+        }
+        .padding([.horizontal, .top], 20)
+        .padding(.bottom, 10)
+    }
+
+    private func settingsRow(title: String, icon: String) -> some View {
+        HStack(spacing: 12) {
+            Image(icon)
+                .resizable()
+                .frame(width: 20, height: 20)
+            
+            Text(title)
+                .font(.custom("OpenSans-Regular", size: 17))
+                .foregroundColor(Color("TextColor"))
             
             Spacer()
             
-            HStack {
-                Button(action: {
-                    do {
-                        try Auth.auth().signOut()
-                        authViewModel.isAuthenticated = false
-                        print("Successfully logged out user")
-                    } catch {
-                        print("Error signing out: \(error.localizedDescription)")
-                    }
-                }) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 10)
-                            .frame(width: 150, height: 50)
-                            .foregroundStyle(Color("ValtRed"))
-                        
-                        Text("Log Out")
-                            .font(.custom("OpenSans-Bold", size: 19))
-                            .foregroundColor(.white)
-                    }
-                }
-            }
-            .padding(.bottom, 40)
+            Image("rightArrowIcon")
+                .resizable()
+                .frame(width: 14, height: 14)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color("AppBackgroundColor"))
+        .contentShape(Rectangle())
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+    }
+    
+    private var divider: some View {
+        Divider()
+            .frame(height: 1)
+            .background(Color("TextFieldBorder"))
+            .padding(.horizontal, 15)
+    }
+    
+    private var logoutSection: some View {
+        Button(action: {
+            do {
+                try Auth.auth().signOut()
+                authViewModel.isAuthenticated = false
+            } catch {
+                print("Error signing out: \(error.localizedDescription)")
+            }
+        }) {
+            Text("Log Out")
+                .font(.custom("OpenSans-Bold", size: 19))
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: 50)
+                .background(Color("ValtRed"))
+                .cornerRadius(12)
+        }
+        .padding(.top, 10)
     }
 }
+
+#Preview("Logged In State") {
+    let mockAuth = AuthViewModel()
+    return SettingsView()
+        .environmentObject(mockAuth)
+}
+

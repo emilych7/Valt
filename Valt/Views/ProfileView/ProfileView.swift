@@ -4,6 +4,7 @@ import PhotosUI
 @MainActor
 struct ProfileView: View {
     @EnvironmentObject private var userViewModel: UserViewModel
+    @EnvironmentObject var settingsViewModel: SettingsViewModel
     
     @State private var selectedFilter: Filter? = nil
     @State private var showFilterOptions: Bool = false
@@ -65,9 +66,10 @@ struct ProfileView: View {
         ZStack {
             VStack {
                 HStack (spacing: 10) {
+                    /*
                     GlowingView()
                         .frame(width: 20, height: 20)
-                    
+                    */ 
                     Text("My Valt")
                         .font(.custom("OpenSans-SemiBold", size: 24))
                     Spacer()
@@ -199,17 +201,7 @@ struct ProfileView: View {
             localProfileImage = newImage
         }
         .fullScreenCover(isPresented: $showSettings) {
-            NavigationStack {
-                SettingsView()
-                    .toolbar(.hidden, for: .navigationBar)   // optional: hide nav bar in Settings root
-                    // .ignoresSafeArea()                        // fill entire screen
-            }
-        }
-        /*
-        .fullScreenCover(isPresented: $showSettings) {
             SettingsView()
-                .presentationCompactAdaptation(.popover)
         }
-         */
     }
 }

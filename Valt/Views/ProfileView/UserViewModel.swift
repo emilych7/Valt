@@ -21,7 +21,6 @@ final class UserViewModel: ObservableObject {
 
     private let repository: DraftRepositoryProtocol
 
-    // Independent loads in parallel)
     init(repository: DraftRepositoryProtocol = DraftRepository()) {
         self.repository = repository
 
@@ -34,8 +33,6 @@ final class UserViewModel: ObservableObject {
             _ = await (usernameTask, countTask, pubCountTask, draftsTask, avatarTask)
         }
     }
-
-    // Loads
 
     // Grabs current username
     func fetchAuthenticatedUsername() async {
@@ -75,7 +72,6 @@ final class UserViewModel: ObservableObject {
 
             let agg = try await query.count.getAggregation(source: .server)
             self.draftCount = Int(truncating: agg.count)
-            // Don't force .complete here if cards still loading; just avoid 'empty' flicker
             if self.draftCount == 0 { self.userLoadingState = .empty }
         } catch {
             print("Count error: \(error.localizedDescription)")
@@ -112,11 +108,6 @@ final class UserViewModel: ObservableObject {
             self.drafts = []
         }
     }
-
-
-
-
-    // MARK: - Mutations (unchanged behavior)
 
     func updateDraft(draftID: String, updatedFields: [String: Any]) async {
         do {
@@ -161,7 +152,6 @@ final class UserViewModel: ObservableObject {
     func fetchProfilePicture() async {
         guard let uid = Auth.auth().currentUser?.uid else { return }
 
-        // Try a small thumbnail first (best UX if you create these on upload)
         let thumbRef = Storage.storage().reference().child("profilePictures/\(uid)_thumb.jpg")
         do {
             self.userLoadingState = .loading
@@ -174,7 +164,6 @@ final class UserViewModel: ObservableObject {
             // fall through to full-size attempt
         }
 
-        // Fallback: full-size, capped at 2 MB
         let fullRef = Storage.storage().reference().child("profilePictures/\(uid).jpg")
         do {
             if let img = try await downloadImage(ref: fullRef, maxBytes: 2 * 1024 * 1024) {
@@ -199,7 +188,6 @@ final class UserViewModel: ObservableObject {
         return UIImage(data: data)
     }
 
-    // Async to avoid capturing a non-Sendable UIImage in a Task closure
     func uploadProfilePicture(_ image: UIImage) async {
         guard let uid = Auth.auth().currentUser?.uid else { return }
         let fullRef = Storage.storage().reference().child("profilePictures/\(uid).jpg")
@@ -209,13 +197,30 @@ final class UserViewModel: ObservableObject {
             self.userLoadingState = .loading
             _ = try await fullRef.putDataAsync(imageData, metadata: nil)
             self.profileImage = image
-            // (Optional) also generate & upload a thumb to speed future loads
             print("Profile picture uploaded and UI updated.")
             self.userLoadingState = .complete
         } catch {
             print("Error uploading profile picture: \(error.localizedDescription)")
             self.userLoadingState = .error(error)
         }
+    }
+    
+    // Update username in Settings
+    func updateUsername(to newUsername: String) async throws {
+        guard let uid = Auth.auth().currentUser?.uid else { return }
+        let db = Firestore.firestore()
+        
+        let batch = db.batch()
+        
+        let oldUsernameRef = db.collection("usernames").document(self.username)
+        let newUsernameRef = db.collection("usernames").document(newUsername)
+        
+        batch.deleteDocument(oldUsernameRef)
+        batch.setData(["userID": uid], forDocument: newUsernameRef)
+        
+        try await batch.commit()
+        
+        self.username = newUsername
     }
 
     // Search

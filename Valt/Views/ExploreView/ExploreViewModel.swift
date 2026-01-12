@@ -118,17 +118,33 @@ final class ExploreViewModel: ObservableObject {
         }.joined(separator: "\n\n---\n\n")
 
         let metaPrompt = """
+        Analyze the provided writing drafts and generate exactly 5 unique writing prompts.
         
-        Based on the themes and content of the following drafts, please generate 5 unique and creative writing prompt that is related. The new prompt should inspire the reader to want to expand on the strongest themes and deepest content from the drafts. The new prompt should also be framed as a question that gets them to respond in the first person like a personal narrative or diary entry. The goal of the new prompt is to encourage the reader to reveal more about their thoughts and feelings, so they can save the note for review later. The user should feel like the question is personalized for them. It should not be generic. Make the prompt no longer than 15 words and only one question.
+        **Your task is to:**
+            1.  **Generate Exactly 5 Unique and Creative Writing Prompts:** You must return a list of five distinct prompts. Do not return more or less than five.
+            2.  **Follow Prompt Guidelines:** Each of the 5 prompts must adhere to the following rules:
+                * **Format:** It must be a single question.
+                * **Length:** It must be 15 words or less.
+                * **Perspective:** It should be framed to elicit a first-person response, like a personal narrative or diary entry.
+                * **Tone:** The question should sound like it's coming from an insightful, 25-year-old best friend. It should be abstract yet easy to understand for an 18-30 year old demographic. The user should feel like the question is personalized for them.
+                * **Goal:** Inspire the user to expand on themes from their drafts and reveal more about their thoughts and feelings. Avoid generic questions. The new prompt should also be framed as a question that gets them to respond in the first person like a personal narrative or diary entry. The new prompt should inspire the reader to want to expand on the strongest themes and deepest content from the drafts.
+            3.  **Output Format:** Your response MUST be a single JSON object. This object must have a single key named "prompts", whose value is an array of the 5 generated prompt strings.
 
-        The question should read like it is coming from a 25-year old best friend who listens to you and offers insightful questions like your therapist. Give abstraction to the question. Make it easy to understand for a demographic of 18 to 30 year olds.
-        
-        Please respond with a JSON object that has a single key: "prompts". The value of "prompts" should be an array containing the generated prompt strings.
+            **Example JSON Output:**
+            {
+              "prompts": [
+                "What's a belief you hold that feels uniquely yours?",
+                "If you wrote a letter to your younger self, what would it confess?",
+                "Describe a moment you felt completely understood without words.",
+                "What fear are you most proud of overcoming?",
+                "How has a past failure secretly shaped your success?"
+              ]
+            }
 
-        Here are the existing drafts for context:
-        \(draftContext)
-
-        New Creative Prompt:
+            **User's Drafts for Context:**
+            ---
+            \(draftContext)
+            ---
         """
 
         let initialMessage = PromptMessage(sender: .user, content: metaPrompt)
@@ -187,9 +203,9 @@ final class ExploreViewModel: ObservableObject {
         }
 
         let requestBody: [String: Any] = [
-            "model": "gpt-3.5-turbo",
+            "model": "gpt-4o",
             "messages": openAIMessages,
-            "max_tokens": 150,
+            "max_tokens": 400,
             "response_format": [ "type": "json_object" ]
         ]
         request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
