@@ -2,6 +2,7 @@ import SwiftUI
 
 struct DataView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
+    @EnvironmentObject var settingsViewModel: SettingsViewModel
     @Environment(\.dismiss) var dismiss
     
     var body: some View {
@@ -30,9 +31,9 @@ struct DataView: View {
         VStack(spacing: 0) {
             sectionHeader("How Valt Uses Your Data")
             
-            NavigationLink(destination: Text("OpenAI Prompts")) { settingsRow(title: "OpenAI Prompts") }
+            NavigationLink(destination: Text("OpenAI Prompts")) { SettingsRow(title: "OpenAI Prompts", icon: "emailIcon") }
                 .padding(.horizontal, 15)
-                .font(.custom("OpenSans-SemiBold", size: 17))
+                .padding(.bottom, 5)
         }
         .background(Color("TextFieldBackground"))
         .cornerRadius(12)
@@ -47,21 +48,6 @@ struct DataView: View {
         }
         .padding([.horizontal, .top], 20)
         .padding(.bottom, 10)
-    }
-
-    private func settingsRow(title: String) -> some View {
-        HStack {
-            Text(title)
-                .font(.custom("OpenSans-Regular", size: 17))
-                .foregroundColor(Color("TextColor"))
-            Spacer()
-            Image("rightArrowIcon")
-                .resizable()
-                .frame(width: 14, height: 14)
-        }
-        .contentShape(Rectangle())
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
     }
 }
 

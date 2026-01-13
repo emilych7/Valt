@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ActivityView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
+    @EnvironmentObject var settingsViewModel: SettingsViewModel
     @Environment(\.dismiss) var dismiss
     
     var body: some View {
@@ -33,7 +34,7 @@ struct ActivityView: View {
         VStack(spacing: 0) {
             sectionHeader("Interactions")
             
-            NavigationLink(destination: Text("Favorited Content")) { settingsRow(title: "Favorited", image: "emailIcon") }
+            NavigationLink(destination: Text("Favorited Content")) { SettingsRow(title: "Favorited", icon: "usernameIcon") }
                 .padding(.horizontal, 15)
                 .font(.custom("OpenSans-SemiBold", size: 17))
             Divider()
@@ -41,14 +42,14 @@ struct ActivityView: View {
                 .background(Color("TextFieldBorder"))
             
             
-            NavigationLink(destination: Text("Published Content")) { settingsRow(title: "Published", image: "emailIcon") }
+            NavigationLink(destination: Text("Published Content")) { SettingsRow(title: "Published", icon: "usernameIcon") }
                 .padding(.horizontal, 15)
                 .font(.custom("OpenSans-SemiBold", size: 17))
             Divider()
                 .frame(height: 1)
                 .background(Color("TextFieldBorder"))
             
-            NavigationLink(destination: Text("Shared Content")) { settingsRow(title: "Shared", image: "emailIcon") }
+            NavigationLink(destination: Text("Shared Content")) { SettingsRow(title: "Shared", icon: "usernameIcon") }
                 .padding(.horizontal, 15)
                 .padding(.bottom, 5)
                 .font(.custom("OpenSans-SemiBold", size: 17))
@@ -60,7 +61,7 @@ struct ActivityView: View {
     private var archiveSection: some View {
         VStack(spacing: 0) {
             sectionHeader("Archived and Removed Content")
-            NavigationLink(destination: Text("Recently Deleted")) { settingsRow(title: "Recently Deleted", image: "emailIcon") }
+            NavigationLink(destination: Text("Recently Deleted")) { SettingsRow(title: "Recently Deleted", icon: "usernameIcon") }
                 .padding(.horizontal, 15)
                 .font(.custom("OpenSans-SemiBold", size: 17))
             
@@ -68,7 +69,7 @@ struct ActivityView: View {
                 .frame(height: 1)
                 .background(Color("TextFieldBorder"))
             
-            NavigationLink(destination: Text("Archived")) { settingsRow(title: "Archived", image: "emailIcon") }
+            NavigationLink(destination: Text("Archived")) { SettingsRow(title: "Archived", icon: "usernameIcon") }
                 .padding(.horizontal, 15)
                 .padding(.bottom, 5)
                 .font(.custom("OpenSans-SemiBold", size: 17))
@@ -81,7 +82,7 @@ struct ActivityView: View {
         VStack(spacing: 0) {
             sectionHeader("Account Management")
             NavigationLink(destination: Text("Deactivate Account")) {
-                settingsRow(title: "Deactivate Account", image: "emailIcon")
+                SettingsRow(title: "Screen Time", icon: "usernameIcon")
                     .padding(.horizontal, 15)
                     .padding(.bottom, 5)
                     .font(.custom("OpenSans-SemiBold", size: 17))
@@ -95,7 +96,7 @@ struct ActivityView: View {
         VStack(spacing: 0) {
             sectionHeader("Account Management")
             NavigationLink(destination: Text("Deactivate Account")) {
-                settingsRow(title: "Deactivate Account", image: "trashIcon")
+                SettingsRow(title: "Deactivate Account", icon: "trashIcon")
                     .padding(.horizontal, 15)
                     .padding(.bottom, 5)
                     .font(.custom("OpenSans-SemiBold", size: 17))
@@ -115,24 +116,6 @@ struct ActivityView: View {
         .padding(.bottom, 10)
     }
 
-    private func settingsRow(title: String, image: String) -> some View {
-        HStack {
-            Image(image)
-                .resizable()
-                .frame(width: 15, height: 15)
-                .padding(.trailing, 5)
-            Text(title)
-                .font(.custom("OpenSans-Regular", size: 17))
-                .foregroundColor(Color("TextColor"))
-            Spacer()
-            Image("rightArrowIcon")
-                .resizable()
-                .frame(width: 14, height: 14)
-        }
-        .contentShape(Rectangle())
-        .padding(.horizontal, 15)
-        .padding(.vertical, 10)
-    }
 }
 
 #Preview("Logged In State") {

@@ -33,7 +33,7 @@ struct PreferencesView: View {
             sectionHeader("Profile Information")
             
             NavigationLink(destination: UpdateFieldView(fieldType: .username)) {
-                settingsRow(title: "Username", image: "usernameIcon")
+                SettingsRow(title: "Username", icon: "usernameIcon")
             }
             .padding(.horizontal, 15)
             .font(.custom("OpenSans-SemiBold", size: 17))
@@ -43,7 +43,7 @@ struct PreferencesView: View {
                 .background(Color("TextFieldBorder"))
             
             NavigationLink(destination: UpdateFieldView(fieldType: .email)) {
-                settingsRow(title: "Email", image: "emailIcon")
+                SettingsRow(title: "Email", icon: "emailIcon")
             }
             .padding(.horizontal, 15)
             .font(.custom("OpenSans-SemiBold", size: 17))
@@ -53,7 +53,7 @@ struct PreferencesView: View {
                 .background(Color("TextFieldBorder"))
             
             NavigationLink(destination: UpdateFieldView(fieldType: .phone)) {
-                settingsRow(title: "Phone", image: "phoneIcon")
+                SettingsRow(title: "Phone", icon: "phoneIcon")
             }
             .padding(.horizontal, 15)
             .padding(.bottom, 5)
@@ -66,7 +66,7 @@ struct PreferencesView: View {
     private var displaySection: some View {
         VStack(spacing: 0) {
             sectionHeader("Display")
-            NavigationLink(destination: Text("Appearance")) { settingsRow(title: "Appearance", image: "appearanceIcon") }
+            NavigationLink(destination: Text("Appearance")) { SettingsRow(title: "Appearance", icon: "appearanceIcon") }
                 .padding(.horizontal, 15)
                 .padding(.bottom, 5)
                 .font(.custom("OpenSans-SemiBold", size: 17))
@@ -83,25 +83,6 @@ struct PreferencesView: View {
         }
         .padding([.horizontal, .top], 20)
         .padding(.bottom, 10)
-    }
-
-    private func settingsRow(title: String, image: String) -> some View {
-        HStack {
-            Image(image)
-                .resizable()
-                .frame(width: 15, height: 15)
-                .padding(.trailing, 5)
-            Text(title)
-                .font(.custom("OpenSans-Regular", size: 17))
-                .foregroundColor(Color("TextColor"))
-            Spacer()
-            Image("rightArrowIcon")
-                .resizable()
-                .frame(width: 14, height: 14)
-        }
-        .contentShape(Rectangle())
-        .padding(.horizontal, 15)
-        .padding(.vertical, 10)
     }
 }
 
