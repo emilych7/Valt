@@ -8,17 +8,19 @@ struct ActivityView: View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
                 
-                headerSection
-                    .padding(.top, 15)
-                    .background(Color("AppBackgroundColor"))
+                CustomHeader(title: "Activity", buttonTitle: "Exit") {
+                    dismiss()
+                }
                 
                 ScrollView {
                     VStack(spacing: 20) {
                         interactionSection
                         archiveSection
                         timeSection
+                        managementSection
                     }
                     .padding(.top, 10)
+                    .padding(.horizontal, 20)
                     .padding(.bottom, 30)
                 }
             }
@@ -27,41 +29,11 @@ struct ActivityView: View {
         .navigationBarHidden(true)
     }
     
-    private var headerSection: some View {
-        HStack {
-            Text("Activity")
-                .font(.custom("OpenSans-SemiBold", size: 24))
-                .foregroundColor(Color("TextColor"))
-            
-            Spacer()
-            
-            Button { dismiss() } label: {
-                ZStack {
-                    HStack (spacing: 5) {
-                        Image("exitDynamicIcon")
-                            .resizable()
-                            .frame(width: 17, height: 17)
-                        Text("Exit")
-                            .foregroundColor(Color("TextColor"))
-                    }
-                    .padding(.vertical, 5)
-                    .padding(.horizontal, 10)
-                }
-                .background(Color("BubbleColor"))
-                .cornerRadius(12)
-                
-                
-            }
-        }
-        .padding(.horizontal, 25)
-        .padding(.bottom, 15)
-    }
-    
     private var interactionSection: some View {
         VStack(spacing: 0) {
             sectionHeader("Interactions")
             
-            NavigationLink(destination: Text("Favorited Content")) { settingsRow(title: "Favorited") }
+            NavigationLink(destination: Text("Favorited Content")) { settingsRow(title: "Favorited", image: "emailIcon") }
                 .padding(.horizontal, 15)
                 .font(.custom("OpenSans-SemiBold", size: 17))
             Divider()
@@ -69,24 +41,26 @@ struct ActivityView: View {
                 .background(Color("TextFieldBorder"))
             
             
-            NavigationLink(destination: Text("Published Content")) { settingsRow(title: "Published") }
+            NavigationLink(destination: Text("Published Content")) { settingsRow(title: "Published", image: "emailIcon") }
                 .padding(.horizontal, 15)
                 .font(.custom("OpenSans-SemiBold", size: 17))
             Divider()
                 .frame(height: 1)
                 .background(Color("TextFieldBorder"))
             
-            NavigationLink(destination: Text("Shared Content")) { settingsRow(title: "Shared") }
+            NavigationLink(destination: Text("Shared Content")) { settingsRow(title: "Shared", image: "emailIcon") }
                 .padding(.horizontal, 15)
+                .padding(.bottom, 5)
                 .font(.custom("OpenSans-SemiBold", size: 17))
         }
         .background(Color("TextFieldBackground"))
+        .cornerRadius(12)
     }
     
     private var archiveSection: some View {
         VStack(spacing: 0) {
             sectionHeader("Archived and Removed Content")
-            NavigationLink(destination: Text("Recently Deleted")) { settingsRow(title: "Recently Deleted") }
+            NavigationLink(destination: Text("Recently Deleted")) { settingsRow(title: "Recently Deleted", image: "emailIcon") }
                 .padding(.horizontal, 15)
                 .font(.custom("OpenSans-SemiBold", size: 17))
             
@@ -94,23 +68,41 @@ struct ActivityView: View {
                 .frame(height: 1)
                 .background(Color("TextFieldBorder"))
             
-            NavigationLink(destination: Text("Archived")) { settingsRow(title: "Archived") }
+            NavigationLink(destination: Text("Archived")) { settingsRow(title: "Archived", image: "emailIcon") }
                 .padding(.horizontal, 15)
+                .padding(.bottom, 5)
                 .font(.custom("OpenSans-SemiBold", size: 17))
         }
         .background(Color("TextFieldBackground"))
+        .cornerRadius(12)
     }
     
     private var timeSection: some View {
         VStack(spacing: 0) {
             sectionHeader("Account Management")
             NavigationLink(destination: Text("Deactivate Account")) {
-                settingsRow(title: "Deactivate Account")
+                settingsRow(title: "Deactivate Account", image: "emailIcon")
                     .padding(.horizontal, 15)
+                    .padding(.bottom, 5)
                     .font(.custom("OpenSans-SemiBold", size: 17))
             }
         }
         .background(Color("TextFieldBackground"))
+        .cornerRadius(12)
+    }
+    
+    private var managementSection: some View {
+        VStack(spacing: 0) {
+            sectionHeader("Account Management")
+            NavigationLink(destination: Text("Deactivate Account")) {
+                settingsRow(title: "Deactivate Account", image: "trashIcon")
+                    .padding(.horizontal, 15)
+                    .padding(.bottom, 5)
+                    .font(.custom("OpenSans-SemiBold", size: 17))
+            }
+        }
+        .background(Color("TextFieldBackground"))
+        .cornerRadius(12)
     }
     
     private func sectionHeader(_ title: String) -> some View {
@@ -123,8 +115,12 @@ struct ActivityView: View {
         .padding(.bottom, 10)
     }
 
-    private func settingsRow(title: String) -> some View {
+    private func settingsRow(title: String, image: String) -> some View {
         HStack {
+            Image(image)
+                .resizable()
+                .frame(width: 15, height: 15)
+                .padding(.trailing, 5)
             Text(title)
                 .font(.custom("OpenSans-Regular", size: 17))
                 .foregroundColor(Color("TextColor"))
@@ -134,14 +130,18 @@ struct ActivityView: View {
                 .frame(width: 14, height: 14)
         }
         .contentShape(Rectangle())
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
+        .padding(.horizontal, 15)
+        .padding(.vertical, 10)
     }
 }
 
 #Preview("Logged In State") {
     let mockAuth = AuthViewModel()
+    let mockSettings = SettingsViewModel()
     
-    return ActivityView()
-        .environmentObject(mockAuth)
+    return NavigationView {
+        ActivityView()
+            .environmentObject(mockAuth)
+            .environmentObject(mockSettings)
+    }
 }

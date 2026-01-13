@@ -8,51 +8,22 @@ struct DataView: View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
                 
-                headerSection
-                    .padding(.top, 15)
-                    .background(Color("AppBackgroundColor"))
+                CustomHeader(title: "Data Privacy", buttonTitle: "Exit") {
+                    dismiss()
+                }
                 
                 ScrollView {
                     VStack(spacing: 20) {
                         dataSection
                     }
                     .padding(.top, 10)
+                    .padding(.horizontal, 20)
                     .padding(.bottom, 30)
                 }
             }
         }
         .background(Color("AppBackgroundColor").ignoresSafeArea())
         .navigationBarHidden(true)
-    }
-    
-    private var headerSection: some View {
-        HStack {
-            Text("Data Privacy")
-                .font(.custom("OpenSans-SemiBold", size: 24))
-                .foregroundColor(Color("TextColor"))
-            
-            Spacer()
-            
-            Button { dismiss() } label: {
-                ZStack {
-                    HStack (spacing: 5) {
-                        Image("exitDynamicIcon")
-                            .resizable()
-                            .frame(width: 17, height: 17)
-                        Text("Exit")
-                            .foregroundColor(Color("TextColor"))
-                    }
-                    .padding(.vertical, 5)
-                    .padding(.horizontal, 10)
-                }
-                .background(Color("BubbleColor"))
-                .cornerRadius(12)
-                
-                
-            }
-        }
-        .padding(.horizontal, 25)
-        .padding(.bottom, 15)
     }
     
     private var dataSection: some View {
@@ -64,7 +35,9 @@ struct DataView: View {
                 .font(.custom("OpenSans-SemiBold", size: 17))
         }
         .background(Color("TextFieldBackground"))
+        .cornerRadius(12)
     }
+    
     
     private func sectionHeader(_ title: String) -> some View {
         HStack {
@@ -94,7 +67,11 @@ struct DataView: View {
 
 #Preview("Logged In State") {
     let mockAuth = AuthViewModel()
+    let mockSettings = SettingsViewModel()
     
-    return DataView()
-        .environmentObject(mockAuth)
+    return NavigationView {
+        DataView()
+            .environmentObject(mockAuth)
+            .environmentObject(mockSettings)
+    }
 }

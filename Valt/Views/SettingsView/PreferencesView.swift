@@ -17,7 +17,6 @@ struct PreferencesView: View {
                     VStack(spacing: 20) {
                         profileSection
                         displaySection
-                        managementSection
                     }
                     .padding(.top, 10)
                     .padding(.horizontal, 20)
@@ -27,36 +26,6 @@ struct PreferencesView: View {
         }
         .background(Color("AppBackgroundColor").ignoresSafeArea())
         .navigationBarHidden(true)
-    }
-    
-    private var headerSection: some View {
-        HStack {
-            Text("Account Preferences")
-                .font(.custom("OpenSans-SemiBold", size: 24))
-                .foregroundColor(Color("TextColor"))
-            
-            Spacer()
-            
-            Button { dismiss() } label: {
-                ZStack {
-                    HStack (spacing: 5) {
-                        Image("exitDynamicIcon")
-                            .resizable()
-                            .frame(width: 17, height: 17)
-                        Text("Exit")
-                            .foregroundColor(Color("TextColor"))
-                    }
-                    .padding(.vertical, 5)
-                    .padding(.horizontal, 10)
-                }
-                .background(Color("BubbleColor"))
-                .cornerRadius(12)
-                
-                
-            }
-        }
-        .padding(.horizontal, 25)
-        .padding(.bottom, 15)
     }
     
     private var profileSection: some View {
@@ -101,20 +70,6 @@ struct PreferencesView: View {
                 .padding(.horizontal, 15)
                 .padding(.bottom, 5)
                 .font(.custom("OpenSans-SemiBold", size: 17))
-        }
-        .background(Color("TextFieldBackground"))
-        .cornerRadius(12)
-    }
-    
-    private var managementSection: some View {
-        VStack(spacing: 0) {
-            sectionHeader("Account Management")
-            NavigationLink(destination: Text("Deactivate Account")) {
-                settingsRow(title: "Deactivate Account", image: "trashIcon")
-                    .padding(.horizontal, 15)
-                    .padding(.bottom, 5)
-                    .font(.custom("OpenSans-SemiBold", size: 17))
-            }
         }
         .background(Color("TextFieldBackground"))
         .cornerRadius(12)
