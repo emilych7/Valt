@@ -20,19 +20,28 @@ struct UpdateFieldView: View {
                     .font(.custom("OpenSans-SemiBold", size: 18))
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .foregroundColor(Color("TextColor"))
-
-                TextField(fieldType.placeholder, text: $newValue)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color("TextFieldBackground"))
-                    .cornerRadius(12)
-                    .keyboardType(fieldType.keyboardType)
-                    .autocapitalization(.none)
-                    .disableAutocorrection(true)
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color("TextFieldBorder"), lineWidth: 1)
-                    }
+                
+                HStack {
+                    TextField(fieldType.placeholder, text: $newValue)
+                        .padding()
+                        .font(.custom("OpenSans-Regular", size: 17))
+                        .frame(maxWidth: .infinity)
+                        .cornerRadius(12)
+                        .keyboardType(fieldType.keyboardType)
+                        .autocapitalization(.none)
+                        .disableAutocorrection(true)
+                        
+                    Image("Caution")
+                        .resizable()
+                        .frame(width: 15, height: 15)
+                        .padding(.trailing, 20)
+                        .padding(.leading, 10)
+                }
+                .background(Color("TextFieldBackground"))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color("TextFieldBorder"), lineWidth: 1)
+                }
                 
                 Text(fieldType.subtitle2)
                     .font(.custom("OpenSans-Regular", size: 14))
@@ -118,10 +127,8 @@ struct UpdateFieldView: View {
     let mockAuth = AuthViewModel()
     let mockSettings = SettingsViewModel()
     
-    return NavigationView {
-        ActivityView()
-            .environmentObject(mockAuth)
-            .environmentObject(mockSettings)
-    }
+    UpdateFieldView(fieldType: .email)
+        .environmentObject(mockAuth)
+        .environmentObject(mockSettings)
 }
 

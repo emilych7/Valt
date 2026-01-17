@@ -23,7 +23,6 @@ struct SettingsView: View {
                             SettingsRow(title: "Account Preferences", icon: "userIcon")
                         }
                         .padding(.horizontal, 15)
-                        .font(.custom("OpenSans-SemiBold", size: 17))
                         
                         CustomDivider()
                         
@@ -31,7 +30,6 @@ struct SettingsView: View {
                             SettingsRow(title: "Data Privacy", icon: "dataIcon")
                         }
                         .padding(.horizontal, 15)
-                        .font(.custom("OpenSans-SemiBold", size: 17))
                         
                         CustomDivider()
                         
@@ -39,7 +37,6 @@ struct SettingsView: View {
                             SettingsRow(title: "Activity", icon: "activityIcon")
                         }
                         .padding(.horizontal, 15)
-                        .font(.custom("OpenSans-SemiBold", size: 17))
                         
                         CustomDivider()
                         
@@ -47,7 +44,6 @@ struct SettingsView: View {
                             SettingsRow(title: "Security", icon: "securityIcon")
                         }
                         .padding(.horizontal, 15)
-                        .font(.custom("OpenSans-SemiBold", size: 17))
                         .padding(.bottom, 5)
                     }
                     .background(Color("TextFieldBackground"))
@@ -78,7 +74,7 @@ struct SettingsView: View {
             }
         }) {
             Text("Log Out")
-                .font(.custom("OpenSans-Bold", size: 19))
+                .font(.custom("OpenSans-Bold", size: 17))
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
                 .frame(height: 50)

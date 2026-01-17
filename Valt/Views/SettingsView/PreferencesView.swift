@@ -64,7 +64,7 @@ struct PreferencesView: View {
     private var displaySection: some View {
         VStack(spacing: 0) {
             SectionHeader(title: "Display")
-            NavigationLink(destination: Text("Appearance")) { SettingsRow(title: "Appearance", icon: "appearanceIcon") }
+            NavigationLink(destination: UpdateAppearanceView()) { SettingsRow(title: "Appearance", icon: "appearanceIcon") }
                 .padding(.horizontal, 15)
                 .padding(.bottom, 5)
         }

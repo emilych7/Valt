@@ -8,21 +8,22 @@ struct ContentView: View {
     @StateObject private var onBoardingViewModel = OnBoardingViewModel()
 
     var body: some View {
-        if authViewModel.isAuthenticated {
-            MainTabView()
-                .environmentObject(authViewModel)
-                .environmentObject(userViewModel)
-                .environmentObject(bannerManager)
-                .environmentObject(settingsViewModel)
-        } else {
-            OnBoardingView()
-                .environmentObject(authViewModel)
-                .environmentObject(onBoardingViewModel)
+        Group {
+            if authViewModel.isAuthenticated {
+                MainTabView()
+                    .environmentObject(authViewModel)
+                    .environmentObject(userViewModel)
+                    .environmentObject(bannerManager)
+                    .environmentObject(settingsViewModel)
+            } else {
+                OnBoardingView()
+                    .environmentObject(authViewModel)
+                    .environmentObject(onBoardingViewModel)
+            }
         }
+        .preferredColorScheme(settingsViewModel.colorScheme)
     }
 }
 
-#Preview {
-    ContentView()
-}
+
 
