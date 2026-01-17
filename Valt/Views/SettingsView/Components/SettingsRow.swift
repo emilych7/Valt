@@ -1,10 +1,8 @@
-
 import SwiftUI
 
 struct SettingsRow: View {
     let title: String
     let icon: String
-    // let action: () -> Void
     
     var body: some View {
         HStack(spacing: 12) {

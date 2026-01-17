@@ -30,7 +30,7 @@ struct PreferencesView: View {
     
     private var profileSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("Profile Information")
+            SectionHeader(title: "Profile Information")
             
             NavigationLink(destination: UpdateFieldView(fieldType: .username)) {
                 SettingsRow(title: "Username", icon: "usernameIcon")
@@ -38,7 +38,7 @@ struct PreferencesView: View {
             .padding(.horizontal, 15)
             .font(.custom("OpenSans-SemiBold", size: 17))
             
-            Divider()
+            CustomDivider()
                 .frame(height: 1)
                 .background(Color("TextFieldBorder"))
             
@@ -48,7 +48,7 @@ struct PreferencesView: View {
             .padding(.horizontal, 15)
             .font(.custom("OpenSans-SemiBold", size: 17))
             
-            Divider()
+            CustomDivider()
                 .frame(height: 1)
                 .background(Color("TextFieldBorder"))
             
@@ -65,7 +65,7 @@ struct PreferencesView: View {
     
     private var displaySection: some View {
         VStack(spacing: 0) {
-            sectionHeader("Display")
+            SectionHeader(title: "Display")
             NavigationLink(destination: Text("Appearance")) { SettingsRow(title: "Appearance", icon: "appearanceIcon") }
                 .padding(.horizontal, 15)
                 .padding(.bottom, 5)
@@ -73,16 +73,6 @@ struct PreferencesView: View {
         }
         .background(Color("TextFieldBackground"))
         .cornerRadius(12)
-    }
-    
-    private func sectionHeader(_ title: String) -> some View {
-        HStack {
-            Text(title)
-                .font(.custom("OpenSans-SemiBold", size: 18))
-            Spacer()
-        }
-        .padding([.horizontal, .top], 20)
-        .padding(.bottom, 10)
     }
 }
 

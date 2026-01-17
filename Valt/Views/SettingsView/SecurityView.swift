@@ -29,7 +29,7 @@ struct SecurityView: View {
     
     private var twoFactorAuthenticationSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("Two-Factor Authentication")
+            SectionHeader(title: "Two-Factor Authentication")
             
             NavigationLink(destination: Text("Two-Factor")) { SettingsRow(title: "Two-Factor", icon: "emailIcon") }
                 .padding(.horizontal, 15)
@@ -43,7 +43,7 @@ struct SecurityView: View {
     
     private var resetPasswordSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("Password Protection")
+            SectionHeader(title: "Password Protection")
             
             NavigationLink(destination: Text("Reset Password")) { SettingsRow(title: "Reset Password", icon: "emailIcon") }
                 .padding(.horizontal, 15)
@@ -53,16 +53,6 @@ struct SecurityView: View {
         }
         .background(Color("TextFieldBackground"))
         .cornerRadius(12)
-    }
-    
-    private func sectionHeader(_ title: String) -> some View {
-        HStack {
-            Text(title)
-                .font(.custom("OpenSans-SemiBold", size: 18))
-            Spacer()
-        }
-        .padding([.horizontal, .top], 20)
-        .padding(.bottom, 10)
     }
 }
 

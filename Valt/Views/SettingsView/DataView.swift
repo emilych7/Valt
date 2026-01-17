@@ -29,7 +29,7 @@ struct DataView: View {
     
     private var dataSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("How Valt Uses Your Data")
+            SectionHeader(title: "How Valt Uses Your Data")
             
             NavigationLink(destination: Text("OpenAI Prompts")) { SettingsRow(title: "OpenAI Prompts", icon: "emailIcon") }
                 .padding(.horizontal, 15)
@@ -37,17 +37,6 @@ struct DataView: View {
         }
         .background(Color("TextFieldBackground"))
         .cornerRadius(12)
-    }
-    
-    
-    private func sectionHeader(_ title: String) -> some View {
-        HStack {
-            Text(title)
-                .font(.custom("OpenSans-SemiBold", size: 18))
-            Spacer()
-        }
-        .padding([.horizontal, .top], 20)
-        .padding(.bottom, 10)
     }
 }
 

@@ -32,12 +32,12 @@ struct ActivityView: View {
     
     private var interactionSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("Interactions")
+            SectionHeader(title: "Interactions")
             
             NavigationLink(destination: Text("Favorited Content")) { SettingsRow(title: "Favorited", icon: "usernameIcon") }
                 .padding(.horizontal, 15)
                 .font(.custom("OpenSans-SemiBold", size: 17))
-            Divider()
+            CustomDivider()
                 .frame(height: 1)
                 .background(Color("TextFieldBorder"))
             
@@ -45,7 +45,7 @@ struct ActivityView: View {
             NavigationLink(destination: Text("Published Content")) { SettingsRow(title: "Published", icon: "usernameIcon") }
                 .padding(.horizontal, 15)
                 .font(.custom("OpenSans-SemiBold", size: 17))
-            Divider()
+            CustomDivider()
                 .frame(height: 1)
                 .background(Color("TextFieldBorder"))
             
@@ -60,12 +60,12 @@ struct ActivityView: View {
     
     private var archiveSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("Archived and Removed Content")
+            SectionHeader(title: "Archived and Removed Content")
             NavigationLink(destination: Text("Recently Deleted")) { SettingsRow(title: "Recently Deleted", icon: "usernameIcon") }
                 .padding(.horizontal, 15)
                 .font(.custom("OpenSans-SemiBold", size: 17))
             
-            Divider()
+            CustomDivider()
                 .frame(height: 1)
                 .background(Color("TextFieldBorder"))
             
@@ -80,7 +80,7 @@ struct ActivityView: View {
     
     private var timeSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("Account Management")
+            SectionHeader(title: "Account Management")
             NavigationLink(destination: Text("Deactivate Account")) {
                 SettingsRow(title: "Screen Time", icon: "usernameIcon")
                     .padding(.horizontal, 15)
@@ -94,7 +94,7 @@ struct ActivityView: View {
     
     private var managementSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("Account Management")
+            SectionHeader(title: "Account Management")
             NavigationLink(destination: Text("Deactivate Account")) {
                 SettingsRow(title: "Deactivate Account", icon: "trashIcon")
                     .padding(.horizontal, 15)
@@ -105,17 +105,6 @@ struct ActivityView: View {
         .background(Color("TextFieldBackground"))
         .cornerRadius(12)
     }
-    
-    private func sectionHeader(_ title: String) -> some View {
-        HStack {
-            Text(title)
-                .font(.custom("OpenSans-SemiBold", size: 18))
-            Spacer()
-        }
-        .padding([.horizontal, .top], 20)
-        .padding(.bottom, 10)
-    }
-
 }
 
 #Preview("Logged In State") {

@@ -17,28 +17,28 @@ struct SettingsView: View {
                 VStack(spacing: 20) {
                     
                     VStack(spacing: 0) {
-                        sectionHeader("General Settings")
+                        SectionHeader(title: "General Settings")
                         
                         NavigationLink(destination: PreferencesView()) {
-                            settingsRow(title: "Account Preferences", icon: "userIcon")
+                            SettingsRow(title: "Account Preferences", icon: "userIcon")
                         }
                         
-                        divider
+                        CustomDivider()
                         
                         NavigationLink(destination: DataView()) {
-                            settingsRow(title: "Data Privacy", icon: "dataIcon")
+                            SettingsRow(title: "Data Privacy", icon: "dataIcon")
                         }
                         
-                        divider
+                        CustomDivider()
                         
                         NavigationLink(destination: ActivityView()) {
-                            settingsRow(title: "Activity", icon: "activityIcon")
+                            SettingsRow(title: "Activity", icon: "activityIcon")
                         }
                         
-                        divider
+                        CustomDivider()
                         
                         NavigationLink(destination: SecurityView()) {
-                            settingsRow(title: "Security", icon: "securityIcon")
+                            SettingsRow(title: "Security", icon: "securityIcon")
                         }
                     }
                     .background(Color("TextFieldBackground"))
@@ -56,45 +56,6 @@ struct SettingsView: View {
         .environmentObject(settingsViewModel)
             
         }
-    }
-
-    private func sectionHeader(_ title: String) -> some View {
-        HStack {
-            Text(title)
-                .font(.custom("OpenSans-SemiBold", size: 18))
-                .foregroundColor(Color("TextColor"))
-            Spacer()
-        }
-        .padding([.horizontal, .top], 20)
-        .padding(.bottom, 10)
-    }
-
-    private func settingsRow(title: String, icon: String) -> some View {
-        HStack(spacing: 12) {
-            Image(icon)
-                .resizable()
-                .frame(width: 20, height: 20)
-            
-            Text(title)
-                .font(.custom("OpenSans-Regular", size: 17))
-                .foregroundColor(Color("TextColor"))
-            
-            Spacer()
-            
-            Image("rightArrowIcon")
-                .resizable()
-                .frame(width: 14, height: 14)
-        }
-        .contentShape(Rectangle())
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
-    }
-    
-    private var divider: some View {
-        Divider()
-            .frame(height: 1)
-            .background(Color("TextFieldBorder"))
-            .padding(.horizontal, 15)
     }
     
     private var logoutSection: some View {
