@@ -34,7 +34,6 @@ struct SecurityView: View {
             NavigationLink(destination: Text("Two-Factor")) { SettingsRow(title: "Two-Factor", icon: "emailIcon") }
                 .padding(.horizontal, 15)
                 .padding(.bottom, 5)
-                .font(.custom("OpenSans-SemiBold", size: 17))
             
         }
         .background(Color("TextFieldBackground"))
@@ -48,7 +47,6 @@ struct SecurityView: View {
             NavigationLink(destination: Text("Reset Password")) { SettingsRow(title: "Reset Password", icon: "emailIcon") }
                 .padding(.horizontal, 15)
                 .padding(.bottom, 5)
-                .font(.custom("OpenSans-SemiBold", size: 17))
             
         }
         .background(Color("TextFieldBackground"))

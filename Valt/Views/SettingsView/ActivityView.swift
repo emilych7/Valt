@@ -18,7 +18,6 @@ struct ActivityView: View {
                         interactionSection
                         archiveSection
                         timeSection
-                        managementSection
                     }
                     .padding(.top, 10)
                     .padding(.horizontal, 20)
@@ -36,7 +35,7 @@ struct ActivityView: View {
             
             NavigationLink(destination: Text("Favorited Content")) { SettingsRow(title: "Favorited", icon: "usernameIcon") }
                 .padding(.horizontal, 15)
-                .font(.custom("OpenSans-SemiBold", size: 17))
+            
             CustomDivider()
                 .frame(height: 1)
                 .background(Color("TextFieldBorder"))
@@ -44,7 +43,7 @@ struct ActivityView: View {
             
             NavigationLink(destination: Text("Published Content")) { SettingsRow(title: "Published", icon: "usernameIcon") }
                 .padding(.horizontal, 15)
-                .font(.custom("OpenSans-SemiBold", size: 17))
+            
             CustomDivider()
                 .frame(height: 1)
                 .background(Color("TextFieldBorder"))
@@ -52,7 +51,6 @@ struct ActivityView: View {
             NavigationLink(destination: Text("Shared Content")) { SettingsRow(title: "Shared", icon: "usernameIcon") }
                 .padding(.horizontal, 15)
                 .padding(.bottom, 5)
-                .font(.custom("OpenSans-SemiBold", size: 17))
         }
         .background(Color("TextFieldBackground"))
         .cornerRadius(12)
@@ -63,7 +61,6 @@ struct ActivityView: View {
             SectionHeader(title: "Archived and Removed Content")
             NavigationLink(destination: Text("Recently Deleted")) { SettingsRow(title: "Recently Deleted", icon: "usernameIcon") }
                 .padding(.horizontal, 15)
-                .font(.custom("OpenSans-SemiBold", size: 17))
             
             CustomDivider()
                 .frame(height: 1)
@@ -72,7 +69,6 @@ struct ActivityView: View {
             NavigationLink(destination: Text("Archived")) { SettingsRow(title: "Archived", icon: "usernameIcon") }
                 .padding(.horizontal, 15)
                 .padding(.bottom, 5)
-                .font(.custom("OpenSans-SemiBold", size: 17))
         }
         .background(Color("TextFieldBackground"))
         .cornerRadius(12)
@@ -85,26 +81,12 @@ struct ActivityView: View {
                 SettingsRow(title: "Screen Time", icon: "usernameIcon")
                     .padding(.horizontal, 15)
                     .padding(.bottom, 5)
-                    .font(.custom("OpenSans-SemiBold", size: 17))
             }
         }
         .background(Color("TextFieldBackground"))
         .cornerRadius(12)
     }
     
-    private var managementSection: some View {
-        VStack(spacing: 0) {
-            SectionHeader(title: "Account Management")
-            NavigationLink(destination: Text("Deactivate Account")) {
-                SettingsRow(title: "Deactivate Account", icon: "trashIcon")
-                    .padding(.horizontal, 15)
-                    .padding(.bottom, 5)
-                    .font(.custom("OpenSans-SemiBold", size: 17))
-            }
-        }
-        .background(Color("TextFieldBackground"))
-        .cornerRadius(12)
-    }
 }
 
 #Preview("Logged In State") {

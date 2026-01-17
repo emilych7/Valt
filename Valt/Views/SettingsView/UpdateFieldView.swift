@@ -113,3 +113,15 @@ struct UpdateFieldView: View {
         }
     }
 }
+
+#Preview("Logged In State") {
+    let mockAuth = AuthViewModel()
+    let mockSettings = SettingsViewModel()
+    
+    return NavigationView {
+        ActivityView()
+            .environmentObject(mockAuth)
+            .environmentObject(mockSettings)
+    }
+}
+

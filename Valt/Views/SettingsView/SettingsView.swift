@@ -14,7 +14,7 @@ struct SettingsView: View {
                 dismiss()
             }
             ScrollView {
-                VStack(spacing: 20) {
+                VStack(spacing: 0) {
                     
                     VStack(spacing: 0) {
                         SectionHeader(title: "General Settings")
@@ -22,27 +22,37 @@ struct SettingsView: View {
                         NavigationLink(destination: PreferencesView()) {
                             SettingsRow(title: "Account Preferences", icon: "userIcon")
                         }
+                        .padding(.horizontal, 15)
+                        .font(.custom("OpenSans-SemiBold", size: 17))
                         
                         CustomDivider()
                         
                         NavigationLink(destination: DataView()) {
                             SettingsRow(title: "Data Privacy", icon: "dataIcon")
                         }
+                        .padding(.horizontal, 15)
+                        .font(.custom("OpenSans-SemiBold", size: 17))
                         
                         CustomDivider()
                         
                         NavigationLink(destination: ActivityView()) {
                             SettingsRow(title: "Activity", icon: "activityIcon")
                         }
+                        .padding(.horizontal, 15)
+                        .font(.custom("OpenSans-SemiBold", size: 17))
                         
                         CustomDivider()
                         
                         NavigationLink(destination: SecurityView()) {
                             SettingsRow(title: "Security", icon: "securityIcon")
                         }
+                        .padding(.horizontal, 15)
+                        .font(.custom("OpenSans-SemiBold", size: 17))
+                        .padding(.bottom, 5)
                     }
                     .background(Color("TextFieldBackground"))
                     .cornerRadius(12)
+                    
                     
                     logoutSection
                 }

@@ -17,6 +17,7 @@ struct PreferencesView: View {
                     VStack(spacing: 20) {
                         profileSection
                         displaySection
+                        managementSection
                     }
                     .padding(.top, 10)
                     .padding(.horizontal, 20)
@@ -36,7 +37,6 @@ struct PreferencesView: View {
                 SettingsRow(title: "Username", icon: "usernameIcon")
             }
             .padding(.horizontal, 15)
-            .font(.custom("OpenSans-SemiBold", size: 17))
             
             CustomDivider()
                 .frame(height: 1)
@@ -46,7 +46,6 @@ struct PreferencesView: View {
                 SettingsRow(title: "Email", icon: "emailIcon")
             }
             .padding(.horizontal, 15)
-            .font(.custom("OpenSans-SemiBold", size: 17))
             
             CustomDivider()
                 .frame(height: 1)
@@ -57,7 +56,6 @@ struct PreferencesView: View {
             }
             .padding(.horizontal, 15)
             .padding(.bottom, 5)
-            .font(.custom("OpenSans-SemiBold", size: 17))
         }
         .background(Color("TextFieldBackground"))
         .cornerRadius(12)
@@ -69,7 +67,19 @@ struct PreferencesView: View {
             NavigationLink(destination: Text("Appearance")) { SettingsRow(title: "Appearance", icon: "appearanceIcon") }
                 .padding(.horizontal, 15)
                 .padding(.bottom, 5)
-                .font(.custom("OpenSans-SemiBold", size: 17))
+        }
+        .background(Color("TextFieldBackground"))
+        .cornerRadius(12)
+    }
+    
+    private var managementSection: some View {
+        VStack(spacing: 0) {
+            SectionHeader(title: "Account Management")
+            NavigationLink(destination: Text("Deactivate Account")) {
+                SettingsRow(title: "Deactivate Account", icon: "trashIcon")
+                    .padding(.horizontal, 15)
+                    .padding(.bottom, 5)
+            }
         }
         .background(Color("TextFieldBackground"))
         .cornerRadius(12)
