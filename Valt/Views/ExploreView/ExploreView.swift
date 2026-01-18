@@ -6,9 +6,7 @@ struct ExploreView: View {
     @State private var isSearching: Bool = false
 
     var body: some View {
-        ZStack {  // ← overlay canvas
-
-            // ===== Main content =====
+        ZStack {
             VStack(spacing: 15) {
                 // Title
                 HStack {
@@ -188,7 +186,7 @@ struct ExploreView: View {
             .background(Color("AppBackgroundColor"))
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            // ===== Left-slide overlay =====
+            // Left-slide overlay
             if isSearching {
                 SearchView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)

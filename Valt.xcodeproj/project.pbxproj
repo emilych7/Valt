@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F08635C22E4EF3C2005D0446 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = F08635C12E4EF3C2005D0446 /* GoogleSignIn */; };
+		F08635C42E4EF3C2005D0446 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = F08635C32E4EF3C2005D0446 /* GoogleSignInSwift */; };
 		F091FC9C2DF38F4500F3594E /* FirebaseAI in Frameworks */ = {isa = PBXBuildFile; productRef = F091FC9B2DF38F4500F3594E /* FirebaseAI */; };
 		F091FC9E2DF38F4500F3594E /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = F091FC9D2DF38F4500F3594E /* FirebaseAnalytics */; };
 		F091FCA02DF38F4500F3594E /* FirebaseAnalyticsCore in Frameworks */ = {isa = PBXBuildFile; productRef = F091FC9F2DF38F4500F3594E /* FirebaseAnalyticsCore */; };
@@ -83,11 +85,13 @@
 				F091FCB02DF38F4500F3594E /* FirebaseRemoteConfig in Frameworks */,
 				F091FCA22DF38F4500F3594E /* FirebaseAnalyticsIdentitySupport in Frameworks */,
 				F091FC9E2DF38F4500F3594E /* FirebaseAnalytics in Frameworks */,
+				F08635C22E4EF3C2005D0446 /* GoogleSignIn in Frameworks */,
 				F091FCA42DF38F4500F3594E /* FirebaseAnalyticsOnDeviceConversion in Frameworks */,
 				F091FCAE2DF38F4500F3594E /* FirebaseFirestore in Frameworks */,
 				F091FCB22DF38F4500F3594E /* FirebaseStorage in Frameworks */,
 				F091FCA02DF38F4500F3594E /* FirebaseAnalyticsCore in Frameworks */,
 				F091FCA62DF38F4500F3594E /* FirebaseAppCheck in Frameworks */,
+				F08635C42E4EF3C2005D0446 /* GoogleSignInSwift in Frameworks */,
 				F091FCA82DF38F4500F3594E /* FirebaseAuth in Frameworks */,
 				F091FCAC2DF38F4500F3594E /* FirebaseDatabase in Frameworks */,
 				F091FCAA2DF38F4500F3594E /* FirebaseCore in Frameworks */,
@@ -164,6 +168,8 @@
 				F091FCAD2DF38F4500F3594E /* FirebaseFirestore */,
 				F091FCAF2DF38F4500F3594E /* FirebaseRemoteConfig */,
 				F091FCB12DF38F4500F3594E /* FirebaseStorage */,
+				F08635C12E4EF3C2005D0446 /* GoogleSignIn */,
+				F08635C32E4EF3C2005D0446 /* GoogleSignInSwift */,
 			);
 			productName = Valt;
 			productReference = F091FC6B2DF3855200F3594E /* Valt.app */;
@@ -249,6 +255,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				F091FC9A2DF38F4500F3594E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				F08635C02E4EF3C2005D0446 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = F091FC6C2DF3855200F3594E /* Products */;
@@ -458,8 +465,7 @@
 				INFOPLIST_FILE = Valt/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -486,8 +492,7 @@
 				INFOPLIST_FILE = Valt/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -615,6 +620,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		F08635C02E4EF3C2005D0446 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 9.0.0;
+			};
+		};
 		F091FC9A2DF38F4500F3594E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
@@ -626,6 +639,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		F08635C12E4EF3C2005D0446 /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F08635C02E4EF3C2005D0446 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		F08635C32E4EF3C2005D0446 /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F08635C02E4EF3C2005D0446 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
+		};
 		F091FC9B2DF38F4500F3594E /* FirebaseAI */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = F091FC9A2DF38F4500F3594E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;

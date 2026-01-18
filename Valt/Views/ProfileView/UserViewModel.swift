@@ -61,6 +61,14 @@ final class UserViewModel: ObservableObject {
             self.userLoadingState = .error(error)
         }
     }
+    
+    var currentUserEmail: String {
+        Auth.auth().currentUser?.email ?? ""
+    }
+
+    var currentUserPhone: String {
+        Auth.auth().currentUser?.phoneNumber ?? ""
+    }
 
     // Uses Firestore aggregation count
     func fetchDraftCount() async {
@@ -205,23 +213,6 @@ final class UserViewModel: ObservableObject {
         }
     }
     
-    // Update username in Settings
-    func updateUsername(to newUsername: String) async throws {
-        guard let uid = Auth.auth().currentUser?.uid else { return }
-        let db = Firestore.firestore()
-        
-        let batch = db.batch()
-        
-        let oldUsernameRef = db.collection("usernames").document(self.username)
-        let newUsernameRef = db.collection("usernames").document(newUsername)
-        
-        batch.deleteDocument(oldUsernameRef)
-        batch.setData(["userID": uid], forDocument: newUsernameRef)
-        
-        try await batch.commit()
-        
-        self.username = newUsername
-    }
 
     // Search
     func searchUsernames(prefix: String) async {
@@ -246,6 +237,20 @@ final class UserViewModel: ObservableObject {
         } catch {
             print("Error loading published drafts for \(username): \(error.localizedDescription)")
             self.usernamePublishedDrafts = []
+        }
+    }
+    
+    func reloadUser() async {
+        guard let user = Auth.auth().currentUser else { return }
+        do {
+            try await user.reload()
+            // Manually trigger a UI refresh
+            objectWillChange.send()
+            
+            // Refresh the Firestore username just in case it changed
+            await fetchAuthenticatedUsername()
+        } catch {
+            print("Error reloading: \(error.localizedDescription)")
         }
     }
 }

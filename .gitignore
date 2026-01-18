@@ -1,10 +1,11 @@
 Valt/Constants.swift
+Valt/GoogleService-Info.plist
 .DS_Store
+
 xcuserdata/
 DerivedData/
 build/
+*.xcuserstate
+WorkspaceSettings.xcsettings
 
-Valt/GoogleService-Info.plist
-Valt.xcodeproj/xcshareddata/xcschemes/Valt.xcscheme
-Valt.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
-Valt.xcodeproj/project.pbxproj
+Valt.xcodeproj/xcuserdata/

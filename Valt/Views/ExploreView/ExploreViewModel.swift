@@ -29,7 +29,6 @@ final class ExploreViewModel: ObservableObject {
             searchTask = Task { [weak self] in
                 guard let self else { return }
                 try? await Task.sleep(nanoseconds: 250_000_000) // ~250ms debounce
-                // Check for cancellation. If the task was cancelled, don't proceed.
                 guard !Task.isCancelled else { return }
                 
                 if q.isEmpty {
@@ -38,7 +37,7 @@ final class ExploreViewModel: ObservableObject {
                     return
                 }
 
-                // We are now searching, update the UI state.
+                // Searching, update the UI state
                 self.isSearching = true
                 do {
                     let results = try await repository.searchUsernames(prefix: q, limit: 15)
@@ -81,7 +80,7 @@ final class ExploreViewModel: ObservableObject {
         Task { [weak self] in
             guard let self = self else { return }
             do {
-                // ⬇️ Explicitly select the async overload
+                // Explicitly select the async overload
                 let asyncFetch: (String) async throws -> [Draft] = self.repository.fetchDrafts
                 let drafts = try await asyncFetch(userID)
 
@@ -99,8 +98,6 @@ final class ExploreViewModel: ObservableObject {
             }
         }
     }
-
-
 
     // Generate prompt from selected username’s published drafts
     func generatePromptFromPublishedDraftsForSelectedUser() {
@@ -163,7 +160,7 @@ final class ExploreViewModel: ObservableObject {
                     let prompts: [String]
                 }
 
-                // Decode the JSON data directly into your Swift object
+                // Decode the JSON data directly into the Swift object
                 let response = try JSONDecoder().decode(PromptResponse.self, from: jsonData)
                 print("response")
                 print("count: \(response.prompts.count)")
@@ -181,61 +178,64 @@ final class ExploreViewModel: ObservableObject {
 
     // OPENAI
     func callChatGPTAPI(history: [PromptMessage]) async throws -> String {
-        let urlString = "https://api.openai.com/v1/chat/completions"
-        guard let url = URL(string: urlString) else {
-            throw NSError(domain: "ChatAppError", code: 1,
-                          userInfo: [NSLocalizedDescriptionKey: "Invalid OpenAI API URL"])
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        guard let apiKey = ProcessInfo.processInfo.environment["OPENAI_API_KEY"], !apiKey.isEmpty else {
-            throw NSError(domain: "ChatAppError", code: 0,
-                          userInfo: [NSLocalizedDescriptionKey: "Missing OpenAI API key in environment variables"])
-        }
-        request.addValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-
-        let openAIMessages: [[String: String]] = history.map { message in
-            let role = (message.sender == .user) ? "user" : "assistant"
-            return ["role": role, "content": message.content]
-        }
-
-        let requestBody: [String: Any] = [
-            "model": "gpt-4o",
-            "messages": openAIMessages,
-            "max_tokens": 400,
-            "response_format": [ "type": "json_object" ]
-        ]
-        request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
-
-        let (data, response) = try await URLSession.shared.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw NSError(domain: "ChatAppError", code: 4,
-                          userInfo: [NSLocalizedDescriptionKey: "No HTTP response"])
-        }
-        guard httpResponse.statusCode == 200 else {
-            let responseString = String(data: data, encoding: .utf8) ?? "No response data"
-            throw NSError(domain: "ChatAppError", code: 2,
-                          userInfo: [NSLocalizedDescriptionKey:
-                                     "OpenAI API request failed with status \(httpResponse.statusCode). Response: \(responseString)"])
-        }
-
-        struct OpenAIResponse: Decodable {
-            struct Choice: Decodable {
-                struct Message: Decodable { let content: String }
-                let message: Message
+            let urlString = "https://api.openai.com/v1/chat/completions"
+            guard let url = URL(string: urlString) else {
+                throw NSError(domain: "ChatAppError", code: 1,
+                              userInfo: [NSLocalizedDescriptionKey: "Invalid OpenAI API URL"])
             }
-            let choices: [Choice]
-        }
 
-        let openAIResponse = try JSONDecoder().decode(OpenAIResponse.self, from: data)
-        guard let firstChoice = openAIResponse.choices.first else {
-            throw NSError(domain: "ChatAppError", code: 3,
-                          userInfo: [NSLocalizedDescriptionKey: "No valid response from OpenAI API"])
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+
+            let apiKey = Constants.OPENAI_API_KEY
+            
+            guard !apiKey.isEmpty else {
+                throw NSError(domain: "ChatAppError", code: 0,
+                              userInfo: [NSLocalizedDescriptionKey: "Missing OpenAI API key. Check Constants.swift"])
+            }
+            
+            request.addValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+
+            let openAIMessages: [[String: String]] = history.map { message in
+                let role = (message.sender == .user) ? "user" : "assistant"
+                return ["role": role, "content": message.content]
+            }
+
+            let requestBody: [String: Any] = [
+                "model": "gpt-4o",
+                "messages": openAIMessages,
+                "max_tokens": 400,
+                "response_format": [ "type": "json_object" ]
+            ]
+            request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
+
+            let (data, response) = try await URLSession.shared.data(for: request)
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw NSError(domain: "ChatAppError", code: 4,
+                              userInfo: [NSLocalizedDescriptionKey: "No HTTP response"])
+            }
+            guard httpResponse.statusCode == 200 else {
+                let responseString = String(data: data, encoding: .utf8) ?? "No response data"
+                throw NSError(domain: "ChatAppError", code: 2,
+                              userInfo: [NSLocalizedDescriptionKey:
+                                            "OpenAI API request failed with status \(httpResponse.statusCode). Response: \(responseString)"])
+            }
+
+            struct OpenAIResponse: Decodable {
+                struct Choice: Decodable {
+                    struct Message: Decodable { let content: String }
+                    let message: Message
+                }
+                let choices: [Choice]
+            }
+
+            let openAIResponse = try JSONDecoder().decode(OpenAIResponse.self, from: data)
+            guard let firstChoice = openAIResponse.choices.first else {
+                throw NSError(domain: "ChatAppError", code: 3,
+                              userInfo: [NSLocalizedDescriptionKey: "No valid response from OpenAI API"])
+            }
+            return firstChoice.message.content.trimmingCharacters(in: .whitespacesAndNewlines)
         }
-        return firstChoice.message.content.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
 }
