@@ -42,16 +42,20 @@ struct OffsetPageTabView<Content: View>: UIViewRepresentable {
     }
     
     func updateUIView(_ scrollView: UIScrollView, context: Context) {
+        // Prevent fighting with the user's finger
         guard !scrollView.isDragging, !scrollView.isDecelerating else { return }
         
         let roundedOffset = round(offset)
         let roundedScroll = round(scrollView.contentOffset.x)
         
-        
-        if abs(roundedOffset - roundedScroll) > 1 && !scrollView.isDragging && !scrollView.isDecelerating {
+        if abs(roundedOffset - roundedScroll) > 1 {
             context.coordinator.isProgrammaticUpdate = true
-            scrollView.setContentOffset(CGPoint(x: offset, y: 0), animated: false)
-            context.coordinator.isProgrammaticUpdate = false
+            
+            scrollView.setContentOffset(CGPoint(x: offset, y: 0), animated: true)
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                context.coordinator.isProgrammaticUpdate = false
+            }
         }
     }
     

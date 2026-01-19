@@ -2,6 +2,7 @@ import SwiftUI
 
 struct Socials: View {
     let title: String
+    let isGoogleLoading: Bool
     
     var onGoogleTap: () -> Void
     var onAppleTap: () -> Void
@@ -16,18 +17,27 @@ struct Socials: View {
             HStack(spacing: 25) {
                 // Google Button
                 Button(action: onGoogleTap) {
-                    Image("Google")
-                        .padding(.vertical, 15)
-                        .frame(maxWidth: .infinity)
-                        .background(Color("AuthOptionsBackground"), in: RoundedRectangle(cornerRadius: 12))
+                    if isGoogleLoading {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            .frame(maxWidth: .infinity, minHeight: 60)
+                            .background(Color("AuthOptionsBackground"), in: RoundedRectangle(cornerRadius: 12))
+                    } else {
+                        Image("Google")
+                            .padding(.vertical, 15)
+                            .frame(maxWidth: .infinity)
+                            .background(Color("AuthOptionsBackground"), in: RoundedRectangle(cornerRadius: 12))
+                    }
                 }
                 
                 // Apple Button
                 Button(action: onAppleTap) {
-                    Image("appleIcon")
-                        .padding(.vertical, 15)
-                        .frame(maxWidth: .infinity)
-                        .background(Color("AuthOptionsBackground"), in: RoundedRectangle(cornerRadius: 12))
+                    
+                        Image("appleIcon")
+                            .padding(.vertical, 15)
+                            .frame(maxWidth: .infinity)
+                            .background(Color("AuthOptionsBackground"), in: RoundedRectangle(cornerRadius: 12))
+                    
                 }
             }
         }

@@ -5,10 +5,7 @@ struct SignUpView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject private var bannerManager: BannerManager
     @StateObject private var viewModel = SignUpViewModel()
-    
-    @FocusState private var focusedField: Field?
-    
-    enum Field { case username, email, password, passwordConfirmation }
+    @FocusState private var focusedField: SignUpViewModel.Field?
     
     var body: some View {
         ZStack {
@@ -18,131 +15,57 @@ struct SignUpView: View {
                 VStack (spacing: 0) {
                     Spacer().frame(height: UIScreen.main.bounds.height * 0.10)
                     
-                    HStack {
-                        Text("Create an Account")
-                            .font(.custom("OpenSans-SemiBold", size: 30))
-                            .foregroundColor(Color("TextColor"))
-                        Spacer()
-                    }
-                    .padding(.horizontal, 25)
+                    Header(title: headerTitle)
                     
-                    VStack {
-                        // Username Field
-                        signUpTextField(title: "Username", text: $viewModel.username, placeholder: "Username", field: .username)
-                            .padding(.top, 20)
-                        
-                        // Email Field
-                        signUpTextField(title: "Email", text: $viewModel.email, placeholder: "Email", field: .email, keyboardType: .emailAddress)
-                        
-                        // Password Field
-                        signUpSecureField(title: "Password", text: $viewModel.password, placeholder: "Password", field: .password)
-                        
-                        // Re-Enter Password Field
-                        signUpSecureField(title: "Re-Enter Password", text: $viewModel.passwordConfirmation, placeholder: "Re-Enter Password", field: .passwordConfirmation)
-                        
-                        VStack {
-                            if viewModel.isLoading {
-                                ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                    .frame(maxWidth: .infinity, minHeight: 60)
-                                    .background(Color("RequestButtonColor"))
-                                    .cornerRadius(12)
-                            } else {
-                                Button(action: {
-                                    Task { await viewModel.signUp() }
-                                }) {
-                                    Text("Sign Up")
-                                        .foregroundColor(.white)
-                                        .font(.custom("OpenSans-Bold", size: 18))
-                                        .frame(maxWidth: .infinity, minHeight: 50)
-                                        .background(Color("RequestButtonColor"))
-                                        .cornerRadius(12)
-                                }
-                            }
-                        }
-                        .padding(.top, 15)
-                        
-                        Socials(title: "or sign up using") {
-                            // Google Tap Logic
-                            print("Google Sign Up Tapped")
-                        } onAppleTap: {
-                            // Apple Tap Logic
-                            print("Apple Sign Up Tapped")
-                        }
-                        
-                        loginRedirectSection
-                        
-                        if let errorMessage = viewModel.errorMessage {
-                            Text(errorMessage)
-                                .foregroundColor(.red)
-                                .font(.custom("OpenSans-Regular", size: 14))
-                                .padding(.top, 10)
-                                .multilineTextAlignment(.center)
+                    VStack(spacing: 5) {
+                        switch viewModel.currentStep {
+                        case .accountDetails:
+                            accountDetailsFields
+                        case .emailVerification:
+                            emailVerificationPrompt
+                        case .chooseUsername:
+                            usernameSelectionFields
                         }
                     }
-                    .padding(.horizontal, 40)
+                    .padding(.horizontal, 30)
                     
                     Spacer(minLength: 50)
                 }
             }
-            .scrollIndicators(.hidden)
-            .onTapGesture {
-                focusedField = nil
+            .onSubmit {
+                switch focusedField {
+                case .email: focusedField = .password
+                case .password: focusedField = .passwordConfirmation
+                case .passwordConfirmation: focusedField = nil
+                case .username: focusedField = nil
+                default: focusedField = nil
+                }
             }
+            .scrollIndicators(.hidden)
+            .scrollBounceBehavior(.basedOnSize)
         }
         .overlay(
             NavigationBar(onBackTap: {
-                authViewModel.navigate(to: .onboarding)
-            }),
-            alignment: .top
+                focusedField = nil
+                
+                if viewModel.currentStep == .emailVerification {
+                    viewModel.currentStep = .accountDetails
+                } else {
+                    Task {
+                        authViewModel.navigate(to: .onboarding)
+                    }
+                }
+            }), alignment: .top
         )
+        .onTapGesture {
+            focusedField = nil
+        }
         .ignoresSafeArea(.keyboard, edges: .bottom)
-    }
-
-    private func signUpTextField(title: String, text: Binding<String>, placeholder: String, field: Field, keyboardType: UIKeyboardType = .default) -> some View {
-        VStack(spacing: 5) {
-            HStack {
-                Text(title).font(.custom("OpenSans-Regular", size: 17)).foregroundColor(Color("TextColor"))
-                Spacer()
-            }
-            ZStack {
-                RoundedRectangle(cornerRadius: 10)
-                    .frame(height: 50)
-                    .foregroundColor(Color("TextFieldBackground"))
-                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color("TextFieldBorder"), lineWidth: 1))
-                
-                TextField(placeholder, text: text)
-                    .autocorrectionDisabled(true)
-                    .textInputAutocapitalization(.never)
-                    .keyboardType(keyboardType)
-                    .padding(.horizontal)
-                    .focused($focusedField, equals: field)
+        .onChange(of: viewModel.isSignupComplete) { oldValue, newValue in
+            if newValue {
+                authViewModel.finalizeAuthTransition()
             }
         }
-        .padding(.bottom, 5)
-    }
-    
-    private func signUpSecureField(title: String, text: Binding<String>, placeholder: String, field: Field) -> some View {
-        VStack(spacing: 5) {
-            HStack {
-                Text(title).font(.custom("OpenSans-Regular", size: 17)).foregroundColor(Color("TextColor"))
-                Spacer()
-            }
-            ZStack {
-                RoundedRectangle(cornerRadius: 10)
-                    .frame(height: 50)
-                    .foregroundColor(Color("TextFieldBackground"))
-                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color("TextFieldBorder"), lineWidth: 1))
-                
-                SecureField(placeholder, text: text)
-                    .autocorrectionDisabled(true)
-                    .padding(.horizontal)
-                    .focused($focusedField, equals: field)
-                    .textContentType(.oneTimeCode)
-                    .submitLabel(.done)
-            }
-        }
-        .padding(.vertical, 5)
     }
     
     private var loginRedirectSection: some View {
@@ -151,6 +74,7 @@ struct SignUpView: View {
                 .foregroundColor(Color("TextColor"))
             
             Button {
+                focusedField = nil
                 authViewModel.navigate(to: .login)
             } label: {
                 Text("Log in.")
@@ -158,7 +82,74 @@ struct SignUpView: View {
             }
             .buttonStyle(.plain)
         }
-        .padding(.vertical, 10)
+        .padding(.vertical, 15)
         .font(.custom("OpenSans-Regular", size: 17))
+    }
+    
+    private var accountDetailsFields: some View {
+        VStack(spacing: 5) {
+            AuthInputField(title: "Email", placeholder: "Email", text: $viewModel.email, keyboardType: .emailAddress, field: .email, focusState: $focusedField)
+                .submitLabel(.next)
+            
+            AuthInputField(title: "Password", placeholder: "Password", text: $viewModel.password, isSecure: true, field: .password, focusState: $focusedField)
+                .submitLabel(.next)
+            
+            AuthInputField(title: "Confirm Password", placeholder: "Re-Enter Password", text: $viewModel.passwordConfirmation, isSecure: true, field: .passwordConfirmation, focusState: $focusedField)
+                .submitLabel(.done)
+            
+            AuthActionButton(
+                title: "Sign Up",
+                isLoading: viewModel.isLoading,
+                isDisabled: !viewModel.canSubmitStep1
+            ) {
+                focusedField = nil
+                Task { await viewModel.validateAndStartSignup() }
+            }
+            
+            Socials(title: "or sign up using", isGoogleLoading: viewModel.isGoogleLoading) { } onAppleTap: { }
+            
+            loginRedirectSection
+        }
+    }
+    
+    private var emailVerificationPrompt: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "envelope.badge.shield.half.filled")
+                .font(.system(size: 60))
+                .foregroundColor(.blue)
+                .padding(.top, 40)
+            
+            Text("Verify your email")
+                .font(.custom("OpenSans-Bold", size: 20))
+            
+            Text("We sent a link to \(viewModel.email). Please click it to continue.")
+                .font(.custom("OpenSans-Regular", size: 16))
+                .multilineTextAlignment(.center)
+            
+            Button("Resend Email") {
+                viewModel.resendEmail()
+            }
+            .font(.custom("OpenSans-SemiBold", size: 16))
+        }
+    }
+
+    private var usernameSelectionFields: some View {
+        VStack(spacing: 15) {
+            AuthInputField(title: "Choose a Username", placeholder: "Username", text: $viewModel.username, field: .username, focusState: $focusedField)
+                .submitLabel(.done)
+            
+            AuthActionButton(title: "Finish", isLoading: viewModel.isLoading, isDisabled: viewModel.username.isEmpty) {
+                focusedField = nil
+                Task { await viewModel.finalizeUsername() }
+            }
+        }
+    }
+
+    private var headerTitle: String {
+        switch viewModel.currentStep {
+        case .accountDetails: return "Create an Account"
+        case .emailVerification: return "Almost There"
+        case .chooseUsername: return "Final Step"
+        }
     }
 }

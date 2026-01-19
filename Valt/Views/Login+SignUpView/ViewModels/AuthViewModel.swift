@@ -5,9 +5,11 @@ import FirebaseFirestore
 class AuthViewModel: ObservableObject {
     @Published var currentUser: FirebaseAuth.User?
     @Published var isAuthenticated: Bool = false
+    @Published var isProfileComplete: Bool = false
     @Published var navigationMode: AppRoute = .onboarding
     
     private var authHandle: AuthStateDidChangeListenerHandle?
+    private let db = Firestore.firestore()
     
     enum AppRoute {
         case onboarding, login, signup
@@ -15,9 +17,34 @@ class AuthViewModel: ObservableObject {
 
     init() {
         authHandle = Auth.auth().addStateDidChangeListener { [weak self] _, user in
-            self?.currentUser = user
-            self?.isAuthenticated = (user != nil)
+            guard let self = self else { return }
+            self.currentUser = user
+            
+            if let user = user, user.isEmailVerified {
+                self.checkFirestoreProfile(uid: user.uid)
+            } else {
+                self.isAuthenticated = false
+            }
         }
+    }
+    
+    func checkFirestoreProfile(uid: String) {
+        db.collection("users").document(uid).getDocument { [weak self] snapshot, _ in
+            DispatchQueue.main.async {
+                if let snapshot = snapshot, snapshot.exists {
+                    self?.isProfileComplete = true
+                    self?.isAuthenticated = true
+                } else {
+                    self?.isProfileComplete = false
+                    self?.isAuthenticated = false
+                }
+            }
+        }
+    }
+
+    func finalizeAuthTransition() {
+        guard let uid = Auth.auth().currentUser?.uid else { return }
+        self.checkFirestoreProfile(uid: uid)
     }
     
     func navigate(to route: AppRoute) {
@@ -26,12 +53,14 @@ class AuthViewModel: ObservableObject {
 
     func signOut() {
         try? Auth.auth().signOut()
+        self.isAuthenticated = false
+        self.isProfileComplete = false
         self.navigationMode = .onboarding
     }
     
     deinit {
-            if let handle = authHandle {
-                Auth.auth().removeStateDidChangeListener(handle)
-            }
+        if let handle = authHandle {
+            Auth.auth().removeStateDidChangeListener(handle)
         }
+    }
 }

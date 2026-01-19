@@ -4,17 +4,20 @@ import FirebaseAuth
 import GoogleSignIn
 
 struct LoginView: View {
-    @StateObject private var viewModel = LoginViewModel()
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var bannerManager: BannerManager
-    
-    @FocusState private var isTextFieldFocused: Bool
+    @StateObject private var viewModel = LoginViewModel()
+    @FocusState private var focusedField: Field?
+        
+    enum Field { case identifier, password }
 
     var body: some View {
         ZStack {
+            Color("AppBackgroundColor").ignoresSafeArea()
+            
             ScrollView {
-                VStack (spacing: 0) {
-                
+                VStack(spacing: 0) {
+                    // 10% of screen
                     Spacer().frame(height: UIScreen.main.bounds.height * 0.10)
                     
                     HStack {
@@ -23,135 +26,97 @@ struct LoginView: View {
                             .foregroundColor(Color("TextColor"))
                         Spacer()
                     }
-                    .padding(.horizontal, 25)
-                
-                VStack {
-                    // Username or Email
+                    .padding(.horizontal, 30)
+                    
                     VStack(spacing: 5) {
-                        HStack {
-                            Text("Username or Email")
-                                .font(.custom("OpenSans-Regular", size: 17))
-                                .foregroundColor(Color("TextColor"))
-                            Spacer()
+                        AuthInputField(
+                            title: "Username or Email",
+                            placeholder: "Username or Email",
+                            text: $viewModel.identifier,
+                            field: .identifier,
+                            focusState: $focusedField
+                        )
+                        .padding(.top, 20)
+                        
+                        AuthInputField(
+                            title: "Password",
+                            placeholder: "Password",
+                            text: $viewModel.password,
+                            isSecure: true,
+                            field: .password,
+                            focusState: $focusedField
+                        )
+                        
+                        AuthActionButton(
+                            title: "Log In",
+                            isLoading: viewModel.isLoading,
+                            isDisabled: isFormInvalid
+                        ) {
+                            focusedField = nil
+                            Task { await viewModel.performSignIn() }
                         }
                         
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 10)
-                                .frame(height: 50)
-                                .foregroundColor(Color("TextFieldBackground"))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .stroke(Color("TextFieldBorder"), lineWidth: 1)
-                                )
-                            
-                            TextField("Username or Email", text: $viewModel.identifier)
-                                .frame(maxWidth: .infinity, maxHeight: 50, alignment: .leading)
-                                .textFieldStyle(.plain)
-                                .keyboardType(.emailAddress)
-                                .textInputAutocapitalization(.never)
-                                .disableAutocorrection(true)
-                                .padding(.horizontal)
-                                // .focused($focusedField, equals: .username)
-                                .focused($isTextFieldFocused)
-                                .onTapGesture {
-                                    isTextFieldFocused = true
+                        Socials(title: "or login using", isGoogleLoading: viewModel.isGoogleLoading) {
+                            viewModel.isGoogleLoading = true
+                            print("Google Login button tapped")
+                            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                               let rootVC = windowScene.windows.first?.rootViewController {
+                                Task {
+                                    await viewModel.signInWithGoogle(presenting: rootVC)
                                 }
-                        }
-                    }
-                    .padding(.top, 20)
-                    .padding(.bottom, 5)
-                    
-                    // Password
-                    VStack(spacing: 5) {
-                        HStack {
-                            Text("Password")
-                                .font(.custom("OpenSans-Regular", size: 17))
-                                .foregroundColor(Color("TextColor"))
-                            
-                            Spacer()
-                            
-                            Button("Forgot Password?") {
-                                // Forgot password logic
                             }
-                            .font(.custom("OpenSans-Regular", size: 15))
+                        } onAppleTap: {
+                            print("Apple Login button tapped")
                         }
                         
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 10)
-                                .frame(height: 50)
-                                .foregroundColor(Color("TextFieldBackground"))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 10)
-                                        .stroke(Color("TextFieldBorder"), lineWidth: 1)
-                                )
-                            
-                            SecureField("Password", text: $viewModel.password)
-                                .frame(maxWidth: .infinity, maxHeight: 50, alignment: .leading)
-                                .textFieldStyle(.plain)
-                                .textInputAutocapitalization(.never)
-                                .disableAutocorrection(true)
-                                .padding(.horizontal)
-                                // .focused($focusedField, equals: .password)
-                                .focused($isTextFieldFocused)
-                                .onTapGesture {
-                                    isTextFieldFocused = true
-                                }
-                            
+                        signupRedirectSection
+                        
+                        if let errorMessage = viewModel.errorMessage {
+                            Text(errorMessage)
+                                .foregroundColor(.red)
+                                .font(.custom("OpenSans-Regular", size: 14))
+                                .padding(.top, 10)
+                                .multilineTextAlignment(.center)
                         }
                     }
-                    .padding(.top, 5)
-                    
-                    VStack {
-                        if viewModel.isLoading {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                .frame(maxWidth: .infinity, minHeight: 60)
-                                .background(Color("RequestButtonColor"))
-                                .cornerRadius(12)
-                        } else {
-                            Button(action: {
-                                Task { await viewModel.performSignIn() }
-                            }) {
-                                Text("Log In")
-                                    .foregroundColor(.white)
-                                    .font(.custom("OpenSans-Bold", size: 18))
-                                    .frame(maxWidth: .infinity, minHeight: 50)
-                                    .background(Color("RequestButtonColor"))
-                                    .cornerRadius(12)
-                            }
+                    .padding(.horizontal, 30)
+                    .onSubmit {
+                        switch focusedField {
+                            case .identifier: focusedField = .password
+                            default: focusedField = nil
                         }
                     }
-                    .padding(.top, 15)
                     
-                    // Social buttons
-                    Socials(title: "or login using") {
-                        // Google Tap Logic
-                        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                           let rootVC = windowScene.windows.first?.rootViewController {
-                            Task {
-                                await viewModel.signInWithGoogle(presenting: rootVC)
-                            }
-                        }
-                    } onAppleTap: {
-                        // Apple Tap Logic
-                        print("Apple Login Tapped")
-                    }
-                    
-                    signupRedirectSection
+                    Spacer(minLength: 50)
                 }
-                .padding(.horizontal, 40)
-                
+                .onSubmit {
+                    if focusedField == .identifier {
+                        focusedField = .password
+                    } else {
+                        focusedField = nil
+                    }
+                }
             }
+            .scrollIndicators(.hidden)
+            .scrollBounceBehavior(.basedOnSize) // Only bounces if content overflows
         }
-        .scrollIndicators(.hidden)
         .overlay(
             NavigationBar(onBackTap: {
-                authViewModel.navigate(to: .onboarding)
-            }),
-            alignment: .top
+                focusedField = nil
+                Task {
+                    authViewModel.navigate(to: .onboarding)
+                }
+            }), alignment: .top
         )
-        .background(Color("AppBackgroundColor"))
+        // Dismisses keyboard when tapping the background
+        .onTapGesture {
+            focusedField = nil
+        }
+        .ignoresSafeArea(.keyboard, edges: .bottom)
     }
+    
+    private var isFormInvalid: Bool {
+        viewModel.identifier.isEmpty || viewModel.password.isEmpty
     }
     
     private var signupRedirectSection: some View {
@@ -160,6 +125,7 @@ struct LoginView: View {
                 .foregroundColor(Color("TextColor"))
             
             Button {
+                focusedField = nil
                 authViewModel.navigate(to: .signup)
             } label: {
                 Text("Create one.")
@@ -167,7 +133,7 @@ struct LoginView: View {
             }
             .buttonStyle(.plain)
         }
-        .padding(.vertical, 10)
+        .padding(.vertical, 15)
         .font(.custom("OpenSans-Regular", size: 17))
     }
 }

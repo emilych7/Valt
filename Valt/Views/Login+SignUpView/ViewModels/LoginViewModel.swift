@@ -10,11 +10,18 @@ class LoginViewModel: ObservableObject {
     @Published var identifier = "" // Email or Username
     @Published var password = ""
     @Published var isLoading = false
+    @Published var isGoogleLoading = false
     @Published var errorMessage: String?
     
     private let db = Firestore.firestore()
 
     func performSignIn() async {
+        let uname = identifier.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !uname.isEmpty else {
+            self.errorMessage = "Username or email is required."
+            return
+        }
+        
         isLoading = true
         defer { isLoading = false }
         
@@ -42,6 +49,7 @@ class LoginViewModel: ObservableObject {
     }
     
     func signInWithGoogle(presenting viewController: UIViewController) async {
+        isGoogleLoading = true
             guard GIDSignIn.sharedInstance.configuration != nil else {
                 errorMessage = "Google Sign-In not configured."
                 return
@@ -61,8 +69,10 @@ class LoginViewModel: ObservableObject {
                 )
                 _ = try await Auth.auth().signIn(with: credential)
             } catch {
+                isGoogleLoading = false
                 errorMessage = error.localizedDescription
             }
+        isGoogleLoading = false
         }
 }
 

@@ -38,7 +38,9 @@ struct OnBoardingView: View {
         VStack {
             HStack(spacing: 25) {
                 Button {
-                    authViewModel.navigate(to: .login)
+                    Task {
+                        authViewModel.navigate(to: .login)
+                    }
                 } label: {
                     Text("Login")
                         .font(.custom("OpenSans-Bold", size: 20))
@@ -53,7 +55,9 @@ struct OnBoardingView: View {
                 }
                 
                 Button {
-                    authViewModel.navigate(to: .signup)
+                    Task {
+                        authViewModel.navigate(to: .signup)
+                    }
                 } label: {
                     Text("Sign Up")
                         .font(.custom("OpenSans-Bold", size: 20))
@@ -75,7 +79,9 @@ struct OnBoardingView: View {
     private var topNavigationBar: some View {
         HStack {
             Button("Back") {
-                onBoardingViewModel.offset = max(onBoardingViewModel.offset - onBoardingViewModel.getScreenBounds().width, 0)
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    onBoardingViewModel.offset = max(onBoardingViewModel.offset - onBoardingViewModel.getScreenBounds().width, 0)
+                }
             }
             .font(.custom("OpenSans-SemiBold", size: 13))
             .foregroundColor(Color("TextColor"))
@@ -102,8 +108,10 @@ struct OnBoardingView: View {
             Spacer()
 
             Button("Next") {
-                onBoardingViewModel.offset = min(onBoardingViewModel.offset + onBoardingViewModel.getScreenBounds().width, onBoardingViewModel.getScreenBounds().width * 3)
-                
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    let screenWidth = onBoardingViewModel.getScreenBounds().width
+                    onBoardingViewModel.offset = min(onBoardingViewModel.offset + screenWidth, screenWidth * 3)
+                }
             }
             .font(.custom("OpenSans-SemiBold", size: 13))
             .foregroundColor(Color("TextColor"))
