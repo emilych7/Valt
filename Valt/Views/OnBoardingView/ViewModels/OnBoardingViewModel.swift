@@ -24,4 +24,8 @@ final class OnBoardingViewModel: ObservableObject {
     func getScreenBounds() -> CGRect {
         return screenBounds
     }
+    
+    func resetOnboarding() {
+        self.offset = 0
+    }
 }

@@ -23,24 +23,32 @@ struct ContentView: View {
 
     @ViewBuilder
     private var authFlowView: some View {
-        switch authViewModel.navigationMode {
-        case .onboarding:
-            OnBoardingView()
-                .environmentObject(onBoardingViewModel)
-                .environmentObject(authViewModel)
-                .transition(.opacity)
+        ZStack {
+            switch authViewModel.navigationMode {
+            case .onboarding:
+                OnBoardingView()
+                    .environmentObject(onBoardingViewModel)
+                    .environmentObject(authViewModel)
 
-        case .login:
-            LoginView()
-                .environmentObject(authViewModel)
-                .environmentObject(bannerManager)
-                .transition(.identity)
+            case .login:
+                LoginView()
+                    .environmentObject(authViewModel)
+                    .environmentObject(bannerManager)
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .bottom),
+                        removal: .move(edge: .bottom)
+                    ))
 
-        case .signup:
-            SignUpView()
-                .environmentObject(authViewModel)
-                .environmentObject(bannerManager)
-                .transition(.move(edge: .trailing))
+            case .signup:
+                SignUpView()
+                    .environmentObject(authViewModel)
+                    .environmentObject(bannerManager)
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .bottom),
+                        removal: .move(edge: .bottom)
+                    ))
+            }
         }
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: authViewModel.navigationMode)
     }
 }

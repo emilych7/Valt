@@ -17,6 +17,9 @@ struct OnBoardingView: View {
         .ignoresSafeArea(.keyboard)
         .overlay(bottomButtons, alignment: .bottom)
         .overlay(topNavigationBar, alignment: .top)
+        .onAppear {
+            onBoardingViewModel.resetOnboarding()
+        }
     }
 
     private var ellipseBackground: some View {
