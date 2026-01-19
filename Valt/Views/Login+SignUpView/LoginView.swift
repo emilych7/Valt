@@ -101,13 +101,24 @@ struct LoginView: View {
                     }
                     .padding(.top, 5)
                     
-                    // Log In button
                     VStack {
-                        Button {
-                            Task { await viewModel.performSignIn() }
-                        } label: {
-                            if viewModel.isLoading { ProgressView() }
-                            else { Text("Login") }
+                        if viewModel.isLoading {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                .frame(maxWidth: .infinity, minHeight: 60)
+                                .background(Color("RequestButtonColor"))
+                                .cornerRadius(12)
+                        } else {
+                            Button(action: {
+                                Task { await viewModel.performSignIn() }
+                            }) {
+                                Text("Sign Up")
+                                    .foregroundColor(.white)
+                                    .font(.custom("OpenSans-Bold", size: 20))
+                                    .frame(maxWidth: .infinity, minHeight: 60)
+                                    .background(Color("RequestButtonColor"))
+                                    .cornerRadius(12)
+                            }
                         }
                     }
                     .padding(.top, 15)
