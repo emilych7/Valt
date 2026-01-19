@@ -6,11 +6,11 @@ struct HomeView: View {
     
     @EnvironmentObject private var userViewModel: UserViewModel
     @EnvironmentObject private var bannerManager: BannerManager
-    
     @StateObject private var viewModel: HomeViewModel
+    
     @State private var hasFocusedOnce = false
     @State private var keyboardVisible = false
-    
+
     init(userViewModel: UserViewModel) {
         _viewModel = StateObject(wrappedValue: HomeViewModel(userViewModel: userViewModel))
     }
@@ -25,12 +25,9 @@ struct HomeView: View {
                     }
                     viewModel.button(icon: "saveIcon") {
                         if !viewModel.draftText.isEmpty {
-                            //withAnimation {
-                                viewModel.saveDraftToFirebase()
-                                bannerManager.show("Saved Draft")
-                            // }
-                        }
-                        else {
+                            viewModel.saveDraftToFirebase()
+                            bannerManager.show("Saved Draft")
+                        } else {
                             print("Draft is empty. Not saving.")
                         }
                         dismissKeyboardSmoothly()
@@ -40,30 +37,24 @@ struct HomeView: View {
                 .padding(.top, 20)
                 
                 ZStack(alignment: .topLeading) {
-                        switch viewModel.draftLoadingState {
-                            case .loading:
-                            HStack {
-                                
-                                Spacer()
-                                
-                                ProgressView()
-                                    .foregroundColor(Color("TextColor"))
-                                    .frame(width: 40, height: 40)
-                                
-                                Spacer()
-                            }
-                            .frame(maxWidth: .infinity)
-                            
-                            default:
-                                if viewModel.draftText.isEmpty && !isTextFieldFocused {
-                                    Text("Start your draft here")
-                                        .font(.custom("OpenSans-Regular", size: 16))
-                                        .foregroundColor(Color("TextColor").opacity(0.4))
-                                        // .padding(.top, 12)
-                                        // .padding(.leading, 10)
-                                }
+                    switch viewModel.draftLoadingState {
+                    case .loading:
+                        HStack {
+                            Spacer()
+                            ProgressView()
+                                .foregroundColor(Color("TextColor"))
+                                .frame(width: 40, height: 40)
+                            Spacer()
                         }
-                    
+                        .frame(maxWidth: .infinity)
+                        
+                    default:
+                        if viewModel.draftText.isEmpty && !isTextFieldFocused {
+                            Text("Start your draft here")
+                                .font(.custom("OpenSans-Regular", size: 16))
+                                .foregroundColor(Color("TextColor").opacity(0.4))
+                        }
+                    }
                     
                     TextEditor(text: $viewModel.draftText)
                         .font(.custom("OpenSans-Regular", size: 16))
@@ -84,8 +75,6 @@ struct HomeView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color("AppBackgroundColor"))
         }
-        
-        // Toolbar above the keyboard
         .safeAreaInset(edge: .bottom) {
             if isTextFieldFocused {
                 HStack {
@@ -115,8 +104,7 @@ struct HomeView: View {
                         if !viewModel.draftText.isEmpty {
                             viewModel.saveDraftToFirebase()
                             bannerManager.show("Saved Draft")
-                        }
-                        else {
+                        } else {
                             print("Draft is empty. Not saving.")
                             bannerManager.show("Empty Draft")
                         }
@@ -136,10 +124,7 @@ struct HomeView: View {
         }
     }
     
-    // Smoother keyboard dismiss
     func dismissKeyboardSmoothly() {
-        DispatchQueue.main.async {
-            isTextFieldFocused = false
-        }
+        isTextFieldFocused = false
     }
 }

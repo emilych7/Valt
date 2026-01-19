@@ -2,9 +2,7 @@ import SwiftUI
 
 struct OnBoardingView: View {
     @EnvironmentObject private var onBoardingViewModel: OnBoardingViewModel
-    
-    @State private var showingLoginSheet = false
-    @State private var showingSignUpSheet = false
+    @EnvironmentObject private var authViewModel: AuthViewModel
 
     var body: some View {
         OffsetPageTabView(offset: $onBoardingViewModel.offset) {
@@ -14,15 +12,9 @@ struct OnBoardingView: View {
                 }
             }
         }
-        .fullScreenCover(isPresented: $showingLoginSheet) {
-            LoginView()
-        }
-        .fullScreenCover(isPresented: $showingSignUpSheet) {
-            SignUpView()
-        }
         .background(ellipseBackground, alignment: .leading)
         .background(Color("AppBackgroundColor"))
-        .ignoresSafeArea(.container, edges: .all)
+        .ignoresSafeArea(.keyboard)
         .overlay(bottomButtons, alignment: .bottom)
         .overlay(topNavigationBar, alignment: .top)
     }
@@ -35,13 +27,15 @@ struct OnBoardingView: View {
             .rotationEffect(.degrees(-30))
             .rotationEffect(.degrees(onBoardingViewModel.getRotation()))
             .offset(y: -onBoardingViewModel.getScreenBounds().width + 35)
+            // .drawingGroup()
+            .ignoresSafeArea(.keyboard)
     }
 
     private var bottomButtons: some View {
         VStack {
             HStack(spacing: 25) {
                 Button {
-                    showingLoginSheet = true
+                    authViewModel.navigate(to: .login)
                 } label: {
                     Text("Login")
                         .font(.custom("OpenSans-Bold", size: 20))
@@ -56,7 +50,7 @@ struct OnBoardingView: View {
                 }
                 
                 Button {
-                    showingSignUpSheet = true
+                    authViewModel.navigate(to: .signup)
                 } label: {
                     Text("Sign Up")
                         .font(.custom("OpenSans-Bold", size: 20))

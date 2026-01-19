@@ -3,27 +3,44 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var authViewModel = AuthViewModel()
     @StateObject var settingsViewModel = SettingsViewModel()
+    @StateObject var onBoardingViewModel = OnBoardingViewModel()
     @StateObject private var bannerManager = BannerManager()
-    @StateObject private var userViewModel = UserViewModel()
-    @StateObject private var onBoardingViewModel = OnBoardingViewModel()
 
     var body: some View {
         Group {
             if authViewModel.isAuthenticated {
                 MainTabView()
                     .environmentObject(authViewModel)
-                    .environmentObject(userViewModel)
-                    .environmentObject(bannerManager)
                     .environmentObject(settingsViewModel)
+                    .environmentObject(bannerManager)
             } else {
-                OnBoardingView()
-                    .environmentObject(authViewModel)
-                    .environmentObject(onBoardingViewModel)
+                authFlowView
             }
         }
         .preferredColorScheme(settingsViewModel.colorScheme)
+        .animation(.easeInOut, value: authViewModel.isAuthenticated)
+    }
+
+    @ViewBuilder
+    private var authFlowView: some View {
+        switch authViewModel.navigationMode {
+        case .onboarding:
+            OnBoardingView()
+                .environmentObject(onBoardingViewModel)
+                .environmentObject(authViewModel)
+                .transition(.opacity)
+
+        case .login:
+            LoginView()
+                .environmentObject(authViewModel)
+                .environmentObject(bannerManager)
+                .transition(.identity)
+
+        case .signup:
+            SignUpView()
+                .environmentObject(authViewModel)
+                .environmentObject(bannerManager)
+                .transition(.move(edge: .trailing))
+        }
     }
 }
-
-
-

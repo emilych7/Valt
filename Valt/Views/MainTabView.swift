@@ -3,9 +3,8 @@ import UIKit
 
 struct MainTabView: View {
     @EnvironmentObject private var authViewModel: AuthViewModel
-    @EnvironmentObject private var userViewModel: UserViewModel
     @EnvironmentObject private var bannerManager: BannerManager
-    
+    @StateObject private var userViewModel = UserViewModel()
     @State private var showGlobalSettingsOverlay: Bool = false
     @State private var selection: ContentTabViewSelection = .home
 
@@ -40,7 +39,6 @@ struct MainTabView: View {
                                     Image(uiImage: profilePicture)
                                         .resizable()
                                         .scaledToFill()
-                                        // .aspectRatio(contentMode: .fill)
                                         .frame(width: 24, height: 24)
                                         .clipShape(Circle())
                                 } else {
@@ -52,6 +50,7 @@ struct MainTabView: View {
                     }
             }
             .tint(Color("TextColor"))
+            .environmentObject(userViewModel)
             
             // Notification banner
             if bannerManager.isVisible {
@@ -113,7 +112,6 @@ struct MainTabView: View {
                     Image(uiImage: profilePicture)
                         .resizable()
                         .scaledToFill()
-                        // .aspectRatio(contentMode: .fill)
                         .frame(width: 24, height: 24)
                         .clipShape(Circle())
                 } else {
@@ -126,8 +124,6 @@ struct MainTabView: View {
 
 }
 
-
-// Helper extension
 fileprivate extension UIImage {
     func createTabItemLabelFromImage(_ isSelected: Bool) -> UIImage? {
         let imageSize = CGSize(width: 24, height: 24)

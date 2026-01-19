@@ -1,8 +1,8 @@
 import Foundation
 
-enum ContentLoadingState {
+enum ContentLoadingState: Equatable {
     case loading
     case empty
-    case error(Error)
+    case error(String) 
     case complete
 }

@@ -58,7 +58,7 @@ final class UserViewModel: ObservableObject {
             }
         } catch {
             print("Error fetching username: \(error.localizedDescription)")
-            self.userLoadingState = .error(error)
+            self.userLoadingState = .error(error.localizedDescription)
         }
     }
     
@@ -112,7 +112,7 @@ final class UserViewModel: ObservableObject {
             self.cardLoadingState = drafts.isEmpty ? .empty : .complete
         } catch {
             print("Error loading drafts: \(error.localizedDescription)")
-            self.cardLoadingState = .error(error)
+            self.cardLoadingState = .error(error.localizedDescription)
             self.drafts = []
         }
     }
@@ -186,7 +186,7 @@ final class UserViewModel: ObservableObject {
             }
         } catch {
             print("Error fetching profile picture: \(error.localizedDescription)")
-            self.userLoadingState = .error(error)
+            self.userLoadingState = .error(error.localizedDescription)
         }
     }
 
@@ -209,7 +209,7 @@ final class UserViewModel: ObservableObject {
             self.userLoadingState = .complete
         } catch {
             print("Error uploading profile picture: \(error.localizedDescription)")
-            self.userLoadingState = .error(error)
+            self.userLoadingState = .error(error.localizedDescription)
         }
     }
     

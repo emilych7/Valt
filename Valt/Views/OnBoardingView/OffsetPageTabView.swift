@@ -18,19 +18,23 @@ struct OffsetPageTabView<Content: View>: UIViewRepresentable {
         scrollView.showsHorizontalScrollIndicator = false
         scrollView.delegate = context.coordinator
         
+        // Allows the ScrollView to communicate with the system about the keyboard
+        scrollView.contentInsetAdjustmentBehavior = .automatic
+        
         let host = UIHostingController(rootView: content)
         host.view.backgroundColor = .clear
-        host.view.translatesAutoresizingMaskIntoConstraints = false
         
+        // Use the host's sizing
+        host.view.translatesAutoresizingMaskIntoConstraints = false
         scrollView.addSubview(host.view)
 
-        // Use content/frame layout guides (safer than pinning to scrollView directly)
         NSLayoutConstraint.activate([
             host.view.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor),
             host.view.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor),
             host.view.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor),
             host.view.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
-
+            
+            // Fix the height to the frame
             host.view.heightAnchor.constraint(equalTo: scrollView.frameLayoutGuide.heightAnchor)
         ])
         
@@ -38,34 +42,39 @@ struct OffsetPageTabView<Content: View>: UIViewRepresentable {
     }
     
     func updateUIView(_ scrollView: UIScrollView, context: Context) {
-        // Avoid fighting user scroll and avoid delegate echo
-        guard !scrollView.isDragging,
-              !scrollView.isDecelerating,
-              !context.coordinator.isProgrammaticUpdate else { return }
+        guard !scrollView.isDragging, !scrollView.isDecelerating else { return }
         
-        if scrollView.contentOffset.x != offset {
+        let roundedOffset = round(offset)
+        let roundedScroll = round(scrollView.contentOffset.x)
+        
+        
+        if abs(roundedOffset - roundedScroll) > 1 && !scrollView.isDragging && !scrollView.isDecelerating {
             context.coordinator.isProgrammaticUpdate = true
-            // don’t animate; animation can re-enter mid-update
             scrollView.setContentOffset(CGPoint(x: offset, y: 0), animated: false)
             context.coordinator.isProgrammaticUpdate = false
         }
     }
     
     class Coordinator: NSObject, UIScrollViewDelegate {
-        let parent: OffsetPageTabView
-        var isProgrammaticUpdate = false
-        
-        init(_ parent: OffsetPageTabView) { self.parent = parent }
-        
-        func scrollViewDidScroll(_ scrollView: UIScrollView) {
-            guard !isProgrammaticUpdate else { return }
-            let x = scrollView.contentOffset.x
-            // Publish on next run loop to avoid “Publishing changes from within view updates…”
-            DispatchQueue.main.async {
-                if self.parent.offset != x {
-                    self.parent.offset = x
+            var parent: OffsetPageTabView
+            var isProgrammaticUpdate = false
+            
+            init(_ parent: OffsetPageTabView) {
+                self.parent = parent
+            }
+            
+            func scrollViewDidScroll(_ scrollView: UIScrollView) {
+                guard scrollView.isDragging || scrollView.isDecelerating else { return }
+                
+                guard !isProgrammaticUpdate else { return }
+                let x = scrollView.contentOffset.x
+                
+                // Only update if there is a significant change to prevent jitter
+                if abs(parent.offset - x) > 0.5 {
+                    DispatchQueue.main.async {
+                        self.parent.offset = x
+                    }
                 }
             }
         }
-    }
 }

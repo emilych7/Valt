@@ -103,7 +103,6 @@ struct UpdateFieldView: View {
         }
     }
 }
-    
 
     // Computed property for basic validation
     private var isInputValid: Bool {
