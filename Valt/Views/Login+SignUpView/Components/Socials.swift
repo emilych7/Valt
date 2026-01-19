@@ -11,6 +11,7 @@ struct Socials: View {
             Text(title)
                 .foregroundColor(Color("TextColor"))
                 .font(.custom("OpenSans-Regular", size: 16))
+                .padding(.top, 10)
             
             HStack(spacing: 25) {
                 // Google Button

@@ -53,8 +53,8 @@ struct SignUpView: View {
                                 }) {
                                     Text("Sign Up")
                                         .foregroundColor(.white)
-                                        .font(.custom("OpenSans-Bold", size: 20))
-                                        .frame(maxWidth: .infinity, minHeight: 60)
+                                        .font(.custom("OpenSans-Bold", size: 18))
+                                        .frame(maxWidth: .infinity, minHeight: 50)
                                         .background(Color("RequestButtonColor"))
                                         .cornerRadius(12)
                                 }
@@ -146,19 +146,19 @@ struct SignUpView: View {
     }
     
     private var loginRedirectSection: some View {
-        HStack (spacing: 3) {
+        HStack (spacing: 4) {
             Text("Already have an account?")
                 .foregroundColor(Color("TextColor"))
-                .font(.custom("OpenSans-Regular", size: 17))
             
             Button {
                 authViewModel.navigate(to: .login)
             } label: {
-                Text("Log In")
+                Text("Log in.")
+                    .foregroundColor(.blue)
             }
-            .font(.custom("OpenSans-Regular", size: 17))
             .buttonStyle(.plain)
         }
         .padding(.vertical, 10)
+        .font(.custom("OpenSans-Regular", size: 17))
     }
 }

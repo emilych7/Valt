@@ -66,12 +66,7 @@ struct SettingsView: View {
     
     private var logoutSection: some View {
         Button(action: {
-            do {
-                try Auth.auth().signOut()
-                authViewModel.isAuthenticated = false
-            } catch {
-                print("Error signing out: \(error.localizedDescription)")
-            }
+            authViewModel.signOut()
         }) {
             Text("Log Out")
                 .font(.custom("OpenSans-Bold", size: 17))
