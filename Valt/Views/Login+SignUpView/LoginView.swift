@@ -1,15 +1,10 @@
 import SwiftUI
-import FirebaseCore
-import FirebaseAuth
-import GoogleSignIn
 
 struct LoginView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var bannerManager: BannerManager
     @StateObject private var viewModel = LoginViewModel()
-    @FocusState private var focusedField: Field?
-        
-    enum Field { case identifier, password }
+    @FocusState private var focusedField: LoginViewModel.Field?
 
     var body: some View {
         ZStack {
@@ -17,7 +12,6 @@ struct LoginView: View {
             
             ScrollView {
                 VStack(spacing: 0) {
-                    // 10% of screen
                     Spacer().frame(height: UIScreen.main.bounds.height * 0.10)
                     
                     HStack {
@@ -57,14 +51,7 @@ struct LoginView: View {
                         }
                         
                         Socials(title: "or login using", isGoogleLoading: viewModel.isGoogleLoading) {
-                            viewModel.isGoogleLoading = true
-                            print("Google Login button tapped")
-                            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                               let rootVC = windowScene.windows.first?.rootViewController {
-                                Task {
-                                    await viewModel.signInWithGoogle(presenting: rootVC)
-                                }
-                            }
+                            handleGoogleSignIn()
                         } onAppleTap: {
                             print("Apple Login button tapped")
                         }
@@ -80,39 +67,39 @@ struct LoginView: View {
                         }
                     }
                     .padding(.horizontal, 30)
-                    .onSubmit {
-                        switch focusedField {
-                            case .identifier: focusedField = .password
-                            default: focusedField = nil
-                        }
-                    }
                     
                     Spacer(minLength: 50)
                 }
-                .onSubmit {
-                    if focusedField == .identifier {
-                        focusedField = .password
-                    } else {
-                        focusedField = nil
-                    }
+            }
+            .onSubmit {
+                if focusedField == .identifier {
+                    focusedField = .password
+                } else {
+                    focusedField = nil
                 }
             }
             .scrollIndicators(.hidden)
-            .scrollBounceBehavior(.basedOnSize) // Only bounces if content overflows
+            .scrollBounceBehavior(.basedOnSize)
         }
         .overlay(
             NavigationBar(onBackTap: {
                 focusedField = nil
-                Task {
-                    authViewModel.navigate(to: .onboarding)
-                }
+                authViewModel.navigate(to: .onboarding)
             }), alignment: .top
         )
-        // Dismisses keyboard when tapping the background
         .onTapGesture {
             focusedField = nil
         }
         .ignoresSafeArea(.keyboard, edges: .bottom)
+    }
+    
+    private func handleGoogleSignIn() {
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let rootVC = windowScene.windows.first?.rootViewController {
+            Task {
+                await viewModel.signInWithGoogle(presenting: rootVC)
+            }
+        }
     }
     
     private var isFormInvalid: Bool {
@@ -137,6 +124,3 @@ struct LoginView: View {
         .font(.custom("OpenSans-Regular", size: 17))
     }
 }
-
-
-

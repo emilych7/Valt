@@ -7,7 +7,9 @@ import GoogleSignInSwift
 
 @MainActor
 class LoginViewModel: ObservableObject {
-    @Published var identifier = "" // Email or Username
+    enum Field { case identifier, password }
+    
+    @Published var identifier = ""
     @Published var password = ""
     @Published var isLoading = false
     @Published var isGoogleLoading = false
@@ -28,7 +30,6 @@ class LoginViewModel: ObservableObject {
         do {
             var emailToSignIn = identifier
             
-            // If it's not an email
             if !identifier.contains("@") {
                 emailToSignIn = try await lookupEmailByUsername(identifier.lowercased())
             }
@@ -50,30 +51,25 @@ class LoginViewModel: ObservableObject {
     
     func signInWithGoogle(presenting viewController: UIViewController) async {
         isGoogleLoading = true
-            guard GIDSignIn.sharedInstance.configuration != nil else {
-                errorMessage = "Google Sign-In not configured."
+        defer { isGoogleLoading = false }
+
+        do {
+            let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: viewController)
+            let user = result.user
+            guard let idToken = user.idToken?.tokenString else {
+                errorMessage = "Missing ID token."
                 return
             }
 
-            do {
-                let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: viewController)
-                let user = result.user
-                guard let idToken = user.idToken?.tokenString else {
-                    errorMessage = "Missing ID token."
-                    return
-                }
-
-                let credential = GoogleAuthProvider.credential(
-                    withIDToken: idToken,
-                    accessToken: user.accessToken.tokenString
-                )
-                _ = try await Auth.auth().signIn(with: credential)
-            } catch {
-                isGoogleLoading = false
-                errorMessage = error.localizedDescription
-            }
-        isGoogleLoading = false
+            let credential = GoogleAuthProvider.credential(
+                withIDToken: idToken,
+                accessToken: user.accessToken.tokenString
+            )
+            _ = try await Auth.auth().signIn(with: credential)
+        } catch {
+            errorMessage = error.localizedDescription
         }
+    }
 }
 
 enum AuthError: Error { case userNotFound, invalidData }
