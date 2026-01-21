@@ -18,15 +18,14 @@ class LoginViewModel: ObservableObject {
     private let db = Firestore.firestore()
 
     func performSignIn() async {
+        print("Starting sign in")
         let uname = identifier.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         guard !uname.isEmpty else {
             self.errorMessage = "Username or email is required."
             return
         }
-        
         isLoading = true
         defer { isLoading = false }
-        
         do {
             var emailToSignIn = identifier
             
@@ -34,9 +33,18 @@ class LoginViewModel: ObservableObject {
                 emailToSignIn = try await lookupEmailByUsername(identifier.lowercased())
             }
             
-            try await Auth.auth().signIn(withEmail: emailToSignIn, password: password)
+            let result = try await Auth.auth().signIn(withEmail: emailToSignIn, password: password)
+            
+            // Check verification status
+            if !result.user.isEmailVerified {
+                print("Login success, but email not verified.")
+            } else {
+                print("Signed in and verified!")
+            }
+            
         } catch {
             self.errorMessage = error.localizedDescription
+            print("Error signing in: \(error.localizedDescription)")
         }
     }
     
@@ -72,7 +80,7 @@ class LoginViewModel: ObservableObject {
             let userDoc = try await db.collection("users").document(authResult.user.uid).getDocument()
             
             if !userDoc.exists {
-                // This person signed in, but has no username, route them to the Signup flow
+                // This person signed in but has no username, route them to the Signup flow
                 print("Login success, but profile missing. Routing to setup...")
             }
             

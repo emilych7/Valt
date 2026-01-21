@@ -66,10 +66,6 @@ struct ProfileView: View {
         ZStack {
             VStack {
                 HStack (spacing: 10) {
-                    /*
-                    GlowingView()
-                        .frame(width: 20, height: 20)
-                    */ 
                     Text("My Valt")
                         .font(.custom("OpenSans-SemiBold", size: 24))
                     Spacer()

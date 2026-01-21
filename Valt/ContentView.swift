@@ -5,6 +5,7 @@ struct ContentView: View {
     @StateObject var settingsViewModel = SettingsViewModel()
     @StateObject var onBoardingViewModel = OnBoardingViewModel()
     @StateObject private var bannerManager = BannerManager()
+    @StateObject private var userViewModel = UserViewModel()
 
     var body: some View {
         Group {
@@ -13,6 +14,8 @@ struct ContentView: View {
                     .environmentObject(authViewModel)
                     .environmentObject(settingsViewModel)
                     .environmentObject(bannerManager)
+                    .environmentObject(userViewModel)
+                
             } else {
                 authFlowView
             }
@@ -34,15 +37,17 @@ struct ContentView: View {
                 LoginView()
                     .environmentObject(authViewModel)
                     .environmentObject(bannerManager)
+                    .environmentObject(userViewModel)
                     .transition(.asymmetric(
                         insertion: .move(edge: .bottom),
                         removal: .move(edge: .bottom)
                     ))
 
             case .signup:
-                SignUpView()
+                SignUpView(userViewModel: userViewModel)
                     .environmentObject(authViewModel)
                     .environmentObject(bannerManager)
+                    .environmentObject(userViewModel)
                     .transition(.asymmetric(
                         insertion: .move(edge: .bottom),
                         removal: .move(edge: .bottom)

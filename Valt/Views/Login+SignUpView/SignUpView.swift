@@ -4,8 +4,13 @@ import SwiftUI
 struct SignUpView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject private var bannerManager: BannerManager
-    @StateObject private var viewModel = SignUpViewModel()
+    @EnvironmentObject private var userViewModel: UserViewModel
+    @StateObject private var viewModel: SignUpViewModel
     @FocusState private var focusedField: SignUpViewModel.Field?
+    
+    init(userViewModel: UserViewModel) {
+        _viewModel = StateObject(wrappedValue: SignUpViewModel(userViewModel: userViewModel))
+    }
     
     var body: some View {
         ZStack {

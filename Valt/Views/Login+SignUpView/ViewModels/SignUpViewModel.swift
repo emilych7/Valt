@@ -21,6 +21,7 @@ class SignUpViewModel: ObservableObject {
     @Published var isSignupComplete = false
 
     private let db = Firestore.firestore()
+    private let userViewModel: UserViewModel
     
     var canSubmitStep1: Bool {
         !email.isEmpty &&
@@ -29,12 +30,19 @@ class SignUpViewModel: ObservableObject {
         AuthValidator.isValidPassword(password)
     }
     
-    init() {
-        // If the app is opened and a user is already authenticated in Firebase...
+    init(userViewModel: UserViewModel) {
+        self.userViewModel = userViewModel
+        
         if let user = Auth.auth().currentUser {
             let isGoogle = user.providerData.contains { $0.providerID == "google.com" }
             
-            if isGoogle || user.isEmailVerified {
+            if !isGoogle && !user.isEmailVerified {
+                // The user just logged in from LoginView but isn't verified
+                self.email = user.email ?? ""
+                self.currentStep = .emailVerification // Move them to the verification screen
+                self.startVerificationPolling()      // Start checking if they click the link
+            } else if isGoogle || user.isEmailVerified {
+                // They are verified but haven't picked a username yet
                 self.email = user.email ?? ""
                 self.currentStep = .chooseUsername
             }
