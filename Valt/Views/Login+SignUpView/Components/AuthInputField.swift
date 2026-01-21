@@ -18,26 +18,29 @@ struct AuthInputField<T: Hashable>: View {
                     .foregroundColor(Color("TextColor"))
                 Spacer()
             }
-            ZStack {
-                RoundedRectangle(cornerRadius: 10)
-                    .frame(height: 50)
-                    .foregroundColor(Color("TextFieldBackground"))
-                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color("TextFieldBorder"), lineWidth: 1))
-                
-                Group {
-                    if isSecure {
-                        SecureField(placeholder, text: $text)
-                            .textContentType(.oneTimeCode) // Prevents hang
-                    } else {
-                        TextField(placeholder, text: $text)
-                            .keyboardType(keyboardType)
-                    }
+            
+            Group {
+                if isSecure {
+                    SecureField(placeholder, text: $text)
+                        .textContentType(.oneTimeCode)
+                } else {
+                    TextField(placeholder, text: $text)
+                        .keyboardType(keyboardType)
                 }
-                .autocorrectionDisabled(true)
-                .textInputAutocapitalization(.never)
-                .padding(.horizontal)
-                .focused(focusState, equals: field)
             }
+            .autocorrectionDisabled(true)
+            .textInputAutocapitalization(.never)
+            .padding(.horizontal)
+            .focused(focusState, equals: field)
+            .frame(height: 50)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .foregroundColor(Color("TextFieldBackground"))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color("TextFieldBorder"), lineWidth: 1)
+                    )
+            )
         }
         .padding(.vertical, 5)
     }
