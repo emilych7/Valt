@@ -31,7 +31,7 @@ struct DataView: View {
         VStack(spacing: 0) {
             SectionHeader(title: "How Valt Uses Your Data")
             
-            NavigationLink(destination: Text("OpenAI Prompts")) { SettingsRow(title: "OpenAI Prompts", icon: "emailIcon") }
+            NavigationLink(destination: Text("OpenAI Prompts")) { SettingsRow(title: "OpenAI Prompts", icon: "promptsIcon") }
                 .padding(.horizontal, 15)
                 .padding(.bottom, 5)
         }

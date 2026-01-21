@@ -17,7 +17,6 @@ struct ActivityView: View {
                     VStack(spacing: 20) {
                         interactionSection
                         archiveSection
-                        timeSection
                     }
                     .padding(.top, 10)
                     .padding(.horizontal, 20)
@@ -33,7 +32,7 @@ struct ActivityView: View {
         VStack(spacing: 0) {
             SectionHeader(title: "Interactions")
             
-            NavigationLink(destination: Text("Favorited Content")) { SettingsRow(title: "Favorited", icon: "usernameIcon") }
+            NavigationLink(destination: Text("Favorited Content")) { SettingsRow(title: "Favorited", icon: "favoriteIcon") }
                 .padding(.horizontal, 15)
             
             CustomDivider()
@@ -41,14 +40,14 @@ struct ActivityView: View {
                 .background(Color("TextFieldBorder"))
             
             
-            NavigationLink(destination: Text("Published Content")) { SettingsRow(title: "Published", icon: "usernameIcon") }
+            NavigationLink(destination: Text("Published Content")) { SettingsRow(title: "Published", icon: "publishIcon") }
                 .padding(.horizontal, 15)
             
             CustomDivider()
                 .frame(height: 1)
                 .background(Color("TextFieldBorder"))
             
-            NavigationLink(destination: Text("Shared Content")) { SettingsRow(title: "Shared", icon: "usernameIcon") }
+            NavigationLink(destination: Text("Shared Content")) { SettingsRow(title: "Shared", icon: "shareIcon") }
                 .padding(.horizontal, 15)
                 .padding(.bottom, 5)
         }
@@ -59,34 +58,20 @@ struct ActivityView: View {
     private var archiveSection: some View {
         VStack(spacing: 0) {
             SectionHeader(title: "Archived and Removed Content")
-            NavigationLink(destination: Text("Recently Deleted")) { SettingsRow(title: "Recently Deleted", icon: "usernameIcon") }
+            NavigationLink(destination: Text("Recently Deleted")) { SettingsRow(title: "Recently Deleted", icon: "trashIcon") }
                 .padding(.horizontal, 15)
             
             CustomDivider()
                 .frame(height: 1)
                 .background(Color("TextFieldBorder"))
             
-            NavigationLink(destination: Text("Archived")) { SettingsRow(title: "Archived", icon: "usernameIcon") }
+            NavigationLink(destination: Text("Archived")) { SettingsRow(title: "Archived", icon: "archiveIcon") }
                 .padding(.horizontal, 15)
                 .padding(.bottom, 5)
         }
         .background(Color("TextFieldBackground"))
         .cornerRadius(12)
     }
-    
-    private var timeSection: some View {
-        VStack(spacing: 0) {
-            SectionHeader(title: "Account Management")
-            NavigationLink(destination: Text("Deactivate Account")) {
-                SettingsRow(title: "Screen Time", icon: "usernameIcon")
-                    .padding(.horizontal, 15)
-                    .padding(.bottom, 5)
-            }
-        }
-        .background(Color("TextFieldBackground"))
-        .cornerRadius(12)
-    }
-    
 }
 
 #Preview("Logged In State") {

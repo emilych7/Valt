@@ -31,7 +31,7 @@ struct SecurityView: View {
         VStack(spacing: 0) {
             SectionHeader(title: "Two-Factor Authentication")
             
-            NavigationLink(destination: Text("Two-Factor")) { SettingsRow(title: "Two-Factor", icon: "emailIcon") }
+            NavigationLink(destination: Text("Two-Factor")) { SettingsRow(title: "Two-Factor", icon: "twoFactorIcon") }
                 .padding(.horizontal, 15)
                 .padding(.bottom, 5)
             
@@ -44,7 +44,7 @@ struct SecurityView: View {
         VStack(spacing: 0) {
             SectionHeader(title: "Password Protection")
             
-            NavigationLink(destination: Text("Reset Password")) { SettingsRow(title: "Reset Password", icon: "emailIcon") }
+            NavigationLink(destination: Text("Reset Password")) { SettingsRow(title: "Reset Password", icon: "passwordIcon") }
                 .padding(.horizontal, 15)
                 .padding(.bottom, 5)
             
