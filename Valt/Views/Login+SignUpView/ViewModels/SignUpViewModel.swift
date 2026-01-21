@@ -1,6 +1,7 @@
 import Foundation
 import FirebaseFirestore
 import FirebaseAuth
+import GoogleSignIn
 
 @MainActor
 class SignUpViewModel: ObservableObject {
@@ -124,5 +125,41 @@ class SignUpViewModel: ObservableObject {
             self.errorMessage = error.localizedDescription
         }
         isLoading = false
+    }
+    
+    func signInWithGoogle() async {
+        isGoogleLoading = true
+        print("Starting Google Sign Up...")
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                  let window = windowScene.windows.first(where: { $0.isKeyWindow }),
+                  let rootViewController = window.rootViewController else {
+                self.errorMessage = "Internal UI Error"
+                isGoogleLoading = false
+                return
+            }
+
+        do {
+            let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController)
+            let credential = GoogleAuthProvider.credential(withIDToken: result.user.idToken?.tokenString ?? "",
+                                                           accessToken: result.user.accessToken.tokenString)
+            
+            let authResult = try await Auth.auth().signIn(with: credential)
+            
+            // Slight delay to let the Google pop-up fully disappear
+            try await Task.sleep(nanoseconds: 600_000_000) // 0.6 seconds
+
+            let userDoc = try await db.collection("users").document(authResult.user.uid).getDocument()
+            
+            if userDoc.exists {
+                print("User already exists and has a username. Proceeding to main app...")
+                self.isSignupComplete = true
+            } else {
+                print("New user. Asking them to choose a username...")
+                self.currentStep = .chooseUsername
+            }
+        } catch {
+            print("Google Sign In Error: \(error)")
+        }
+        isGoogleLoading = false
     }
 }

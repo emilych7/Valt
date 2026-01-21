@@ -22,9 +22,9 @@ struct SignUpView: View {
                         case .accountDetails:
                             accountDetailsFields
                         case .emailVerification:
-                            emailVerificationPrompt
+                            EmailVerificationView(viewModel: viewModel)
                         case .chooseUsername:
-                            usernameSelectionFields
+                            UsernameSelectionView(viewModel: viewModel)
                         }
                     }
                     .padding(.horizontal, 30)
@@ -106,50 +106,24 @@ struct SignUpView: View {
                 Task { await viewModel.validateAndStartSignup() }
             }
             
-            Socials(title: "or sign up using", isGoogleLoading: viewModel.isGoogleLoading) { } onAppleTap: { }
+            Socials(title: "or sign up using", isGoogleLoading: viewModel.isGoogleLoading) {
+                Task {
+                    print("Google Sign Up button tapped")
+                    await viewModel.signInWithGoogle()
+                }
+            } onAppleTap: {
+                print("Apple Sign Up button tapped")
+            }
             
             loginRedirectSection
-        }
-    }
-    
-    private var emailVerificationPrompt: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "envelope.badge.shield.half.filled")
-                .font(.system(size: 60))
-                .foregroundColor(.blue)
-                .padding(.top, 40)
-            
-            Text("Verify your email")
-                .font(.custom("OpenSans-Bold", size: 20))
-            
-            Text("We sent a link to \(viewModel.email). Please click it to continue.")
-                .font(.custom("OpenSans-Regular", size: 16))
-                .multilineTextAlignment(.center)
-            
-            Button("Resend Email") {
-                viewModel.resendEmail()
-            }
-            .font(.custom("OpenSans-SemiBold", size: 16))
-        }
-    }
-
-    private var usernameSelectionFields: some View {
-        VStack(spacing: 15) {
-            AuthInputField(title: "Choose a Username", placeholder: "Username", text: $viewModel.username, field: .username, focusState: $focusedField)
-                .submitLabel(.done)
-            
-            AuthActionButton(title: "Finish", isLoading: viewModel.isLoading, isDisabled: viewModel.username.isEmpty) {
-                focusedField = nil
-                Task { await viewModel.finalizeUsername() }
-            }
         }
     }
 
     private var headerTitle: String {
         switch viewModel.currentStep {
         case .accountDetails: return "Create an Account"
-        case .emailVerification: return "Almost There"
-        case .chooseUsername: return "Final Step"
+        case .emailVerification: return "Verify Your Email"
+        case .chooseUsername: return "Choose a Username"
         }
     }
 }
