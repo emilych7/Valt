@@ -28,6 +28,18 @@ class SignUpViewModel: ObservableObject {
         password == passwordConfirmation &&
         AuthValidator.isValidPassword(password)
     }
+    
+    init() {
+        // If the app is opened and a user is already authenticated in Firebase...
+        if let user = Auth.auth().currentUser {
+            let isGoogle = user.providerData.contains { $0.providerID == "google.com" }
+            
+            if isGoogle || user.isEmailVerified {
+                self.email = user.email ?? ""
+                self.currentStep = .chooseUsername
+            }
+        }
+    }
 
     func validateAndStartSignup() async {
         errorMessage = nil
@@ -110,7 +122,7 @@ class SignUpViewModel: ObservableObject {
             let userRef = db.collection("users").document(currentUser.uid)
             let userData: [String: Any] = [
                 "userID": currentUser.uid,
-                "email": email,
+                "email": Auth.auth().currentUser?.email ?? self.email,
                 "username": uname,
                 "createdAt": FieldValue.serverTimestamp()
             ]
@@ -128,15 +140,17 @@ class SignUpViewModel: ObservableObject {
     }
     
     func signInWithGoogle() async {
+        print("Starting Google Sign Up")
         isGoogleLoading = true
-        print("Starting Google Sign Up...")
+        errorMessage = nil
+        
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                  let window = windowScene.windows.first(where: { $0.isKeyWindow }),
-                  let rootViewController = window.rootViewController else {
-                self.errorMessage = "Internal UI Error"
-                isGoogleLoading = false
-                return
-            }
+              let window = windowScene.windows.first(where: { $0.isKeyWindow }),
+              let rootViewController = window.rootViewController else {
+            self.errorMessage = "Internal UI Error"
+            isGoogleLoading = false
+            return
+        }
 
         do {
             let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController)
@@ -145,20 +159,27 @@ class SignUpViewModel: ObservableObject {
             
             let authResult = try await Auth.auth().signIn(with: credential)
             
-            // Slight delay to let the Google pop-up fully disappear
-            try await Task.sleep(nanoseconds: 600_000_000) // 0.6 seconds
+            // Small delay to let the UIKit pop-up dismiss smoothly
+            try await Task.sleep(nanoseconds: 600_000_000)
 
+            // Check if user already have a Firestore profile
             let userDoc = try await db.collection("users").document(authResult.user.uid).getDocument()
             
             if userDoc.exists {
-                print("User already exists and has a username. Proceeding to main app...")
+                // Returning User (Act like a Login)
+                print("Google Login Success: User exists in Firestore.")
                 self.isSignupComplete = true
             } else {
-                print("New user. Asking them to choose a username...")
+                // New User/Incomplete Profile
+                print("Google Signup Success: No profile found. Moving to Username step.")
+                self.email = authResult.user.email ?? ""
                 self.currentStep = .chooseUsername
             }
+            
         } catch {
-            print("Google Sign In Error: \(error)")
+            if (error as NSError).code != GIDSignInError.canceled.rawValue {
+                self.errorMessage = error.localizedDescription
+            }
         }
         isGoogleLoading = false
     }

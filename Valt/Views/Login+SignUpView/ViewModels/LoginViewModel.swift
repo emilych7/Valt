@@ -50,6 +50,7 @@ class LoginViewModel: ObservableObject {
     }
     
     func signInWithGoogle(presenting viewController: UIViewController) async {
+        print("Starting Google Sign In")
         isGoogleLoading = true
         defer { isGoogleLoading = false }
 
@@ -65,9 +66,22 @@ class LoginViewModel: ObservableObject {
                 withIDToken: idToken,
                 accessToken: user.accessToken.tokenString
             )
-            _ = try await Auth.auth().signIn(with: credential)
+            
+            let authResult = try await Auth.auth().signIn(with: credential)
+            
+            let userDoc = try await db.collection("users").document(authResult.user.uid).getDocument()
+            
+            if !userDoc.exists {
+                // This person signed in, but has no username, route them to the Signup flow
+                print("Login success, but profile missing. Routing to setup...")
+            }
+            
         } catch {
-            errorMessage = error.localizedDescription
+            // Ignore user cancellation errors to keep the UI clean
+            if (error as NSError).code != GIDSignInError.canceled.rawValue {
+                errorMessage = error.localizedDescription
+            }
+            print("Error: \(error.localizedDescription)")
         }
     }
 }
