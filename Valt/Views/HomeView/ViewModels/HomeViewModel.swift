@@ -50,28 +50,10 @@ final class HomeViewModel: ObservableObject {
         
         Task {
             self.draftText = ""
-            // Shared userViewModel
             await userViewModel.addDraft(newDraft)
-            
+            self.isFavorited = false
             self.isEditing = false
             self.draftLoadingState = .complete
         }
-    }
-    
-    // Helper button
-    func button(icon: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            ZStack {
-                Ellipse()
-                    .frame(width: 40, height: 40)
-                    .foregroundColor(Color("BubbleColor"))
-                HStack {
-                    Image(icon)
-                        .frame(width: 38, height: 38)
-                        .opacity(icon.contains("Inactive") ? 0.5 : 1)
-                }
-            }
-        }
-        .buttonStyle(PlainButtonStyle())
     }
 }

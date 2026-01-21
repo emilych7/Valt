@@ -40,8 +40,6 @@ class AuthViewModel: ObservableObject {
         }
     }
     
-    
-    
     func checkFirestoreProfile(uid: String) {
         print("Checking Firestore Profile...")
         db.collection("users").document(uid).getDocument { [weak self] snapshot, _ in
