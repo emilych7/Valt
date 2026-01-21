@@ -15,40 +15,26 @@ struct SettingsView: View {
             }
             ScrollView {
                 VStack(spacing: 0) {
-                    
-                    VStack(spacing: 0) {
-                        SectionHeader(title: "General Settings")
-                        
-                        NavigationLink(destination: PreferencesView()) {
-                            SettingsRow(title: "Account Preferences", icon: "userIcon")
-                        }
-                        .padding(.horizontal, 15)
-                        
-                        CustomDivider()
-                        
-                        NavigationLink(destination: DataView()) {
-                            SettingsRow(title: "Data Privacy", icon: "dataIcon")
-                        }
-                        .padding(.horizontal, 15)
-                        
-                        CustomDivider()
-                        
-                        NavigationLink(destination: ActivityView()) {
-                            SettingsRow(title: "Activity", icon: "activityIcon")
-                        }
-                        .padding(.horizontal, 15)
-                        
-                        CustomDivider()
-                        
-                        NavigationLink(destination: SecurityView()) {
-                            SettingsRow(title: "Security", icon: "securityIcon")
-                        }
-                        .padding(.horizontal, 15)
-                        .padding(.bottom, 5)
+                    NavigationLink(destination: PreferencesView()) {
+                        SettingsMainRow(title: "Account Preferences")
                     }
-                    .background(Color("TextFieldBackground"))
-                    .cornerRadius(12)
+                    .padding(.horizontal, 15)
                     
+                    NavigationLink(destination: DataView()) {
+                        SettingsMainRow(title: "Data Privacy")
+                    }
+                    .padding(.horizontal, 15)
+                    
+                    NavigationLink(destination: ActivityView()) {
+                        SettingsMainRow(title: "Activity")
+                    }
+                    .padding(.horizontal, 15)
+                    
+                    NavigationLink(destination: SecurityView()) {
+                        SettingsMainRow(title: "Security")
+                    }
+                    .padding(.horizontal, 15)
+                    .padding(.bottom, 5)
                     
                     logoutSection
                 }
