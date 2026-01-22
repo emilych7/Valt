@@ -24,43 +24,6 @@ struct ProfileView: View {
         case .published: return userViewModel.drafts.filter { $0.isPublished }
         }
     }
-
-    // Build the avatar UI on the MainActor
-    @ViewBuilder
-    private var avatarView: some View {
-        ZStack {
-            switch userViewModel.userLoadingState {
-            case .loading:
-                Ellipse()
-                    .frame(width: 105, height: 105)
-                    .foregroundColor(Color("BubbleColor"))
-                    .overlay(ProgressView().frame(width: 25, height: 25))
-            case .empty, .error:
-                Ellipse()
-                    .frame(width: 105, height: 105)
-                    .foregroundColor(Color("BubbleColor"))
-                    .overlay(Image(systemName: "camera.fill")
-                                .foregroundColor(.gray)
-                                .font(.system(size: 24)))
-            case .complete:
-                if let profileImage = localProfileImage {
-                    Image(uiImage: profileImage)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 105, height: 105)
-                        .clipShape(Ellipse())
-                } else {
-                    Ellipse()
-                        .frame(width: 105, height: 105)
-                        .foregroundColor(Color("BubbleColor"))
-                        .overlay(Image(systemName: "camera.fill")
-                                    .foregroundColor(.gray)
-                                    .font(.system(size: 24)))
-                }
-            }
-        }
-        .frame(width: 115, height: 115)
-    }
     
     var body: some View {
         ZStack {
@@ -85,13 +48,15 @@ struct ProfileView: View {
                 
                 // Profile section
                 HStack {
-                    // Normal view for the avatar
-                    avatarView
+                    AvatarView(
+                        loadingState: userViewModel.userLoadingState,
+                        profileImage: localProfileImage
+                    )
                         .onTapGesture { isPhotoPickerPresented = true }
                         .photosPicker(
                             isPresented: $isPhotoPickerPresented,
                             selection: $selectedItem,
-                            matching: .images,
+                            matching: .images,         
                             photoLibrary: .shared()
                         )
 
