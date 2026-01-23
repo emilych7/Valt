@@ -5,9 +5,8 @@ import PhotosUI
 struct ProfileView: View {
     @EnvironmentObject private var userViewModel: UserViewModel
     @EnvironmentObject var settingsViewModel: SettingsViewModel
-    
+    @Binding var mainTabSelection: ContentTabViewSelection
     @State private var selectedTab: ProfileTab = .all
-    @State private var showNote: Bool = false
     @State private var showSettings: Bool = false
     @State private var selectedItem: PhotosPickerItem? = nil
     @State private var isPhotoPickerPresented: Bool = false
@@ -15,8 +14,9 @@ struct ProfileView: View {
     
     var body: some View {
         ZStack {
-            VStack {
-                HStack (spacing: 10) {
+            VStack(spacing: 0) {
+                // Header Section
+                HStack(spacing: 10) {
                     Text("My Valt")
                         .font(.custom("OpenSans-SemiBold", size: 24))
                     Spacer()
@@ -26,7 +26,8 @@ struct ProfileView: View {
                                 .frame(width: 40, height: 40)
                                 .foregroundColor(Color("BubbleColor"))
                             Image("settingsIcon")
-                                .frame(width: 38, height: 38)
+                                .resizable()
+                                .frame(width: 24, height: 24)
                         }
                     }
                     .buttonStyle(PlainButtonStyle())
@@ -34,7 +35,7 @@ struct ProfileView: View {
                 .padding(.top, 20)
                 .padding(.horizontal, 20)
                 
-                // Profile section
+                // Profile Info Section
                 HStack {
                     AvatarView(
                         loadingState: userViewModel.userLoadingState,
@@ -44,88 +45,49 @@ struct ProfileView: View {
                     .photosPicker(
                         isPresented: $isPhotoPickerPresented,
                         selection: $selectedItem,
-                        matching: .images,
-                        photoLibrary: .shared()
+                        matching: .images
                     )
-                    .onChange(of: selectedItem) { _, newValue in
-                        Task {
-                            guard
-                                let item = newValue,
-                                let data = try? await item.loadTransferable(type: Data.self),
-                                let uiImage = UIImage(data: data)
-                            else { return }
-                            await userViewModel.uploadProfilePicture(uiImage) // async
-                        }
-                    }
                     
                     UserInfoView(userViewModel: userViewModel)
-                    
                     Spacer()
                 }
                 .padding(.leading, 20)
+                .padding(.vertical, 15)
                 
                 ProfileTabView(selectedTab: $selectedTab)
                     .padding(.horizontal, 15)
                 
                 TabView(selection: $selectedTab) {
-                    draftsGrid(for: .all)
+                    ProfileGridContainer(rootTabSelection: $mainTabSelection, tab: .all)
                         .tag(ProfileTab.all)
                     
-                    draftsGrid(for: .favorited)
+                    ProfileGridContainer(rootTabSelection: $mainTabSelection, tab: .favorited)
                         .tag(ProfileTab.favorited)
                     
-                    draftsGrid(for: .published)
+                    ProfileGridContainer(rootTabSelection: $mainTabSelection, tab: .published)
                         .tag(ProfileTab.published)
                     
-                    draftsGrid(for: .hidden)
+                    ProfileGridContainer(rootTabSelection: $mainTabSelection, tab: .hidden)
                         .tag(ProfileTab.hidden)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .padding(.horizontal, 20)
-                
-                Spacer()
             }
-            .background(Color("AppBackgroundColor"))
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color("AppBackgroundColor").ignoresSafeArea())
         }
         .onReceive(userViewModel.$profileImage) { newImage in
             localProfileImage = newImage
         }
+        .onChange(of: selectedItem) { _, newValue in
+            Task {
+                guard let item = newValue,
+                      let data = try? await item.loadTransferable(type: Data.self),
+                      let uiImage = UIImage(data: data) else { return }
+                await userViewModel.uploadProfilePicture(uiImage)
+            }
+        }
         .fullScreenCover(isPresented: $showSettings) {
             SettingsView()
-        }
-    }
-    
-    @ViewBuilder
-    private func draftsGrid(for tab: ProfileTab) -> some View {
-        let filteredData: [Draft] = {
-            let allSorted = userViewModel.drafts.sorted { $0.timestamp > $1.timestamp }
-            switch tab {
-            case .all: return allSorted
-            case .favorited: return allSorted.filter { $0.isFavorited }
-            case .published: return allSorted.filter { $0.isPublished }
-            case .hidden: return allSorted.filter { $0.isHidden }
-            }
-        }()
-
-        switch userViewModel.cardLoadingState {
-        case .loading:
-            ResponsiveGridView(items: (1...12).map { FakeItem(id: $0) }) { _ in
-                SkeletonCardView()
-            }
-        case .complete:
-            ResponsiveGridView(items: filteredData) { draft in
-                CardView(draft: draft)
-            }
-        case .empty:
-            VStack {
-                Image("noDrafts")
-                    .resizable()
-                    .frame(width: 200, height: 200)
-            }
-        case .error:
-            Text("An error occurred :(")
-                .font(.custom("OpenSans-Regular", size: 18))
         }
     }
 }

@@ -80,6 +80,13 @@ struct PreferencesView: View {
                     .padding(.horizontal, 15)
                     .padding(.bottom, 5)
             }
+            Button(action: {
+                authViewModel.signOut()
+            }) {
+                SettingsRow(title: "Log Out", icon: "trashIcon")
+                    .padding(.horizontal, 15)
+                    .padding(.bottom, 5)
+            }
         }
         .background(Color("TextFieldBackground"))
         .cornerRadius(12)

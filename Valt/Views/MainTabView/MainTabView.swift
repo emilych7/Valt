@@ -28,7 +28,7 @@ struct MainTabView: View {
                     .tag(ContentTabViewSelection.explore)
 
                 // Profile tab
-                ProfileView()
+                ProfileView(mainTabSelection: $selection)
                     .tag(ContentTabViewSelection.profile)
                     .tabItem {
                         ZStack {
