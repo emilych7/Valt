@@ -6,24 +6,12 @@ struct ProfileView: View {
     @EnvironmentObject private var userViewModel: UserViewModel
     @EnvironmentObject var settingsViewModel: SettingsViewModel
     
-    @State private var selectedFilter: Filter? = nil
-    @State private var showFilterOptions: Bool = false
+    @State private var selectedTab: ProfileTab = .all
     @State private var showNote: Bool = false
     @State private var showSettings: Bool = false
     @State private var selectedItem: PhotosPickerItem? = nil
     @State private var isPhotoPickerPresented: Bool = false
     @State private var localProfileImage: UIImage? = nil
-    
-    var filteredDrafts: [Draft] {
-        guard let selectedFilter = selectedFilter else {
-            return userViewModel.drafts.sorted { $0.timestamp > $1.timestamp }
-        }
-        switch selectedFilter {
-        case .favorites: return userViewModel.drafts.filter { $0.isFavorited }
-        case .hidden:    return userViewModel.drafts.filter { $0.isHidden }
-        case .published: return userViewModel.drafts.filter { $0.isPublished }
-        }
-    }
     
     var body: some View {
         ZStack {
@@ -44,6 +32,7 @@ struct ProfileView: View {
                     .buttonStyle(PlainButtonStyle())
                 }
                 .padding(.top, 20)
+                .padding(.horizontal, 20)
                 
                 // Profile section
                 HStack {
@@ -73,43 +62,29 @@ struct ProfileView: View {
                     
                     Spacer()
                 }
-                .padding(.leading, 30)
+                .padding(.leading, 20)
                 
-                // Archives Header
-                HStack {
-                    Text("Library")
-                        .font(.custom("OpenSans-SemiBold", size: 19))
-                        .foregroundColor(Color("TextColor"))
+                ProfileTabView(selectedTab: $selectedTab)
+                    .padding(.horizontal, 15)
+                
+                TabView(selection: $selectedTab) {
+                    draftsGrid(for: .all)
+                        .tag(ProfileTab.all)
                     
-                    Spacer()
+                    draftsGrid(for: .favorited)
+                        .tag(ProfileTab.favorited)
                     
-                    ZStack {
-                        Rectangle()
-                            .frame(width: 80, height: 30)
-                            .cornerRadius(10)
-                            .foregroundColor(Color("BubbleColor"))
-                        Button { showFilterOptions.toggle() } label: {
-                            HStack(spacing: 5) {
-                                Text("Filter")
-                                    .font(.custom("OpenSans-Regular", size: 15))
-                                    .foregroundColor(Color("TextColor"))
-                                Image("filterIcon")
-                                    .frame(width: 15, height: 15)
-                            }
-                        }
-                    }
-                    .popover(isPresented: $showFilterOptions) {
-                        FilterOptionsView(selection: $selectedFilter)
-                            .presentationCompactAdaptation(.popover)
-                    }
+                    draftsGrid(for: .published)
+                        .tag(ProfileTab.published)
+                    
+                    draftsGrid(for: .hidden)
+                        .tag(ProfileTab.hidden)
                 }
-                
-                draftsGrid
-                    .animation(.easeInOut, value: userViewModel.cardLoadingState)
+                .tabViewStyle(.page(indexDisplayMode: .never))
+                .padding(.horizontal, 20)
                 
                 Spacer()
             }
-            .padding(.horizontal, 20)
             .background(Color("AppBackgroundColor"))
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
@@ -120,38 +95,37 @@ struct ProfileView: View {
             SettingsView()
         }
     }
-
-    private var draftsGrid: some View {
-        Group {
-            switch userViewModel.cardLoadingState {
-            case .loading:
-                // Use 12 fake items to show 12 skeletons
-                ResponsiveGridView(items: (1...12).map { FakeItem(id: $0) }) { _ in
-                    SkeletonCardView()
-                }
-                
-            case .complete:
-                ResponsiveGridView(items: filteredDrafts) { draft in
-                    CardView(draft: draft)
-                }
-                
-            case .empty:
-                ZStack {
-                    Image("noDrafts")
-                        .resizable()
-                        .frame(width: 200, height: 200)
-                }
-            case .error:
-                ZStack {
-                    Text("An error occured :(")
-                        .font(.custom("OpenSans-Regular", size: 18))
-                }
-                .padding(.vertical, 10)
-            }
-        }
-    }
     
-    struct FakeItem: Identifiable {
-        let id: Int
+    @ViewBuilder
+    private func draftsGrid(for tab: ProfileTab) -> some View {
+        let filteredData: [Draft] = {
+            let allSorted = userViewModel.drafts.sorted { $0.timestamp > $1.timestamp }
+            switch tab {
+            case .all: return allSorted
+            case .favorited: return allSorted.filter { $0.isFavorited }
+            case .published: return allSorted.filter { $0.isPublished }
+            case .hidden: return allSorted.filter { $0.isHidden }
+            }
+        }()
+
+        switch userViewModel.cardLoadingState {
+        case .loading:
+            ResponsiveGridView(items: (1...12).map { FakeItem(id: $0) }) { _ in
+                SkeletonCardView()
+            }
+        case .complete:
+            ResponsiveGridView(items: filteredData) { draft in
+                CardView(draft: draft)
+            }
+        case .empty:
+            VStack {
+                Image("noDrafts")
+                    .resizable()
+                    .frame(width: 200, height: 200)
+            }
+        case .error:
+            Text("An error occurred :(")
+                .font(.custom("OpenSans-Regular", size: 18))
+        }
     }
 }

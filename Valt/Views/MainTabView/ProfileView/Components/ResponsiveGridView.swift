@@ -13,9 +13,14 @@ struct ResponsiveGridView<Content: View, T: Identifiable>: View {
                     content(item)
                 }
             }
-            .padding(.horizontal, 10)
+            .padding(.horizontal, 5)
             .padding(.vertical, 5)
         }
         .scrollIndicators(.hidden)
     }
+}
+
+
+struct FakeItem: Identifiable {
+    let id: Int
 }

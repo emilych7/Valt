@@ -60,29 +60,23 @@ final class UserViewModel: ObservableObject {
 
     // Grabs current username
     func fetchAuthenticatedUsername() async {
-        guard let uid = Auth.auth().currentUser?.uid else {
-            print("User not authenticated")
-            return
-        }
-        let q = Firestore.firestore()
-            .collection("usernames")
-            .whereField("userID", isEqualTo: uid)
+        guard let uid = Auth.auth().currentUser?.uid else { return }
+        let q = Firestore.firestore().collection("usernames").whereField("userID", isEqualTo: uid)
 
         do {
-            // Cache-first
+            print("Trying cache first...")
             if let cached = try? await q.getDocuments(source: .cache).documents.first {
                 self.username = cached.documentID
             }
-            // Server refresh
+            print("Trying server fetch...")
             let fresh = try await q.getDocuments(source: .server)
             if let doc = fresh.documents.first {
                 self.username = doc.documentID
-            } else {
-                print("No username found for user ID: \(uid)")
             }
         } catch {
-            print("Error fetching username: \(error.localizedDescription)")
-            self.userLoadingState = .error(error.localizedDescription)
+            if self.username == "@username" {
+                print("Server fetch failed and no cache available: \(error.localizedDescription)")
+            }
         }
     }
     

@@ -23,6 +23,12 @@ struct CardView: View {
                         if draft.isFavorited {
                             StatusIcon(name: "Favorite-Active")
                         }
+                        if draft.isPublished {
+                            StatusIcon(name: "publishIcon")
+                        }
+                        if draft.isHidden {
+                            StatusIcon(name: "hideIcon")
+                        }
                     }
                     .padding([.top, .trailing], 6)
 
@@ -35,12 +41,16 @@ struct CardView: View {
                 .padding(8)
             }
             .aspectRatio(0.7, contentMode: .fit)
-            // .shadow(color: .black.opacity(0.15), radius: 3, x: 0, y: 2)
             .onTapGesture { showFullNote = true }
 
-            Text(draft.timestamp.formatted(.dateTime.month().day().year(.defaultDigits)))
-                .font(.custom("OpenSans-Regular", size: 8))
-                .foregroundColor(Color("TextColor").opacity(0.6))
+            Text(draft.timestamp.formatted(
+                .dateTime
+                    .month(.defaultDigits)
+                    .day(.defaultDigits)
+                    .year(.twoDigits)
+            ))
+            .font(.custom("OpenSans-Regular", size: 11))
+            .foregroundColor(Color("TextColor"))
         }
         .fullScreenCover(isPresented: $showFullNote) {
             FullNoteView(draft: draft)
