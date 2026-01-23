@@ -11,10 +11,9 @@ struct ResponsiveGridView<Content: View, T: Identifiable>: View {
             LazyVGrid(columns: columns, spacing: 15) {
                 ForEach(items) { item in
                     content(item)
-                        // .aspectRatio(1, contentMode: .fill)
                 }
             }
-            .padding(.horizontal, 5)
+            .padding(.horizontal, 10)
             .padding(.vertical, 5)
         }
         .scrollIndicators(.hidden)

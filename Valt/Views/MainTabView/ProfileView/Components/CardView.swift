@@ -10,10 +10,8 @@ struct CardView: View {
                 // Background Layer
                 RoundedRectangle(cornerRadius: 10)
                     .fill(Color("TextFieldBackground"))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color("TextColor").opacity(0.15), lineWidth: 1)
-                    )
+                    .stroke(Color("TextColor").opacity(0.50), lineWidth: 1)
+                    
                 
                 // Content Layer
                 VStack(spacing: 0) {
@@ -37,7 +35,7 @@ struct CardView: View {
                 .padding(8)
             }
             .aspectRatio(0.7, contentMode: .fit)
-            .shadow(color: .black.opacity(0.15), radius: 3, x: 0, y: 2)
+            // .shadow(color: .black.opacity(0.15), radius: 3, x: 0, y: 2)
             .onTapGesture { showFullNote = true }
 
             Text(draft.timestamp.formatted(.dateTime.month().day().year(.defaultDigits)))

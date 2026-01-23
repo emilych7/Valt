@@ -20,18 +20,34 @@ final class UserViewModel: ObservableObject {
     @Published var usernamePublishedDrafts: [Draft] = []
 
     private let repository: DraftRepositoryProtocol
+    private var authHandler: AuthStateDidChangeListenerHandle?
 
     init(repository: DraftRepositoryProtocol = DraftRepository()) {
         self.repository = repository
-
-        Task {
-            async let avatarTask:   Void = fetchProfilePicture()
-            async let usernameTask: Void = fetchAuthenticatedUsername()
-            async let countTask:    Void = fetchDraftCount()
-            async let pubCountTask: Void = fetchPublishedCount()
-            async let draftsTask:   Void = loadDrafts()
-            _ = await (avatarTask, usernameTask, countTask, pubCountTask, draftsTask)
+        
+        authHandler = Auth.auth().addStateDidChangeListener { [weak self] _, user in
+            guard let self = self, user != nil else { return }
+            Task {
+                await self.fetchAllData()
+            }
         }
+    }
+    
+    func fetchAllData() async {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            print("No authenticated user. No fetching data.")
+            return
+        }
+        
+        print("Starting authenticated fetch for: \(uid)")
+        
+        async let avatarTask:    Void = fetchProfilePicture()
+        async let usernameTask:  Void = fetchAuthenticatedUsername()
+        async let countTask:     Void = fetchDraftCount()
+        async let pubCountTask:  Void = fetchPublishedCount()
+        async let draftsTask:    Void = loadDrafts()
+        
+        _ = await (avatarTask, usernameTask, countTask, pubCountTask, draftsTask)
     }
     
     var currentUserEmail: String {
