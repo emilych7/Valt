@@ -25,13 +25,21 @@ final class UserViewModel: ObservableObject {
         self.repository = repository
 
         Task {
+            async let avatarTask:   Void = fetchProfilePicture()
             async let usernameTask: Void = fetchAuthenticatedUsername()
             async let countTask:    Void = fetchDraftCount()
             async let pubCountTask: Void = fetchPublishedCount()
             async let draftsTask:   Void = loadDrafts()
-            async let avatarTask:   Void = fetchProfilePicture()
-            _ = await (usernameTask, countTask, pubCountTask, draftsTask, avatarTask)
+            _ = await (avatarTask, usernameTask, countTask, pubCountTask, draftsTask)
         }
+    }
+    
+    var currentUserEmail: String {
+        Auth.auth().currentUser?.email ?? ""
+    }
+
+    var currentUserPhone: String {
+        Auth.auth().currentUser?.phoneNumber ?? ""
     }
 
     // Grabs current username
@@ -62,16 +70,9 @@ final class UserViewModel: ObservableObject {
         }
     }
     
-    var currentUserEmail: String {
-        Auth.auth().currentUser?.email ?? ""
-    }
-
-    var currentUserPhone: String {
-        Auth.auth().currentUser?.phoneNumber ?? ""
-    }
-
     // Uses Firestore aggregation count
     func fetchDraftCount() async {
+        print("Fetching draft count...")
         guard let userID = Auth.auth().currentUser?.uid else { return }
         do {
             let query = Firestore.firestore()
@@ -88,6 +89,7 @@ final class UserViewModel: ObservableObject {
     }
 
     func fetchPublishedCount() async {
+        print("Fetching published draft count...")
         guard let userID = Auth.auth().currentUser?.uid else { return }
         do {
             let query = Firestore.firestore()
@@ -105,6 +107,7 @@ final class UserViewModel: ObservableObject {
 
     // Loads drafts
     func loadDrafts() async {
+        print("Loading drafts...")
         guard let userID = Auth.auth().currentUser?.uid else { return }
         do {
             let asyncFetch: (String) async throws -> [Draft] = repository.fetchDrafts
@@ -138,7 +141,7 @@ final class UserViewModel: ObservableObject {
                 self.draftCount = self.drafts.count
                 self.cardLoadingState = (draftCount == 0) ? .empty : .complete
             }
-            print("Draft successfully deleted from Firestore and UI.")
+            print("Draft successfully deleted from Firestore and UI")
         } catch {
             print("Error deleting draft: \(error.localizedDescription)")
         }

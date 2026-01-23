@@ -43,7 +43,6 @@ struct ProfileView: View {
                     }
                     .buttonStyle(PlainButtonStyle())
                 }
-                .padding(.horizontal, 25)
                 .padding(.top, 20)
                 
                 // Profile section
@@ -52,15 +51,13 @@ struct ProfileView: View {
                         loadingState: userViewModel.userLoadingState,
                         profileImage: localProfileImage
                     )
-                        .onTapGesture { isPhotoPickerPresented = true }
-                        .photosPicker(
-                            isPresented: $isPhotoPickerPresented,
-                            selection: $selectedItem,
-                            matching: .images,         
-                            photoLibrary: .shared()
-                        )
-
-                    // Handle selection -> upload
+                    .onTapGesture { isPhotoPickerPresented = true }
+                    .photosPicker(
+                        isPresented: $isPhotoPickerPresented,
+                        selection: $selectedItem,
+                        matching: .images,
+                        photoLibrary: .shared()
+                    )
                     .onChange(of: selectedItem) { _, newValue in
                         Task {
                             guard
@@ -68,33 +65,24 @@ struct ProfileView: View {
                                 let data = try? await item.loadTransferable(type: Data.self),
                                 let uiImage = UIImage(data: data)
                             else { return }
-                            await userViewModel.uploadProfilePicture(uiImage) // async VM method
+                            await userViewModel.uploadProfilePicture(uiImage) // async
                         }
                     }
                     
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text("\(userViewModel.username)")
-                            .font(.custom("OpenSans-SemiBold", size: 23))
-                        
-                        Text("\(userViewModel.draftCount) drafts")
-                            .font(.custom("OpenSans-Regular", size: 16))
-                        
-                        Text("\(userViewModel.publishedDraftCount) published")
-                            .font(.custom("OpenSans-Regular", size: 16))
-                    }
-                    .padding(.horizontal, 5)
-                    .foregroundColor(Color("TextColor"))
+                    UserInfoView(userViewModel: userViewModel)
                     
                     Spacer()
                 }
-                .padding(.horizontal, 35)
+                .padding(.leading, 30)
                 
                 // Archives Header
                 HStack {
-                    Text("Archives")
-                        .font(.custom("OpenSans-SemiBold", size: 18))
+                    Text("Library")
+                        .font(.custom("OpenSans-SemiBold", size: 19))
                         .foregroundColor(Color("TextColor"))
+                    
                     Spacer()
+                    
                     ZStack {
                         Rectangle()
                             .frame(width: 80, height: 30)
@@ -103,7 +91,7 @@ struct ProfileView: View {
                         Button { showFilterOptions.toggle() } label: {
                             HStack(spacing: 5) {
                                 Text("Filter")
-                                    .font(.custom("OpenSans-Regular", size: 14))
+                                    .font(.custom("OpenSans-Regular", size: 15))
                                     .foregroundColor(Color("TextColor"))
                                 Image("filterIcon")
                                     .frame(width: 15, height: 15)
@@ -115,46 +103,13 @@ struct ProfileView: View {
                             .presentationCompactAdaptation(.popover)
                     }
                 }
-                .padding(.top, 5)
-                .padding(.horizontal, 25)
                 
-                switch userViewModel.cardLoadingState {
-                case .loading:
-                    CardLoadingView()
-                case .empty:
-                    ZStack {
-                        Image("noDrafts")
-                            .resizable()
-                            .frame(width: 220, height: 220)
-                            .padding()
-                    }
-                    .padding(.vertical, 10)
-                case .error:
-                    ZStack {
-                        Text("An error occured :(")
-                            .font(.custom("OpenSans-Regular", size: 18))
-                    }
-                    .padding(.vertical, 10)
-                case .complete:
-                    
-                    // Drafts Grid
-                    ScrollView {
-                        LazyVGrid(columns: [
-                            GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())
-                        ], spacing: 20) {
-                            ForEach(filteredDrafts) { draft in
-                                CardView(draftID: draft.id)
-                            }
-                        }
-                        .padding(.horizontal, 25)
-                        .padding(.vertical, 10)
-                    }
-                    .scrollIndicators(.hidden)
-                    Spacer()
-                }
+                draftsGrid
+                    .animation(.easeInOut, value: userViewModel.cardLoadingState)
                 
                 Spacer()
             }
+            .padding(.horizontal, 20)
             .background(Color("AppBackgroundColor"))
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
@@ -164,5 +119,39 @@ struct ProfileView: View {
         .fullScreenCover(isPresented: $showSettings) {
             SettingsView()
         }
+    }
+
+    private var draftsGrid: some View {
+        Group {
+            switch userViewModel.cardLoadingState {
+            case .loading:
+                // Use 12 fake items to show 12 skeletons
+                ResponsiveGridView(items: (1...12).map { FakeItem(id: $0) }) { _ in
+                    SkeletonCardView()
+                }
+                
+            case .complete:
+                ResponsiveGridView(items: filteredDrafts) { draft in
+                    CardView(draft: draft)
+                }
+                
+            case .empty:
+                ZStack {
+                    Image("noDrafts")
+                        .resizable()
+                        .frame(width: 200, height: 200)
+                }
+            case .error:
+                ZStack {
+                    Text("An error occured :(")
+                        .font(.custom("OpenSans-Regular", size: 18))
+                }
+                .padding(.vertical, 10)
+            }
+        }
+    }
+    
+    struct FakeItem: Identifiable {
+        let id: Int
     }
 }

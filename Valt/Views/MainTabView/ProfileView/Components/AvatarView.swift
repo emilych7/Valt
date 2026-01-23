@@ -9,7 +9,7 @@ struct AvatarView: View {
             switch loadingState {
             case .loading:
                 Ellipse()
-                    .frame(width: 105, height: 105)
+                    .frame(width: 85, height: 85)
                     .foregroundColor(Color("BubbleColor"))
                     .overlay(ProgressView().frame(width: 25, height: 25))
                     
@@ -21,24 +21,23 @@ struct AvatarView: View {
                     Image(uiImage: uiImage)
                         .resizable()
                         .scaledToFill()
-                        .frame(width: 105, height: 105)
+                        .frame(width: 85, height: 85)
                         .clipShape(Ellipse())
                 } else {
                     placeholderView
                 }
             }
         }
-        .frame(width: 115, height: 115)
     }
     
     private var placeholderView: some View {
         Ellipse()
-            .frame(width: 105, height: 105)
+            .frame(width: 85, height: 85)
             .foregroundColor(Color("BubbleColor"))
             .overlay(
                 Image(systemName: "camera.fill")
-                    .foregroundColor(.gray)
-                    .font(.system(size: 24))
+                    .foregroundColor(Color("TextColor"))
+                    .font(.system(size: 20))
             )
     }
 }
