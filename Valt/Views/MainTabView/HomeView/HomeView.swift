@@ -2,10 +2,10 @@ import SwiftUI
 
 @MainActor
 struct HomeView: View {
-    @FocusState private var isTextFieldFocused: Bool
     @EnvironmentObject private var userViewModel: UserViewModel
     @EnvironmentObject private var bannerManager: BannerManager
     @StateObject private var viewModel: HomeViewModel
+    @FocusState private var isTextFieldFocused: Bool
     
     init(userViewModel: UserViewModel) {
         _viewModel = StateObject(wrappedValue: HomeViewModel(userViewModel: userViewModel))
@@ -26,8 +26,8 @@ struct HomeView: View {
                 .transition(.scale.combined(with: .opacity))
                 
             }
-            .padding(.horizontal, 25)
             .padding(.top, 20)
+            .padding(.horizontal, 20)
             .padding(.bottom, 10)
             
             // Note Editor
@@ -37,7 +37,7 @@ struct HomeView: View {
                 if viewModel.draftText.isEmpty && !isTextFieldFocused {
                     Text("Start your draft here")
                         .font(.custom("OpenSans-Regular", size: 16))
-                        .foregroundColor(Color("TextColor").opacity(0.4))
+                        .foregroundColor(Color("TextColor").opacity(0.5))
                         .padding(.top, 8)
                         .padding(.leading, 5)
                 }
@@ -72,7 +72,6 @@ struct HomeView: View {
                     viewModel.draftText = ""
                 }
                 .foregroundColor(.red)
-                .font(.custom("OpenSans-Regular", size: 16))
                 
                 Spacer()
                 
@@ -89,11 +88,11 @@ struct HomeView: View {
                     saveAndDismiss()
                 }
                 .foregroundColor(Color("TextColor"))
-                .font(.custom("OpenSans-Bold", size: 16))
             }
             .padding(.horizontal, 25)
             .padding(.vertical, 12)
             .background(Color("TextFieldBackground"))
+            .font(.custom("OpenSans-Regular", size: 16))
         }
         .transition(.move(edge: .bottom))
         .animation(.easeOut(duration: 0.2), value: isTextFieldFocused)

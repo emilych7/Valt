@@ -8,7 +8,7 @@ struct SecurityView: View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
                 
-                CustomHeader(title: "Security", buttonTitle: "Exit") {
+                SettingsHeader(title: "Security", buttonTitle: "Exit") {
                     dismiss()
                 }
                 

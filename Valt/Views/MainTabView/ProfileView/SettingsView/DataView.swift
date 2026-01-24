@@ -9,7 +9,7 @@ struct DataView: View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
                 
-                CustomHeader(title: "Data Privacy", buttonTitle: "Exit") {
+                SettingsHeader(title: "Data Privacy", buttonTitle: "Exit") {
                     dismiss()
                 }
                 

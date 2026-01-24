@@ -1,28 +1,48 @@
 import SwiftUI
 
 struct PromptSuggestionView: View {
-    let prompt: String
-
+    @ObservedObject var viewModel: ExploreViewModel
+    
     var body: some View {
-        ZStack {
-            // Text content
-            Text(prompt)
-                .font(.custom("OpenSans-Regular", size: 17))
-                .foregroundColor(Color("TextColor"))
-                .lineLimit(4)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.leading, 60)   
-                .padding(.vertical, 10)
-                .padding(.trailing, 10)
+        VStack(spacing: 0) {
+            HStack (spacing: 8) {
+                Text("Suggestions")
+                    .font(.custom("OpenSans-SemiBold", size: 19))
+                    .foregroundColor(Color("TextColor"))
+                
+                Image("securityIcon")
+                    .resizable( )
+                    .frame(width: 15, height: 15)
+                Spacer()
+            }
+            .padding(.horizontal, 25)
+            .padding(.bottom, 10)
+            
+            PromptGeneratorContainer(prompts: viewModel.generatedPrompts)
+            
+            generateButton
         }
-        // Pin the icon to a fixed spot
-        .overlay(alignment: .topLeading) {
-            Image("editIcon")
-                .resizable()
-                .frame(width: 25, height: 25)
-                .padding(.top, 15)
-                .padding(.leading, 15)
+        .transition(.move(edge: .bottom).combined(with: .opacity))
+    }
+    
+    private var generateButton: some View {
+        Button {
+            viewModel.generatePromptFromOwnDrafts()
+        } label: {
+            HStack(spacing: 10) {
+                Text("Regenerate Prompts")
+                    .font(.custom("OpenSans-SemiBold", size: 17))
+                    .foregroundColor(.white)
+                Image("Refresh")
+                    .resizable()
+                    .frame(width: 15, height: 15)
+            }
+            .frame(height: 50)
+            .frame(maxWidth: .infinity)
+            .background(Color("RequestButtonColor"))
+            .cornerRadius(12)
         }
-        .frame(maxWidth: .infinity, minHeight: 70, alignment: .topLeading)
+        .padding(.horizontal, 25)
+        .padding(.bottom, 20)
     }
 }

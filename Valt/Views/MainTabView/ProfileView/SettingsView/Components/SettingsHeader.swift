@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct CustomHeader: View {
+struct SettingsHeader: View {
     let title: String
     let buttonTitle: String
     let action: () -> Void

@@ -6,7 +6,7 @@ struct UpdateAppearanceView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            CustomHeader(title: "Change Appearance", buttonTitle: "Exit") {
+            SettingsHeader(title: "Change Appearance", buttonTitle: "Exit") {
                 dismiss()
             }
             

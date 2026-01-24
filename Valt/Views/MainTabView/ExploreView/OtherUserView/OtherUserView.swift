@@ -1,7 +1,11 @@
-//
-//  OtherUserNote.swift
-//  Valt
-//
-//  Created by Emily Chrisann Hernandez on 12/27/25.
-//
+import SwiftUI
 
+struct OtherUserView: View {
+    var body: some View {
+        Text("Hello, world!")
+    }
+}
+
+#Preview {
+    OtherUserView()
+}

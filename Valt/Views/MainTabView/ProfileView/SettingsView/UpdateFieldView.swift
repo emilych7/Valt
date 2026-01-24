@@ -17,7 +17,7 @@ struct UpdateFieldView: View {
     var body: some View {
         ScrollView {
         VStack(spacing: 0) {
-            CustomHeader(title: fieldType.title, buttonTitle: "Exit") {
+            SettingsHeader(title: fieldType.title, buttonTitle: "Exit") {
                 dismiss()
             }
             

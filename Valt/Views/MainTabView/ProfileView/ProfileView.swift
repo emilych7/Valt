@@ -16,24 +16,7 @@ struct ProfileView: View {
         ZStack {
             VStack(spacing: 0) {
                 // Header Section
-                HStack(spacing: 10) {
-                    Text("My Valt")
-                        .font(.custom("OpenSans-SemiBold", size: 24))
-                    Spacer()
-                    Button { showSettings = true } label: {
-                        ZStack {
-                            Ellipse()
-                                .frame(width: 40, height: 40)
-                                .foregroundColor(Color("BubbleColor"))
-                            Image("settingsIcon")
-                                .resizable()
-                                .frame(width: 24, height: 24)
-                        }
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                }
-                .padding(.top, 20)
-                .padding(.horizontal, 20)
+                MainHeader(title: "My Valt", image: "settingsIcon", action: toggleSettings)
                 
                 // Profile Info Section
                 HStack {
@@ -88,6 +71,12 @@ struct ProfileView: View {
         }
         .fullScreenCover(isPresented: $showSettings) {
             SettingsView()
+        }
+    }
+    
+    func toggleSettings() {
+        if showSettings != true {
+            showSettings = true
         }
     }
 }

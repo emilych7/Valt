@@ -9,7 +9,7 @@ struct PreferencesView: View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
                 
-                CustomHeader(title: "Account Preferences", buttonTitle: "Exit") {
+                SettingsHeader(title: "Account Preferences", buttonTitle: "Exit") {
                     dismiss()
                 }
                 

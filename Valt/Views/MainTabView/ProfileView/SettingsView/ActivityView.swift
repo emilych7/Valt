@@ -9,7 +9,7 @@ struct ActivityView: View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
                 
-                CustomHeader(title: "Activity", buttonTitle: "Exit") {
+                SettingsHeader(title: "Activity", buttonTitle: "Exit") {
                     dismiss()
                 }
                 

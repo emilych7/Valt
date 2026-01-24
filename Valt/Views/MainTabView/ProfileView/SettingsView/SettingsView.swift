@@ -10,7 +10,7 @@ struct SettingsView: View {
         NavigationView {
         VStack(spacing: 0) {
             
-            CustomHeader(title: "Settings", buttonTitle: "Exit") {
+            SettingsHeader(title: "Settings", buttonTitle: "Exit") {
                 dismiss()
             }
             
