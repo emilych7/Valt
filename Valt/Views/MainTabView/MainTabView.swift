@@ -5,7 +5,6 @@ struct MainTabView: View {
     @EnvironmentObject private var authViewModel: AuthViewModel
     @EnvironmentObject private var bannerManager: BannerManager
     @StateObject private var userViewModel = UserViewModel()
-    // @State private var showGlobalSettingsOverlay: Bool = false
     @State private var selection: ContentTabViewSelection = .home
 
     @Environment(\.colorScheme) var colorScheme
@@ -121,7 +120,6 @@ struct MainTabView: View {
         }
         .animation(.none, value: colorScheme)
     }
-
 }
 
 fileprivate extension UIImage {
