@@ -28,25 +28,8 @@ struct MainTabView: View {
 
                 // Profile tab
                 ProfileView(mainTabSelection: $selection)
+                    .tabItem { profileTabItemLabel() }
                     .tag(ContentTabViewSelection.profile)
-                    .tabItem {
-                        ZStack {
-                            Label {
-                                Text("Profile")
-                            } icon: {
-                                if let profilePicture = (userViewModel.profileImage)?.createTabItemLabelFromImage(selection == .profile) {
-                                    Image(uiImage: profilePicture)
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(width: 24, height: 24)
-                                        .clipShape(Circle())
-                                } else {
-                                    ContentTabViewSelection.profile.label
-                                }
-                            }
-                        }
-                        .animation(.none, value: colorScheme)
-                    }
             }
             .tint(Color("TextColor"))
             .environmentObject(userViewModel)
@@ -81,24 +64,7 @@ struct MainTabView: View {
                     .transition(.scale.combined(with: .opacity))
                 }
         }
-        // Tab Bar styling
-        .onAppear {
-            let appearance = UITabBarAppearance()
-            appearance.backgroundColor = UIColor(Color("AppBackgroundColor"))
-            appearance.shadowImage = UIImage()
-            appearance.shadowColor = .clear
-            appearance.stackedLayoutAppearance.selected.iconColor = UIColor(Color("TextColor"))
-            appearance.stackedLayoutAppearance.selected.titleTextAttributes = [
-                .font: UIFont(name: "OpenSans-Bold", size: 10) ?? UIFont.systemFont(ofSize: 10, weight: .semibold),
-                .foregroundColor: UIColor(Color("TextColor"))
-            ]
-            appearance.stackedLayoutAppearance.normal.iconColor = UIColor.systemGray
-            appearance.stackedLayoutAppearance.normal.titleTextAttributes = [
-                .font: UIFont(name: "OpenSans-Bold", size: 10) ?? UIFont.systemFont(ofSize: 10, weight: .semibold),
-                .foregroundColor: UIColor.systemGray
-            ]
-            UITabBar.appearance().scrollEdgeAppearance = appearance
-        }
+        .applyTabBarAppearance()
     }
     
     // Profile pic tab and label
@@ -119,24 +85,5 @@ struct MainTabView: View {
             }
         }
         .animation(.none, value: colorScheme)
-    }
-}
-
-fileprivate extension UIImage {
-    func createTabItemLabelFromImage(_ isSelected: Bool) -> UIImage? {
-        let imageSize = CGSize(width: 24, height: 24)
-        return UIGraphicsImageRenderer(size: imageSize).image { context in
-            let rect = CGRect(origin: .init(x: 0, y: 0), size: imageSize)
-            let clipPath = UIBezierPath(ovalIn: rect)
-            clipPath.addClip()
-            self.draw(in: rect)
-
-            if isSelected {
-                context.cgContext.setStrokeColor(UIColor.black.cgColor)
-                context.cgContext.setLineJoin(.round)
-                context.cgContext.setLineCap(.round)
-                clipPath.lineWidth = 3
-            }
-        }.withRenderingMode(.alwaysOriginal)
     }
 }

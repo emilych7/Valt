@@ -23,7 +23,7 @@ struct ExploreView: View {
         }
         .background(Color("AppBackgroundColor"))
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .animation(.spring(response: 0.35, dampingFraction: 0.8), value: isSearching)
+        .animation(.spring(response: 0.35, dampingFraction: 0.6), value: isSearching)
     }
 
     private var searchBarArea: some View {
@@ -31,7 +31,7 @@ struct ExploreView: View {
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color("TextFieldBackground"))
                 .frame(height: 50)
-                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color("TextColor").opacity(0.50), lineWidth: 1))
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color("TextColor").opacity(0.2), lineWidth: 1))
 
             HStack(spacing: 8) {
                 Image("searchIcon")

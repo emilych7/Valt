@@ -14,7 +14,6 @@ protocol DraftRepositoryProtocol {
 final class DraftRepository: DraftRepositoryProtocol {
     let db = Firestore.firestore()
 
-    // MARK: - Search usernames (prefix)
     func searchUsernames(prefix: String, limit: Int = 15) async throws -> [String] {
         let q = prefix.lowercased()
         if q.isEmpty { return [] }
@@ -33,9 +32,7 @@ final class DraftRepository: DraftRepositoryProtocol {
         return snapshot.documents.map { $0.documentID }
     }
 
-    // MARK: - Published drafts by username
     func fetchPublishedDrafts(forUsername username: String) async throws -> [Draft] {
-        // 1) Resolve username -> userID
         let usersQuery = db.collection("users")
             .whereField("username", isEqualTo: username)
             .limit(to: 1)
@@ -44,7 +41,7 @@ final class DraftRepository: DraftRepositoryProtocol {
         guard let userDoc = userSnap.documents.first else { return [] }
         let userID = userDoc.documentID
 
-        // 2) Get published drafts for that userID
+        // Get published drafts for that userID
         let snapshot = try await db.collection("drafts")
             .whereField("userID", isEqualTo: userID)
             .whereField("isPublished", isEqualTo: true)
@@ -67,7 +64,7 @@ final class DraftRepository: DraftRepositoryProtocol {
         }
     }
 
-    // MARK: - Fetch all drafts for a user (async)
+    // Fetch all drafts for a user
     func fetchDrafts(for userID: String) async throws -> [Draft] {
         let snapshot = try await db.collection("drafts")
             .whereField("userID", isEqualTo: userID)
@@ -90,7 +87,7 @@ final class DraftRepository: DraftRepositoryProtocol {
         }
     }
 
-    // MARK: - Fetch drafts by username (resolves to userID)
+    // Fetch drafts by username (resolves to userID)
     func fetchDraftsForUsername(username: String) async throws -> [Draft] {
         let usersQuery = db.collection("users")
             .whereField("username", isEqualTo: username)
@@ -104,7 +101,6 @@ final class DraftRepository: DraftRepositoryProtocol {
         return try await fetchDrafts(for: userID)
     }
 
-    // MARK: - CRUD
     func deleteDraft(draftID: String) async throws {
         try await db.collection("drafts").document(draftID).delete()
     }

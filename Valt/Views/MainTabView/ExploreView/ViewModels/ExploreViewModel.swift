@@ -3,7 +3,7 @@ import FirebaseAuth
 
 @MainActor
 final class ExploreViewModel: ObservableObject {
-    @Published var generatedPrompts: [String] = ["Come back when you have at least 3 notes..."]
+    @Published var generatedPrompts: [String] = []
     @Published var isLoading: Bool = false
 
     // Search state
@@ -66,37 +66,16 @@ final class ExploreViewModel: ObservableObject {
         }
     }
 
-    // Generate prompt from current user’s own drafts (async/await)
-    func generatePromptFromOwnDrafts() {
+    func generatePromptFromOwnDrafts(with drafts: [Draft]) {
+        print("Generating prompts with \(drafts.count) drafts...")
         isLoading = true
 
-        guard let userID = Auth.auth().currentUser?.uid else {
-            print("User is not logged in.")
-            generatedPrompts = ["You need to be logged in."]
-            isLoading = false
+        guard drafts.count >= 3 else {
+            self.generatedPrompts = ["Create at least three drafts to get a personalized prompt."]
+            self.isLoading = false
             return
         }
-
-        Task { [weak self] in
-            guard let self = self else { return }
-            do {
-                // Explicitly select the async overload
-                let asyncFetch: (String) async throws -> [Draft] = self.repository.fetchDrafts
-                let drafts = try await asyncFetch(userID)
-
-                guard drafts.count >= 3 else {
-                    self.generatedPrompts = ["Create at least three drafts to get a personalized prompt."]
-                    self.isLoading = false
-                    return
-                }
-
-                self.generatePrompt(from: drafts)
-            } catch {
-                print("Error fetching drafts:", error.localizedDescription)
-                self.generatedPrompts = ["Failed to load your drafts."]
-                self.isLoading = false
-            }
-        }
+        self.generatePrompt(from: drafts)
     }
 
     // Generate prompt from selected username’s published drafts
@@ -121,20 +100,21 @@ final class ExploreViewModel: ObservableObject {
             1.  **Generate Exactly 5 Unique and Creative Writing Prompts:** You must return a list of five distinct prompts. Do not return more or less than five.
             2.  **Follow Prompt Guidelines:** Each of the 5 prompts must adhere to the following rules:
                 * **Format:** It must be a single question.
-                * **Length:** It must be 15 words or less.
+                * **Length:** It must be between 10-15 words. 
                 * **Perspective:** It should be framed to elicit a first-person response, like a personal narrative or diary entry.
-                * **Tone:** The question should sound like it's coming from an insightful, 25-year-old best friend. It should be abstract yet easy to understand for an 18-30 year old demographic. The user should feel like the question is personalized for them.
+                * **Tone:** The question should sound like it's coming from a bestfriend seeking a psychological perspective. It should be easy to understand for an 18-24 year old demographic. The user should feel like the question is personalized for them, because the point of the questions are to help them dig deeper into the thoughts contained in the drafts.
                 * **Goal:** Inspire the user to expand on themes from their drafts and reveal more about their thoughts and feelings. Avoid generic questions. The new prompt should also be framed as a question that gets them to respond in the first person like a personal narrative or diary entry. The new prompt should inspire the reader to want to expand on the strongest themes and deepest content from the drafts.
             3.  **Output Format:** Your response MUST be a single JSON object. This object must have a single key named "prompts", whose value is an array of the 5 generated prompt strings.
 
             **Example JSON Output:**
             {
               "prompts": [
-                "What's a belief you hold that feels uniquely yours?",
-                "If you wrote a letter to your younger self, what would it confess?",
-                "Describe a moment you felt completely understood without words.",
-                "What fear are you most proud of overcoming?",
-                "How has a past failure secretly shaped your success?"
+                "What’s the most recent time you felt unconditional love for someone?",
+                "What dream reoccurs for you?",
+                "How would you describe the last summer to yourself in 10 years? ",
+                "Describe your morning routine.",
+                "List everyone who has done you right.",
+                "How do you get yourself together after crashing out?"
               ]
             }
 
