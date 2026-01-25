@@ -3,8 +3,20 @@ import SwiftUI
 struct OnBoardingView: View {
     @EnvironmentObject private var onBoardingViewModel: OnBoardingViewModel
     @EnvironmentObject private var authViewModel: AuthViewModel
+    @EnvironmentObject private var userViewModel: UserViewModel
 
     var body: some View {
+        ZStack {
+            contentLayer
+                .disabled(userViewModel.userLoadingState == .loading)
+
+            if userViewModel.userLoadingState == .loading {
+                loadingOverlay
+            }
+        }
+    }
+
+    private var contentLayer: some View {
         OffsetPageTabView(offset: $onBoardingViewModel.offset) {
             HStack(spacing: 0) {
                 ForEach(boardingScreens) { screen in
@@ -22,6 +34,21 @@ struct OnBoardingView: View {
         }
     }
 
+    private var loadingOverlay: some View {
+        ZStack {
+            Color(.clear)
+                .ignoresSafeArea()
+            
+            VStack(spacing: 15) {
+                ProgressView()
+                    .controlSize(.regular)
+                    .tint(Color("TextColor"))
+            }
+        }
+        .transition(.opacity)
+        .zIndex(1)
+    }
+
     private var ellipseBackground: some View {
         Ellipse()
             .fill(Color("TextFieldBackground"))
@@ -30,7 +57,6 @@ struct OnBoardingView: View {
             .rotationEffect(.degrees(-30))
             .rotationEffect(.degrees(onBoardingViewModel.getRotation()))
             .offset(y: -onBoardingViewModel.getScreenBounds().width + 35)
-            // .drawingGroup()
             .ignoresSafeArea(.keyboard)
     }
 

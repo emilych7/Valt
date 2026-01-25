@@ -7,6 +7,7 @@ class AuthViewModel: ObservableObject {
     @Published var isAuthenticated: Bool = false
     @Published var isProfileComplete: Bool = false
     @Published var navigationMode: AppRoute = .onboarding
+    @Published var isLoading = false
     
     private var authHandle: AuthStateDidChangeListenerHandle?
     private let db = Firestore.firestore()

@@ -32,6 +32,7 @@ struct ContentView: View {
                 OnBoardingView()
                     .environmentObject(onBoardingViewModel)
                     .environmentObject(authViewModel)
+                    .environmentObject(userViewModel)
 
             case .login:
                 LoginView()

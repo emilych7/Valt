@@ -2,14 +2,43 @@ import SwiftUI
 
 struct PromptGeneratorContainer: View {
     let prompts: [String]
+    @ObservedObject var viewModel: ExploreViewModel
+    @EnvironmentObject var userViewModel: UserViewModel
+    
+    @State private var animateItems = false
     
     var body: some View {
         VStack(spacing: 15) {
-            ForEach(prompts.indices, id: \.self) { index in
-                PromptBox(prompt: prompts[index])
+            if animateItems && !prompts.isEmpty {
+                ForEach(prompts.indices, id: \.self) { index in
+                    PromptBox(prompt: prompts[index])
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .leading).combined(with: .opacity),
+                            removal: .opacity
+                        ))
+                        .animation(.spring(response: 0.6, dampingFraction: 0.8).delay(Double(index) * 0.1), value: animateItems)
+                }
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxWidth: .infinity)
+        .onChange(of: prompts) { oldValue, newValue in
+            animateItems = false
+            
+            if !newValue.isEmpty && newValue.first != "" {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    withAnimation {
+                        animateItems = true
+                    }
+                }
+            }
+        }
+        .onAppear {
+            if !prompts.isEmpty && prompts.first != "" {
+                withAnimation {
+                    animateItems = true
+                }
+            }
+        }
     }
 }
 

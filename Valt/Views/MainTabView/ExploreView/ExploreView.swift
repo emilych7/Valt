@@ -1,66 +1,74 @@
 import SwiftUI
-import FirebaseAuth
 
 struct ExploreView: View {
     @StateObject private var viewModel = ExploreViewModel()
     @State private var isSearching: Bool = false
     @FocusState private var isSearchFieldFocused: Bool
+    
+    enum ExploreTab {
+        case suggestions, search
+    }
+    @State private var activeTab: ExploreTab = .suggestions
 
     var body: some View {
         VStack(spacing: 0) {
-            MainHeader(title: isSearching ? "Search" : "Explore Prompts")
+            MainHeader(title: activeTab == .search ? "Search" : "Explore Prompts")
 
             searchBarArea
                 .padding(.horizontal, 25)
                 .padding(.vertical, 10)
 
-            if isSearching {
-                SearchView(viewModel: ExploreViewModel())
-                    .transition(.opacity)
-            } else {
-                PromptSuggestionView(viewModel: ExploreViewModel())
+            // Paged TabView
+            TabView(selection: $activeTab) {
+                PromptSuggestionView(viewModel: viewModel)
+                    .tag(ExploreTab.suggestions)
+                
+                SearchView(viewModel: viewModel)
+                    .tag(ExploreTab.search)
+            }
+            .tabViewStyle(.page(indexDisplayMode: .never))
+            // Disable swiping if the keyboard/cancel button should trigger it
+            .gesture(isSearchFieldFocused ? DragGesture() : nil)
+        }
+        .background(Color("AppBackgroundColor").ignoresSafeArea())
+        .onChange(of: activeTab) { _, newValue in
+            if newValue == .suggestions {
+                isSearchFieldFocused = false
+                isSearching = false
             }
         }
-        .background(Color("AppBackgroundColor"))
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .animation(.spring(response: 0.35, dampingFraction: 0.6), value: isSearching)
     }
 
     private var searchBarArea: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color("TextFieldBackground"))
-                .frame(height: 50)
-                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color("TextColor").opacity(0.2), lineWidth: 1))
-
-            HStack(spacing: 8) {
+        HStack {
+            HStack {
                 Image("searchIcon")
                     .resizable()
                     .frame(width: 15, height: 15)
 
                 TextField("Search for a username", text: $viewModel.searchText)
                     .focused($isSearchFieldFocused)
-                    .textInputAutocapitalization(.never)
-                    .disableAutocorrection(true)
-                    .font(.custom("OpenSans-Regular", size: 16))
-                    .foregroundColor(Color("TextColor"))
                     .onChange(of: isSearchFieldFocused) { _, isFocused in
-                        if isFocused { withAnimation { isSearching = true } }
-                    }
-                
-                if isSearching {
-                    Button("Cancel") {
-                        withAnimation {
-                            isSearching = false
-                            isSearchFieldFocused = false
-                            viewModel.searchText = ""
+                        if isFocused {
+                            withAnimation(.spring()) { activeTab = .search }
                         }
                     }
-                    .font(.custom("OpenSans-SemiBold", size: 14))
-                    .foregroundColor(Color("TextColor"))
-                }
             }
             .padding(.horizontal, 15)
+            .frame(height: 50)
+            .background(Color("TextFieldBackground"))
+            .cornerRadius(12)
+
+            if activeTab == .search {
+                Button("Cancel") {
+                    withAnimation(.spring()) {
+                        activeTab = .suggestions
+                        isSearchFieldFocused = false
+                        viewModel.searchText = ""
+                    }
+                }
+                .transition(.move(edge: .trailing).combined(with: .opacity))
+            }
         }
     }
 }

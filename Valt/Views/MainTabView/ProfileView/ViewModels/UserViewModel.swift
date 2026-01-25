@@ -40,7 +40,6 @@ final class UserViewModel: ObservableObject {
         }
         
         print("Starting authenticated fetch for: \(uid)")
-        
         async let avatarTask:    Void = fetchProfilePicture()
         async let usernameTask:  Void = fetchAuthenticatedUsername()
         async let countTask:     Void = fetchDraftCount()
