@@ -13,5 +13,6 @@ struct SearchView: View {
         .frame(maxWidth: .infinity)
         .cornerRadius(10)
         .padding(.horizontal, 20)
+        .background(Color("AppBackgroundColor"))
     }
 }

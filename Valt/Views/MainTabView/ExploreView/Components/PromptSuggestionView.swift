@@ -6,7 +6,24 @@ struct PromptSuggestionView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            headerRow
+            HStack {
+                HStack(spacing: 8) {
+                    Text("Suggestions")
+                        .font(.custom("OpenSans-SemiBold", size: 19))
+                        .foregroundColor(Color("TextColor"))
+                    
+                    if userViewModel.draftCount < 3 {
+                        Image("securityIcon")
+                            .resizable()
+                            .frame(width: 15, height: 15)
+                    }
+                }
+                Spacer()
+                if userViewModel.draftCount >= 3 {
+                    gptBadge
+                }
+            }
+            .padding(.vertical, 10)
             
             if userViewModel.draftCount < 3 {
                 lockedStateView
@@ -29,27 +46,6 @@ struct PromptSuggestionView: View {
         }
     }
 
-    private var headerRow: some View {
-        HStack {
-            HStack(spacing: 8) {
-                Text("Suggestions")
-                    .font(.custom("OpenSans-SemiBold", size: 19))
-                    .foregroundColor(Color("TextColor"))
-                
-                if userViewModel.draftCount < 3 {
-                    Image("securityIcon")
-                        .resizable()
-                        .frame(width: 15, height: 15)
-                }
-            }
-            Spacer()
-            if userViewModel.draftCount >= 3 {
-                gptBadge
-            }
-        }
-        .padding(.vertical, 10)
-    }
-
     private var lockedStateView: some View {
         VStack(alignment: .leading) {
             Text("Write 3 notes to unlock personalized prompt suggestions. The more you write, the more tailored they become.")
@@ -70,9 +66,17 @@ struct PromptSuggestionView: View {
                 .padding(.top, 5)
             
             if viewModel.showPrompts {
-                PromptGeneratorContainer(prompts: viewModel.generatedPrompts, viewModel: viewModel)
-                
-                regenerateButton
+                VStack (spacing: 10) {
+                    PromptGeneratorContainer(prompts: viewModel.generatedPrompts, viewModel: viewModel)
+                    
+                    // Spacer()
+                    
+                    writeButton
+                    
+                    regenerateButton
+                    
+                    Spacer()
+                }
             }
         }
     }
@@ -91,6 +95,7 @@ struct PromptSuggestionView: View {
         .background(
             RoundedRectangle(cornerRadius: 8)
                 .fill(Color.purple.opacity(0.3))
+                .stroke(Color("TextColor").opacity(0.20), lineWidth: 1)
         )
     }
     
@@ -98,15 +103,25 @@ struct PromptSuggestionView: View {
         Button {
             viewModel.generatePromptFromOwnDrafts(with: userViewModel.drafts)
         } label: {
-            buttonContent(text: "Refresh Prompts")
-                .background(Color("RequestButtonColor").opacity(0.3))
+            buttonContent(text: "Refresh Prompts", image: "Refresh")
+                .background(Color("RequestButtonColor"))
                 .cornerRadius(12)
         }
         .disabled(viewModel.isLoading)
-        .padding(.vertical, 10)
     }
-
-    private func buttonContent(text: String) -> some View {
+    
+    private var writeButton: some View {
+        Button {
+            //
+        } label: {
+            buttonContent(text: "Begin Drafting", image: "editIcon")
+                .background(Color("BubbleColor"))
+                .cornerRadius(12)
+        }
+        .disabled(viewModel.isLoading)
+    }
+    
+    private func buttonContent(text: String, image: String) -> some View {
         HStack(spacing: 10) {
             if viewModel.isLoading {
                 ProgressView().tint(.white)
@@ -114,7 +129,7 @@ struct PromptSuggestionView: View {
                 Text(text)
                     .font(.custom("OpenSans-SemiBold", size: 17))
                     .foregroundColor(.white)
-                Image("Refresh")
+                Image(image)
                     .resizable()
                     .frame(width: 15, height: 15)
             }

@@ -1,22 +1,29 @@
 import SwiftUI
 
+extension String: Identifiable {
+    public var id: String { self }
+}
+
 struct PromptGeneratorContainer: View {
     let prompts: [String]
     @ObservedObject var viewModel: ExploreViewModel
     @EnvironmentObject var userViewModel: UserViewModel
     
     @State private var animateItems = false
+    @State private var selectedPrompt: String?
     
     var body: some View {
         VStack(spacing: 15) {
             if animateItems && !prompts.isEmpty {
                 ForEach(prompts.indices, id: \.self) { index in
-                    PromptBox(prompt: prompts[index])
-                        .transition(.asymmetric(
-                            insertion: .move(edge: .leading).combined(with: .opacity),
-                            removal: .opacity
-                        ))
-                        .animation(.spring(response: 0.6, dampingFraction: 0.8).delay(Double(index) * 0.1), value: animateItems)
+                    PromptBox(prompt: prompts[index]){
+                        selectedPrompt = prompts[index]
+                    }
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .leading).combined(with: .opacity),
+                        removal: .opacity
+                    ))
+                    .animation(.spring(response: 0.6, dampingFraction: 0.8).delay(Double(index) * 0.1), value: animateItems)
                 }
             }
         }
@@ -39,18 +46,22 @@ struct PromptGeneratorContainer: View {
                 }
             }
         }
+        .fullScreenCover(item: $selectedPrompt) { prompt in
+            PromptNoteView(selectedPrompt: prompt)
+                .environmentObject(userViewModel)
+                .environmentObject(viewModel)
+        }
     }
 }
 
 struct PromptBox: View {
     let prompt: String
-    @State private var isSelected: Bool = false
-
+    var onTap: () -> Void
+    var isSelected: Bool = false
+    
     var body: some View {
         Button {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                isSelected.toggle()
-            }
+            onTap()
         } label: {
             HStack {
                 Text(prompt)

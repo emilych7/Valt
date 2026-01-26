@@ -59,7 +59,7 @@ final class DraftRepository: DraftRepositoryProtocol {
                 isHidden: data["isHidden"] as? Bool ?? false,
                 isArchived: data["isArchived"] as? Bool ?? false,
                 isPublished: data["isPublished"] as? Bool ?? false,
-                isPrompted: data["isPrompted"] as? Bool ?? false
+                prompt: data["prompt"] as? String ?? ""
             )
         }
     }
@@ -82,7 +82,7 @@ final class DraftRepository: DraftRepositoryProtocol {
                 isHidden: data["isHidden"] as? Bool ?? false,
                 isArchived: data["isArchived"] as? Bool ?? false,
                 isPublished: data["isPublished"] as? Bool ?? false,
-                isPrompted: data["isPrompted"] as? Bool ?? false
+                prompt: data["prompt"] as? String ?? "",
             )
         }
     }
@@ -120,7 +120,8 @@ final class DraftRepository: DraftRepositoryProtocol {
             "isHidden": draft.isHidden,
             "isArchived": draft.isArchived,
             "isPublished": draft.isPublished,
-            "isPrompted": draft.isPrompted
+            "prompt": draft.prompt
+            
         ]
         try await db.collection("drafts").document(draft.id).setData(data)
     }

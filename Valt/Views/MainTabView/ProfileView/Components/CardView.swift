@@ -10,16 +10,18 @@ struct CardView: View {
                 // Background Layer
                 RoundedRectangle(cornerRadius: 10)
                     .fill(Color("TextFieldBackground"))
-                    .stroke(Color("TextColor").opacity(0.50), lineWidth: 1)
+                    .stroke(Color("TextColor").opacity(0.20), lineWidth: 1)
                     
                 
                 // Content Layer
                 VStack(spacing: 0) {
                     HStack(spacing: 4) {
                         Spacer()
-                        if draft.isPrompted {
+                        /*
+                        if draft.prompt != nil {
                             StatusIcon(name: "promptsIcon")
                         }
+                         */
                         if draft.isFavorited {
                             StatusIcon(name: "Favorite-Active")
                         }

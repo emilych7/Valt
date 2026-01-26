@@ -1,15 +1,21 @@
 import SwiftUI
 
 struct ExploreView: View {
-    @StateObject private var viewModel = ExploreViewModel()
-    @State private var isSearching: Bool = false
-    @FocusState private var isSearchFieldFocused: Bool
+    @EnvironmentObject var userViewModel: UserViewModel
+    @StateObject private var viewModel: ExploreViewModel
     
+    @FocusState private var isSearchFieldFocused: Bool
+    @State private var isSearching: Bool = false
+    @State private var activeTab: ExploreTab = .suggestions
+
     enum ExploreTab {
         case suggestions, search
     }
-    @State private var activeTab: ExploreTab = .suggestions
-
+    
+    init(userViewModel: UserViewModel) {
+        _viewModel = StateObject(wrappedValue: ExploreViewModel(userViewModel: userViewModel))
+    }
+    
     var body: some View {
         VStack(spacing: 0) {
             MainHeader(title: activeTab == .search ? "Search" : "Explore Prompts")
@@ -27,8 +33,7 @@ struct ExploreView: View {
                     .tag(ExploreTab.search)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
-            // Disable swiping if the keyboard/cancel button should trigger it
-            .gesture(isSearchFieldFocused ? DragGesture() : nil)
+            .highPriorityGesture(DragGesture())
         }
         .background(Color("AppBackgroundColor").ignoresSafeArea())
         .onChange(of: activeTab) { _, newValue in
@@ -56,8 +61,11 @@ struct ExploreView: View {
             }
             .padding(.horizontal, 15)
             .frame(height: 50)
-            .background(Color("TextFieldBackground"))
-            .cornerRadius(12)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color("TextFieldBackground"))
+                    .stroke(Color("TextColor").opacity(0.20), lineWidth: 1)
+            )
 
             if activeTab == .search {
                 Button("Cancel") {

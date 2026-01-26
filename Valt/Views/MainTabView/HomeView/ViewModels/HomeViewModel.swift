@@ -45,7 +45,6 @@ final class HomeViewModel: ObservableObject {
             isHidden: false,
             isArchived: false,
             isPublished: false,
-            isPrompted: false,
         )
         
         Task {

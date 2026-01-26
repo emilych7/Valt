@@ -20,7 +20,7 @@ struct MainTabView: View {
                     .tag(ContentTabViewSelection.home)
 
                 // Prompts tab
-                ExploreView()
+                ExploreView(userViewModel: userViewModel)
                     .tabItem {
                         Label("Explore", image: "promptsIcon")
                     }

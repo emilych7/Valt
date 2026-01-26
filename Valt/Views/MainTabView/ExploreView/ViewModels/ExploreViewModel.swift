@@ -13,11 +13,19 @@ final class ExploreViewModel: ObservableObject {
     @Published var usernameSuggestions: [String] = []
     @Published var selectedUsername: String? = nil
     @Published var publishedDraftsForUser: [Draft] = []
+    
+    @Published var isEditing = false
+    @Published var isFavorited = false
+    @Published var prompt: String? = nil
+    @Published var draftText = ""
+    
+    private let userViewModel: UserViewModel
 
     private let repository: DraftRepositoryProtocol
     private var searchTask: Task<Void, Never>? // for debouncing
 
-    init(repository: DraftRepositoryProtocol = DraftRepository()) {
+    init(userViewModel: UserViewModel, repository: DraftRepositoryProtocol = DraftRepository()) {
+        self.userViewModel = userViewModel
         self.repository = repository
     }
 
@@ -219,4 +227,39 @@ final class ExploreViewModel: ObservableObject {
             }
             return firstChoice.message.content.trimmingCharacters(in: .whitespacesAndNewlines)
         }
+    
+    func saveDraftToFirebase() {
+        print("Starting to save to Firebase...")
+        guard let userID = Auth.auth().currentUser?.uid
+            else {
+                print("User is not authenticated.")
+                return
+        }
+        guard !draftText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            else {
+                print("Empty draft. Not saving")
+                return
+        }
+        
+        let newDraft = Draft(
+            id: UUID().uuidString,
+            userID: userID,
+            title: String(draftText.prefix(20)),
+            content: draftText,
+            timestamp: Date(),
+            isFavorited: isFavorited,
+            isHidden: false,
+            isArchived: false,
+            isPublished: false,
+            prompt: prompt
+        )
+        
+        Task {
+            print("Saved to Firebase")
+            self.draftText = ""
+            await userViewModel.addDraft(newDraft)
+            self.isFavorited = false
+            self.isEditing = false
+        }
+    }
 }

@@ -1,16 +1,15 @@
 import SwiftUI
 
-@MainActor
-struct HomeView: View {
+struct PromptNoteView: View {
+    @Environment(\.dismiss) var dismiss
     @EnvironmentObject private var userViewModel: UserViewModel
     @EnvironmentObject private var bannerManager: BannerManager
-    @StateObject private var viewModel: HomeViewModel
+    @EnvironmentObject private var viewModel: ExploreViewModel
+    
     @FocusState private var isTextFieldFocused: Bool
     
-    init(userViewModel: UserViewModel) {
-        _viewModel = StateObject(wrappedValue: HomeViewModel(userViewModel: userViewModel))
-    }
-
+    let selectedPrompt: String
+    
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 10) {
@@ -25,23 +24,23 @@ struct HomeView: View {
                 }
                 .transition(.scale.combined(with: .opacity))
                 
+                HomeActionButton(icon: "exitIcon") {
+                    dismiss()
+                }
+                
             }
             .padding(.top, 20)
             .padding(.horizontal, 20)
             .padding(.bottom, 10)
             
             // Note Editor
-            ZStack(alignment: .topLeading) {
-                Color("AppBackgroundColor")
-                
-                if viewModel.draftText.isEmpty && !isTextFieldFocused {
-                    Text("Start your draft here")
-                        .font(.custom("OpenSans-Regular", size: 16))
-                        .foregroundColor(Color("TextColor").opacity(0.5))
-                        .padding(.top, 8)
-                        .padding(.leading, 5)
+            VStack(alignment: .leading, spacing: 15) {
+                HStack {
+                    Text(selectedPrompt)
+                        .font(.custom("OpenSans-SemiBold", size: 16))
+                        .foregroundColor(Color("TextColor").opacity(0.6))
+                    Spacer()
                 }
-                
                 TextEditor(text: $viewModel.draftText)
                     .font(.custom("OpenSans-Regular", size: 16))
                     .foregroundColor(Color("TextColor"))
@@ -86,10 +85,9 @@ struct HomeView: View {
     }
     
     private func saveAndDismiss() {
-        if !viewModel.draftText.isEmpty {
-            viewModel.saveDraftToFirebase()
-            bannerManager.show("Saved Draft")
-            isTextFieldFocused = false // Dismiss keyboard
-        }
+        viewModel.prompt = selectedPrompt
+        viewModel.saveDraftToFirebase()
+        isTextFieldFocused = false
+        dismiss()
     }
 }

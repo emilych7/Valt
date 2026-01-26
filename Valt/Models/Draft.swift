@@ -10,7 +10,11 @@ struct Draft: Identifiable {
     var isHidden: Bool
     var isArchived: Bool
     var isPublished: Bool
-    var isPrompted: Bool
+    
+    var prompt: String?
+    var isPrompted: Bool {
+        prompt != nil
+    }
     
     // Allows updating a field by name
     mutating func updateField(key: String, value: Any) {
@@ -31,8 +35,8 @@ struct Draft: Identifiable {
             self.isArchived = value as? Bool ?? self.isArchived
         case "isPublished":
             self.isPublished = value as? Bool ?? self.isPublished
-        case "isPrompted":
-            self.isPrompted = value as? Bool ?? self.isPrompted
+        case "prompt":
+            self.prompt = value as? String
         default:
             break
         }

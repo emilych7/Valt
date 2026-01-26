@@ -16,6 +16,7 @@ struct FullNoteView: View {
     @State private var showDeleteConfirmation = false
     @State private var editedContent: String
     
+    
     init(draft: Draft) {
         self.draft = draft
         _editedContent = State(initialValue: draft.content)
@@ -136,11 +137,19 @@ struct FullNoteView: View {
                 VStack(alignment: .leading, spacing: 15) {
                     HStack {
                         Text(formattedDate)
-                            .font(.custom("OpenSans-SemiBold", size: 16))
+                            .font(.custom("OpenSans-SemiBold", size: 15))
                             .foregroundColor(Color("TextColor").opacity(0.7))
                         Spacer()
                     }
-
+                    if let promptText = draft.prompt {
+                        HStack {
+                            Text(promptText)
+                                .font(.custom("OpenSans-SemiBold", size: 16))
+                                .foregroundColor(Color("TextColor").opacity(0.6))
+                            Spacer()
+                        }
+                    }
+        
                     TextEditor(text: $editedContent)
                         .focused($isTextFieldFocused)
                         .font(.custom("OpenSans-Regular", size: 16))
@@ -148,11 +157,49 @@ struct FullNoteView: View {
                         .scrollContentBackground(.hidden)
                         .background(Color.clear)
                 }
-                .padding(.horizontal, 30)
+                .padding(.horizontal, 25)
 
                 Spacer()
             }
             .background(Color("AppBackgroundColor"))
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    HStack {
+                        Button("Clear") {
+                            editedContent = ""
+                        }
+                        .foregroundColor(.red)
+                        
+                        Spacer()
+                        
+                        Button {
+                            isTextFieldFocused = false
+                        } label: {
+                            Image(systemName: "keyboard.chevron.compact.down")
+                                .foregroundColor(Color("TextColor"))
+                        }
+                        
+                        Spacer()
+                        
+                        Button("Save") {
+                            Task {
+                                if editedContent != draft.content {
+                                    await userViewModel.updateDraft(
+                                        draftID: draft.id,
+                                        updatedFields: ["content": editedContent, "timestamp": Date()]
+                                    )
+                                    withAnimation { dismiss() }
+                                    bannerManager.show("Saved")
+                                } else {
+                                    dismiss()
+                                }
+                            }
+                        }
+                        .foregroundColor(Color("TextColor"))
+                    }
+                    .font(.custom("OpenSans-Regular", size: 16))
+                }
+            }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .alert("Delete Draft?", isPresented: $showDeleteConfirmation) {
                 Button("Delete", role: .destructive) {
@@ -166,33 +213,6 @@ struct FullNoteView: View {
             } message: {
                 Text("Are you sure you want to permanently delete this draft?")
             }
-        
-        .safeAreaInset(edge: .bottom) {
-            if isTextFieldFocused {
-                HStack {
-                    
-                    Spacer()
-                    
-                    Button {
-                        dismissKeyboardSmoothly()
-                    } label: {
-                        Image(systemName: "keyboard.chevron.compact.down")
-                            .resizable()
-                            .foregroundColor(Color("TextColor"))
-                            .frame(width: 25, height: 20)
-                    }
-                    .padding(.horizontal, 20)
-                    
-                    Spacer()
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 10)
-                .background(Color("TextFieldBackground").ignoresSafeArea())
-                .transition(.move(edge: .bottom))
-                .animation(.easeInOut(duration: 0.10), value: isTextFieldFocused)
-            }
-        }
     }
     
     func dismissKeyboardSmoothly() {
