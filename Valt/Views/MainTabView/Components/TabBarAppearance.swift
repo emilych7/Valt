@@ -10,7 +10,7 @@ struct TabBarAppearance: ViewModifier {
         appearance.shadowImage = UIImage()
         appearance.shadowColor = .clear
         
-        let boldFont = UIFont(name: "OpenSans-Bold", size: 10) ?? UIFont.systemFont(ofSize: 10, weight: .bold)
+        let boldFont = UIFont(name: "OpenSans-Bold", size: 11) ?? UIFont.systemFont(ofSize: 11, weight: .regular)
         
         // Selected State
         appearance.stackedLayoutAppearance.selected.iconColor = UIColor(Color("TextColor"))
@@ -18,7 +18,7 @@ struct TabBarAppearance: ViewModifier {
             .font: boldFont,
             .foregroundColor: UIColor(Color("TextColor"))
         ]
-        
+         
         // Unselected State
         appearance.stackedLayoutAppearance.normal.iconColor = UIColor.systemGray
         appearance.stackedLayoutAppearance.normal.titleTextAttributes = [

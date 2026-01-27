@@ -1,9 +1,5 @@
 import SwiftUI
 
-extension String: Identifiable {
-    public var id: String { self }
-}
-
 struct PromptGeneratorContainer: View {
     let prompts: [String]
     @ObservedObject var viewModel: ExploreViewModel
@@ -13,81 +9,121 @@ struct PromptGeneratorContainer: View {
     @State private var selectedPrompt: String?
     
     var body: some View {
-        VStack(spacing: 15) {
-            if animateItems && !prompts.isEmpty {
-                ForEach(prompts.indices, id: \.self) { index in
-                    PromptBox(prompt: prompts[index]){
-                        selectedPrompt = prompts[index]
+        VStack(spacing: 0) {
+            if viewModel.isLoading {
+                SkeletonPromptView()
+            } else {
+                ScrollView {
+                    VStack(spacing: 15) {
+                        if animateItems && !prompts.isEmpty {
+                            ForEach(prompts.indices, id: \.self) { index in
+                                let prompt = prompts[index]
+                                
+                                PromptBox(
+                                    prompt: prompt,
+                                    isSelected: selectedPrompt == prompt
+                                ) {
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                        selectedPrompt = (selectedPrompt == prompt) ? nil : prompt
+                                    }
+                                }
+                            }
+                        }
                     }
-                    .transition(.asymmetric(
-                        insertion: .move(edge: .leading).combined(with: .opacity),
-                        removal: .opacity
-                    ))
-                    .animation(.spring(response: 0.6, dampingFraction: 0.8).delay(Double(index) * 0.1), value: animateItems)
+                    .frame(maxWidth: .infinity)
                 }
+                .scrollIndicators(.hidden)
+                .scrollBounceBehavior(.basedOnSize)
+            }
+        }
+        // Pinned button
+        .safeAreaInset(edge: .bottom) {
+            if selectedPrompt != nil && viewModel.isLoading == false {
+                WriteButton {
+                    viewModel.isPromptSelected = true
+                }
+                .padding(.bottom, 5)
+                .background(
+                    Color("AppBackgroundColor").opacity(0.8)
+                        // .blur(radius: 10)
+                        .ignoresSafeArea()
+                )
+                .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
         .frame(maxWidth: .infinity)
-        .onChange(of: prompts) { oldValue, newValue in
-            animateItems = false
-            
-            if !newValue.isEmpty && newValue.first != "" {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                    withAnimation {
-                        animateItems = true
-                    }
-                }
-            }
+        .onChange(of: prompts) { _, newValue in
+            handleAnimation(for: newValue)
         }
         .onAppear {
-            if !prompts.isEmpty && prompts.first != "" {
-                withAnimation {
-                    animateItems = true
-                }
-            }
+            handleAnimation(for: prompts)
         }
-        .fullScreenCover(item: $selectedPrompt) { prompt in
-            PromptNoteView(selectedPrompt: prompt)
+        .fullScreenCover(isPresented: $viewModel.isPromptSelected) {
+            PromptNoteView(selectedPrompt: selectedPrompt ?? "")
                 .environmentObject(userViewModel)
                 .environmentObject(viewModel)
+        }
+    }
+    
+    private func handleAnimation(for newValue: [String]) {
+        selectedPrompt = nil
+        animateItems = false
+        
+        if !newValue.isEmpty && newValue.first != "" {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                withAnimation { animateItems = true }
+            }
         }
     }
 }
 
 struct PromptBox: View {
     let prompt: String
+    let isSelected: Bool
     var onTap: () -> Void
-    var isSelected: Bool = false
     
     var body: some View {
-        Button {
-            onTap()
-        } label: {
-            HStack {
+        Button(action: onTap) {
+            HStack(spacing: 15) {
                 Text(prompt)
                     .font(.custom("OpenSans-Regular", size: 15))
-                    .foregroundColor(Color("TextColor"))
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
+                    .foregroundColor(isSelected ? Color(.black)  : Color("TextColor"))
                     .frame(maxWidth: .infinity, alignment: .leading)
-                
-                Spacer()
-                
-                // Toggle Icon
-                Image(isSelected ? "checkedIcon" : "uncheckedIcon")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 20, height: 20)
-                    .transition(AnyTransition.opacity.animation(.smooth(duration: 0.2)))
             }
-            .padding(.horizontal, 25)
+            .padding(.horizontal, 20)
             .padding(.vertical, 15)
             .background (
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color("TextFieldBackground"))
-                    .stroke(Color("TextColor").opacity(0.20), lineWidth: 1)
+                    .fill(isSelected ? Color(.white) : Color("TextFieldBackground"))
+                
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .strokeBorder(isSelected ? Color.white : Color("TextColor").opacity(0.2), lineWidth: 1)
             )
         }
         .buttonStyle(.plain)
+        .animation(.easeInOut(duration: 0.25), value: isSelected)
+    }
+}
+
+struct WriteButton: View {
+    var action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                Text("Start a Draft")
+                    .font(.custom("OpenSans-SemiBold", size: 17))
+                    .foregroundColor(.white)
+                Image("editIcon")
+                    .frame(width: 13, height: 13)
+                    .foregroundColor(.white)
+            }
+            .frame(height: 50)
+            .frame(maxWidth: .infinity)
+            .background(Color("BubbleColor"))
+            .cornerRadius(12)
+        }
     }
 }

@@ -30,8 +30,6 @@ struct PromptSuggestionView: View {
             } else {
                 unlockedStateView
             }
-            
-            Spacer()
         }
         .padding(.horizontal, 20)
         .onAppear {
@@ -70,11 +68,9 @@ struct PromptSuggestionView: View {
                     PromptGeneratorContainer(prompts: viewModel.generatedPrompts, viewModel: viewModel)
                     
                     // Spacer()
-                    
-                    writeButton
-                    
-                    regenerateButton
-                    
+                    if (!viewModel.isLoading) {
+                        regenerateButton
+                    }
                     Spacer()
                 }
             }
@@ -105,17 +101,6 @@ struct PromptSuggestionView: View {
         } label: {
             buttonContent(text: "Refresh Prompts", image: "Refresh")
                 .background(Color("RequestButtonColor"))
-                .cornerRadius(12)
-        }
-        .disabled(viewModel.isLoading)
-    }
-    
-    private var writeButton: some View {
-        Button {
-            //
-        } label: {
-            buttonContent(text: "Begin Drafting", image: "editIcon")
-                .background(Color("BubbleColor"))
                 .cornerRadius(12)
         }
         .disabled(viewModel.isLoading)

@@ -17,11 +17,11 @@ struct Shimmer: ViewModifier {
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
-                    .rotationEffect(.degrees(15))
-                    .offset(x: offset * width * 2)
+                    .rotationEffect(.degrees(30))
+                    .offset(x: offset * width * 1.5)
                 }
-                .clipped()
             }
+            .mask(content)
             .onAppear {
                 withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
                     offset = 1.0

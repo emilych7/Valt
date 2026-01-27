@@ -22,6 +22,7 @@ struct ContentView: View {
         }
         .preferredColorScheme(settingsViewModel.colorScheme)
         .animation(.easeInOut, value: authViewModel.isAuthenticated)
+        .background(Color("AppBackgroundColor"))
     }
 
     @ViewBuilder

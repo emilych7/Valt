@@ -6,6 +6,7 @@ final class ExploreViewModel: ObservableObject {
     @Published var generatedPrompts: [String] = []
     @Published var isLoading: Bool = false
     @Published var showPrompts: Bool = false
+    @Published var isPromptSelected: Bool = false
 
     // Search state
     @Published var searchText: String = ""

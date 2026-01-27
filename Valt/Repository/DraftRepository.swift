@@ -120,7 +120,7 @@ final class DraftRepository: DraftRepositoryProtocol {
             "isHidden": draft.isHidden,
             "isArchived": draft.isArchived,
             "isPublished": draft.isPublished,
-            "prompt": draft.prompt
+            "prompt": draft.prompt ?? ""
             
         ]
         try await db.collection("drafts").document(draft.id).setData(data)

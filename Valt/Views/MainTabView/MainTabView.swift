@@ -15,14 +15,14 @@ struct MainTabView: View {
                 // Home tab
                 HomeView(userViewModel: userViewModel)
                     .tabItem {
-                        Label("Create", image: "createIcon")
+                        Label(" ", image: "createIcon")
                     }
                     .tag(ContentTabViewSelection.home)
 
                 // Prompts tab
                 ExploreView(userViewModel: userViewModel)
                     .tabItem {
-                        Label("Explore", image: "promptsIcon")
+                        Label(" ", image: "promptsIcon")
                     }
                     .tag(ContentTabViewSelection.explore)
 
@@ -31,6 +31,7 @@ struct MainTabView: View {
                     .tabItem { profileTabItemLabel() }
                     .tag(ContentTabViewSelection.profile)
             }
+            .padding(.top, 5)
             .tint(Color("TextColor"))
             .environmentObject(userViewModel)
             

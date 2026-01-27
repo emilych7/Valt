@@ -37,6 +37,7 @@ class AuthViewModel: ObservableObject {
             } else {
                 self.isAuthenticated = false
                 print("Init: No user authenticated")
+                // isLoading = false
             }
         }
     }

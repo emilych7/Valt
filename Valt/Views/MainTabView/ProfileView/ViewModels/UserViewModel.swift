@@ -8,7 +8,7 @@ import UIKit
 @MainActor
 final class UserViewModel: ObservableObject {
     @Published var cardLoadingState: ContentLoadingState = .loading
-    @Published var userLoadingState: ContentLoadingState = .loading
+    @Published var userLoadingState: ContentLoadingState = .complete
 
     @Published var username: String = "@username"
     @Published var draftCount: Int = 0
