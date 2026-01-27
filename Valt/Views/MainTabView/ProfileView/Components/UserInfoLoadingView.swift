@@ -16,6 +16,7 @@ struct UserInfoLoadingView: View {
             .overlay(
                 RoundedRectangle(cornerRadius: 10)
                     .fill(Color("BubbleColor"))
+                    .shimmer()
             )
     }
 }

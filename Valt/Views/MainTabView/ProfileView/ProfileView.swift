@@ -21,7 +21,7 @@ struct ProfileView: View {
                 // Profile Info Section
                 HStack {
                     AvatarView(
-                        loadingState: userViewModel.userLoadingState,
+                        loadingState: userViewModel.profileLoadingState,
                         profileImage: localProfileImage
                     )
                     .onTapGesture { isPhotoPickerPresented = true }
@@ -34,11 +34,10 @@ struct ProfileView: View {
                     UserInfoView(userViewModel: userViewModel)
                     Spacer()
                 }
-                .padding(.leading, 20)
-                .padding(.vertical, 15)
+                .padding(.bottom, 15)
+                .padding(.horizontal, 25)
                 
                 ProfileTabView(selectedTab: $selectedTab)
-                    .padding(.horizontal, 15)
                 
                 TabView(selection: $selectedTab) {
                     ProfileGridContainer(rootTabSelection: $mainTabSelection, tab: .all)
@@ -54,7 +53,13 @@ struct ProfileView: View {
                         .tag(ProfileTab.hidden)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
-                .padding(.horizontal, 20)
+                .background(Color("TextFieldBackground").opacity(0.4))
+                .onAppear {
+                    UIScrollView.appearance().bounces = false
+                }
+                .onDisappear {
+                    UIScrollView.appearance().bounces = true
+                }
             }
             .background(Color("AppBackgroundColor").ignoresSafeArea())
         }

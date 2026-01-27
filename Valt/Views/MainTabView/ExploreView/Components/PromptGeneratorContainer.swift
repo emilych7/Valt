@@ -23,9 +23,9 @@ struct PromptGeneratorContainer: View {
                                     prompt: prompt,
                                     isSelected: selectedPrompt == prompt
                                 ) {
-                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                    // withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                                         selectedPrompt = (selectedPrompt == prompt) ? nil : prompt
-                                    }
+                                    // }
                                 }
                             }
                         }
@@ -87,23 +87,23 @@ struct PromptBox: View {
             HStack(spacing: 15) {
                 Text(prompt)
                     .font(.custom("OpenSans-Regular", size: 15))
-                    .foregroundColor(isSelected ? Color(.black)  : Color("TextColor"))
+                    .foregroundColor(isSelected ? Color("ReverseTextColor") : Color("TextColor"))
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 15)
             .background (
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(isSelected ? Color(.white) : Color("TextFieldBackground"))
+                    .fill(isSelected ? Color("TextColor") : Color("TextFieldBackground"))
                 
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .strokeBorder(isSelected ? Color.white : Color("TextColor").opacity(0.2), lineWidth: 1)
+                    .strokeBorder(isSelected ? Color("ReverseTextColor") : Color("TextColor").opacity(0.2), lineWidth: 1)
             )
         }
         .buttonStyle(.plain)
-        .animation(.easeInOut(duration: 0.25), value: isSelected)
+        .animation(.easeOut(duration: 0.25), value: isSelected)
     }
 }
 
@@ -117,7 +117,7 @@ struct WriteButton: View {
                     .font(.custom("OpenSans-SemiBold", size: 17))
                     .foregroundColor(.white)
                 Image("editIcon")
-                    .frame(width: 13, height: 13)
+                    .frame(width: 11, height: 11)
                     .foregroundColor(.white)
             }
             .frame(height: 50)

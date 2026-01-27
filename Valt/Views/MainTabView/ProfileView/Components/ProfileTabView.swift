@@ -11,9 +11,15 @@ struct ProfileTabView: View {
             tabButton(image: "publishIcon", tab: .published)
             tabButton(image: "hideIcon", tab: .hidden)
         }
-        .padding(.top, 5)
+        .padding(.horizontal, 15)
         .frame(maxWidth: .infinity)
         .background(Color("AppBackgroundColor"))
+        .overlay(
+            Rectangle()
+                .fill(Color("TextColor").opacity(0.1))
+                .frame(height: 1),
+            alignment: .bottom
+        )
     }
     
     @ViewBuilder
@@ -34,7 +40,7 @@ struct ProfileTabView: View {
                 ZStack {
                     Rectangle()
                         .fill(Color.clear)
-                        .frame(height: 2)
+                        .frame(height: 1)
                     
                     if selectedTab == tab {
                         Rectangle()

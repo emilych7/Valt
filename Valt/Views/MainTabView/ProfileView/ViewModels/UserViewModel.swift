@@ -9,6 +9,7 @@ import UIKit
 final class UserViewModel: ObservableObject {
     @Published var cardLoadingState: ContentLoadingState = .loading
     @Published var userLoadingState: ContentLoadingState = .complete
+    @Published var profileLoadingState: ContentLoadingState = .loading
 
     @Published var username: String = "@username"
     @Published var draftCount: Int = 0
@@ -21,32 +22,45 @@ final class UserViewModel: ObservableObject {
 
     private let repository: DraftRepositoryProtocol
     private var authHandler: AuthStateDidChangeListenerHandle?
+    private var isFetching = false
 
     init(repository: DraftRepositoryProtocol = DraftRepository()) {
         self.repository = repository
         
         authHandler = Auth.auth().addStateDidChangeListener { [weak self] _, user in
             guard let self = self, user != nil else { return }
-            Task {
-                await self.fetchAllData()
+            if !self.isFetching {
+                Task {
+                    await self.fetchAllData()
+                }
             }
         }
     }
     
     func fetchAllData() async {
+        guard !isFetching else { return }
+        isFetching = true
+        
         guard let uid = Auth.auth().currentUser?.uid else {
             print("No authenticated user. No fetching data.")
+            isFetching = false
             return
         }
         
-        print("Starting authenticated fetch for: \(uid)")
-        async let avatarTask:    Void = fetchProfilePicture()
-        async let usernameTask:  Void = fetchAuthenticatedUsername()
-        async let countTask:     Void = fetchDraftCount()
-        async let pubCountTask:  Void = fetchPublishedCount()
-        async let draftsTask:    Void = loadDrafts()
+        self.profileLoadingState = .loading
+        self.cardLoadingState = .loading
         
-        _ = await (avatarTask, usernameTask, countTask, pubCountTask, draftsTask)
+        print("Starting authenticated fetch for: \(uid)")
+        
+        await withTaskGroup(of: Void.self) { group in
+            group.addTask { await self.fetchProfilePicture() }
+            group.addTask { await self.fetchAuthenticatedUsername() }
+            group.addTask { await self.fetchDraftCount() }
+            group.addTask { await self.fetchPublishedCount() }
+            group.addTask { await self.loadDrafts() }
+        }
+        
+        isFetching = false
     }
     
     var currentUserEmail: String {
@@ -57,7 +71,6 @@ final class UserViewModel: ObservableObject {
         Auth.auth().currentUser?.phoneNumber ?? ""
     }
 
-    // Grabs current username
     func fetchAuthenticatedUsername() async {
         guard let uid = Auth.auth().currentUser?.uid else { return }
         let q = Firestore.firestore().collection("usernames").whereField("userID", isEqualTo: uid)
@@ -67,6 +80,7 @@ final class UserViewModel: ObservableObject {
             if let cached = try? await q.getDocuments(source: .cache).documents.first {
                 self.username = cached.documentID
             }
+            
             print("Trying server fetch...")
             let fresh = try await q.getDocuments(source: .server)
             if let doc = fresh.documents.first {
@@ -79,7 +93,6 @@ final class UserViewModel: ObservableObject {
         }
     }
     
-    // Uses Firestore aggregation count
     func fetchDraftCount() async {
         print("Fetching draft count...")
         guard let userID = Auth.auth().currentUser?.uid else { return }
@@ -114,7 +127,6 @@ final class UserViewModel: ObservableObject {
         }
     }
 
-    // Loads drafts
     func loadDrafts() async {
         print("Loading drafts...")
         guard let userID = Auth.auth().currentUser?.uid else { return }
@@ -168,37 +180,33 @@ final class UserViewModel: ObservableObject {
         }
     }
 
-    // Fetch profile picture
     func fetchProfilePicture() async {
+        self.profileLoadingState = .loading
         guard let uid = Auth.auth().currentUser?.uid else { return }
 
         let thumbRef = Storage.storage().reference().child("profilePictures/\(uid)_thumb.jpg")
         do {
-            self.userLoadingState = .loading
             if let img = try await downloadImage(ref: thumbRef, maxBytes: 512 * 1024) {
                 self.profileImage = img
-                self.userLoadingState = .complete
+                self.profileLoadingState = .complete
                 return
             }
-        } catch {
-            // fall through to full-size attempt
-        }
+        } catch { }
 
         let fullRef = Storage.storage().reference().child("profilePictures/\(uid).jpg")
         do {
             if let img = try await downloadImage(ref: fullRef, maxBytes: 2 * 1024 * 1024) {
                 self.profileImage = img
-                // Keep URL
                 if let url = try? await fullRef.downloadURL() {
                     self.profilePictureURL = url
                 }
-                self.userLoadingState = .complete
+                self.profileLoadingState = .complete
             } else {
-                self.userLoadingState = .empty
+                self.profileLoadingState = .empty
             }
         } catch {
             print("Error fetching profile picture: \(error.localizedDescription)")
-            self.userLoadingState = .error(error.localizedDescription)
+            self.profileLoadingState = .error(error.localizedDescription)
         }
     }
 
@@ -209,24 +217,22 @@ final class UserViewModel: ObservableObject {
     }
 
     func uploadProfilePicture(_ image: UIImage) async {
+        self.profileLoadingState = .loading
         guard let uid = Auth.auth().currentUser?.uid else { return }
         let fullRef = Storage.storage().reference().child("profilePictures/\(uid).jpg")
         guard let imageData = image.jpegData(compressionQuality: 0.8) else { return }
 
         do {
-            self.userLoadingState = .loading
             _ = try await fullRef.putDataAsync(imageData, metadata: nil)
             self.profileImage = image
             print("Profile picture uploaded and UI updated.")
-            self.userLoadingState = .complete
+            self.profileLoadingState = .complete
         } catch {
             print("Error uploading profile picture: \(error.localizedDescription)")
-            self.userLoadingState = .error(error.localizedDescription)
+            self.profileLoadingState = .error(error.localizedDescription)
         }
     }
     
-
-    // Search
     func searchUsernames(prefix: String) async {
         let trimmed = prefix.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
@@ -256,10 +262,7 @@ final class UserViewModel: ObservableObject {
         guard let user = Auth.auth().currentUser else { return }
         do {
             try await user.reload()
-            // Manually trigger a UI refresh
             objectWillChange.send()
-            
-            // Refresh the Firestore username just in case it changed
             await fetchAuthenticatedUsername()
         } catch {
             print("Error reloading: \(error.localizedDescription)")

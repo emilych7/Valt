@@ -32,7 +32,7 @@ struct HomeView: View {
             
             // Note Editor
             ZStack(alignment: .topLeading) {
-                Color("AppBackgroundColor")
+                // Color("AppBackgroundColor")
                 
                 if viewModel.draftText.isEmpty && !isTextFieldFocused {
                     Text("Start your draft here")
@@ -55,7 +55,9 @@ struct HomeView: View {
             
             Spacer()
         }
-        .background(Color("AppBackgroundColor").ignoresSafeArea())
+        .background(
+            (Color("TextFieldBackground").opacity(0.40))
+                .ignoresSafeArea())
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 HStack {

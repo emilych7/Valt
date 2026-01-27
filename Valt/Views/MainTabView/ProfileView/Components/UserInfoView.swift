@@ -8,7 +8,6 @@ struct UserInfoView: View {
             case .loading:
                 VStack(alignment: .leading, spacing: 5) {
                 UserInfoLoadingView()
-                    .shimmer()
                     .transition(.opacity)
                 }
                 .font(.custom("OpenSans-Regular", size: 15))

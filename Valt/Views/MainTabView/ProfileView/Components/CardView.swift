@@ -9,8 +9,11 @@ struct CardView: View {
             ZStack {
                 // Background Layer
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(Color("TextFieldBackground"))
-                    .stroke(Color("TextColor").opacity(0.20), lineWidth: 1)
+                    .fill(Color("CardColor"))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color.white.opacity(0.05), lineWidth: 0.5)
+                    )
                     
                 
                 // Content Layer
@@ -35,12 +38,12 @@ struct CardView: View {
                     .padding([.top, .trailing], 6)
 
                     Text(draft.content)
-                        .font(.custom("OpenSans-Regular", size: 6))
+                        .font(.custom("OpenSans-Regular", size: 5))
                         .foregroundColor(Color("TextColor"))
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                         .padding([.horizontal, .bottom], 8)
                 }
-                .padding(8)
+                .padding(5)
             }
             .aspectRatio(0.7, contentMode: .fit)
             .onTapGesture { showFullNote = true }
@@ -52,7 +55,7 @@ struct CardView: View {
                     .year(.twoDigits)
             ))
             .font(.custom("OpenSans-Regular", size: 11))
-            .foregroundColor(Color("TextColor"))
+            .foregroundColor(Color("TextColor").opacity(0.7))
         }
         .fullScreenCover(isPresented: $showFullNote) {
             FullNoteView(draft: draft)

@@ -28,6 +28,12 @@ struct ProfileGridContainer: View {
                 Text(message).font(.caption).foregroundColor(.red)
             }
         }
+        .overlay(
+            Rectangle()
+                .fill(Color.white.opacity(0.15))
+                .frame(width: 0.5)
+            , alignment: .trailing
+        )
     }
     
     private func getFilteredData() -> [Draft] {
@@ -41,41 +47,42 @@ struct ProfileGridContainer: View {
     }
     
     @ViewBuilder
-        private var emptyView: some View {
-            VStack {
-                Spacer()
-                if tab == .all {
-                    HStack(spacing: 4) {
-                        Text("No drafts yet.")
-                            .foregroundColor(Color("TextColor"))
-                        Button {
-                            withAnimation(.spring()) {
-                                rootTabSelection = .home
-                            }
-                        } label: {
-                            Text("Create your first one.")
-                                .foregroundColor(.blue)
-                                .fontWeight(.semibold)
+    private var emptyView: some View {
+        VStack {
+            Spacer()
+            if tab == .all {
+                HStack(spacing: 4) {
+                    Text("No drafts yet.")
+                        .foregroundColor(Color("TextColor"))
+                    Button {
+                        withAnimation(.spring()) {
+                            rootTabSelection = .home
                         }
+                    } label: {
+                        Text("Create your first one.")
+                            .foregroundColor(.blue)
+                            .fontWeight(.semibold)
                     }
-                } else {
-                    Text(emptyMessage)
-                        .foregroundColor(.secondary)
                 }
-                Spacer()
+            } else {
+                Text(emptyMessage)
+                    .foregroundColor(.secondary)
             }
-            .font(.custom("OpenSans-Regular", size: 14))
+            Spacer()
         }
+        .frame(maxWidth: .infinity)
+        .font(.custom("OpenSans-Regular", size: 14))
+    }
 
-        private var emptyMessage: String {
-            switch tab {
-            case .all: return "No drafts yet."
-            case .favorited: return "No favorited drafts yet."
-            case .published: return "No published drafts yet."
-            case .hidden: return "No hidden drafts yet."
-            }
+    private var emptyMessage: String {
+        switch tab {
+        case .all: return "No drafts yet."
+        case .favorited: return "No favorited drafts yet."
+        case .published: return "No published drafts yet."
+        case .hidden: return "No hidden drafts yet."
         }
     }
+}
 
 struct ResponsiveGridView<Content: View, T: Identifiable>: View {
     let items: [T]
@@ -90,7 +97,7 @@ struct ResponsiveGridView<Content: View, T: Identifiable>: View {
                     content(item)
                 }
             }
-            .padding(.horizontal, 5)
+            .padding(.horizontal, 20)
             .padding(.vertical, 10)
         }
         .scrollIndicators(.hidden)
