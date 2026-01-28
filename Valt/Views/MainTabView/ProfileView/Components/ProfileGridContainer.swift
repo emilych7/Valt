@@ -10,9 +10,18 @@ struct ProfileGridContainer: View {
         Group {
             switch userViewModel.cardLoadingState {
             case .loading:
+                VStack (alignment: .center){
+                    ProgressView()
+                        .controlSize(.regular)
+                        .tint(Color("TextColor"))
+                }
+                
+                /*
                 ResponsiveGridView(items: (1...12).map { FakeItem(id: $0) }) { _ in
                     SkeletonCardView()
                 }
+                 */
+                
             case .complete:
                 let filteredData = getFilteredData()
                 

@@ -148,7 +148,7 @@ struct FullNoteView: View {
                         HStack {
                             Text(promptText)
                                 .font(.custom("OpenSans-SemiBold", size: 16))
-                                .foregroundColor(Color("TextColor").opacity(0.6))
+                                .foregroundColor(Color("TextColor").opacity(0.7))
                             Spacer()
                         }
                     }

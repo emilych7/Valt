@@ -11,20 +11,20 @@ struct CardView: View {
                 // Background Layer
                 RoundedRectangle(cornerRadius: 12)
                     .fill(Color("CardColor"))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color("TextColor").opacity(0.2), lineWidth: 0.5)
-                            .shadow(color: .black, radius: 5, x: 0, y: 0)
-                    )
+//                    .overlay(
+//                        RoundedRectangle(cornerRadius: 12)
+//                            .stroke(Color("TextColor").opacity(0.2), lineWidth: 0.5)
+//                            .shadow(color: .black, radius: 5, x: 0, y: 0)
+//                    )
                 // Content Layer
                 VStack(spacing: 0) {
                     HStack(spacing: 4) {
                         Spacer()
-                        /*
-                        if draft.prompt = nil {
+                        
+                        if draft.prompt != "" {
                             StatusIcon(name: "promptsIcon")
                         }
-                         */
+        
                         if draft.isFavorited {
                             StatusIcon(name: "Favorite-Active")
                         }
@@ -45,17 +45,19 @@ struct CardView: View {
                 }
                 .padding(4)
             }
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .contentShape(.contextMenuPreview, RoundedRectangle(cornerRadius: 12))
             .aspectRatio(0.7, contentMode: .fit)
             .onTapGesture {
-                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                withAnimation(.smooth()) {
                     selectedDraft = draft
                 }
             }
             .contextMenu {
                 Button {
-                    withAnimation(.spring()) { selectedDraft = draft }
+                    withAnimation(.smooth()) { selectedDraft = draft }
                 } label: {
-                    Label("Open Full Note", systemImage: "arrow.up.forward.app")
+                    Label("Open Full Note", image: "editIcon")
                 }
                 
                 Button(role: .destructive) {
@@ -63,7 +65,7 @@ struct CardView: View {
                         await userViewModel.deleteDraft(draftID: draft.id)
                     }
                 } label: {
-                    Label("Delete", systemImage: "trash")
+                    Label("Delete", image: "trashIcon")
                 }
             } preview: {
                 FullNotePreview(draft: draft)

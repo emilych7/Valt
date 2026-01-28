@@ -36,7 +36,7 @@ struct OnBoardingView: View {
 
     private var loadingOverlay: some View {
         ZStack {
-            Color("AppBackgroundColor").opacity(0.70)
+            Color("AppBackgroundColor").opacity(0.90)
                 .ignoresSafeArea()
             
             VStack(spacing: 15) {

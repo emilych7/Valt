@@ -95,6 +95,7 @@ final class UserViewModel: ObservableObject {
     
     func fetchDraftCount() async {
         print("Fetching draft count...")
+        self.userLoadingState = .loading
         guard let userID = Auth.auth().currentUser?.uid else { return }
         do {
             let query = Firestore.firestore()
@@ -103,15 +104,18 @@ final class UserViewModel: ObservableObject {
 
             let agg = try await query.count.getAggregation(source: .server)
             self.draftCount = Int(truncating: agg.count)
-            if self.draftCount == 0 { self.userLoadingState = .empty }
+            // if self.draftCount == 0 { self.cardLoadingState = .empty }
+            self.userLoadingState = .complete
         } catch {
             print("Count error: \(error.localizedDescription)")
             self.draftCount = 0
+            self.userLoadingState = .complete
         }
     }
 
     func fetchPublishedCount() async {
         print("Fetching published draft count...")
+        self.userLoadingState = .loading
         guard let userID = Auth.auth().currentUser?.uid else { return }
         do {
             let query = Firestore.firestore()
@@ -121,14 +125,17 @@ final class UserViewModel: ObservableObject {
 
             let agg = try await query.count.getAggregation(source: .server)
             self.publishedDraftCount = Int(truncating: agg.count)
+            self.userLoadingState = .complete
         } catch {
             print("Count error: \(error.localizedDescription)")
             self.publishedDraftCount = 0
+            self.userLoadingState = .complete
         }
     }
 
     func loadDrafts() async {
         print("Loading drafts...")
+        self.cardLoadingState = .loading
         guard let userID = Auth.auth().currentUser?.uid else { return }
         do {
             let asyncFetch: (String) async throws -> [Draft] = repository.fetchDrafts
@@ -138,10 +145,12 @@ final class UserViewModel: ObservableObject {
             print("Error loading drafts: \(error.localizedDescription)")
             self.cardLoadingState = .error(error.localizedDescription)
             self.drafts = []
+            // self.cardLoadingState = .complete
         }
     }
 
     func updateDraft(draftID: String, updatedFields: [String: Any]) async {
+        self.cardLoadingState = .loading
         do {
             try await repository.updateDraft(draftID: draftID, with: updatedFields)
             if let index = drafts.firstIndex(where: { $0.id == draftID }) {
@@ -149,12 +158,15 @@ final class UserViewModel: ObservableObject {
                     drafts[index].updateField(key: key, value: value)
                 }
             }
+            self.cardLoadingState = .complete
         } catch {
             print("Error updating draft: \(error.localizedDescription)")
+            self.cardLoadingState = .error(error.localizedDescription)
         }
     }
 
     func deleteDraft(draftID: String) async {
+        self.cardLoadingState = .loading
         do {
             try await repository.deleteDraft(draftID: draftID)
             if let index = self.drafts.firstIndex(where: { $0.id == draftID }) {
@@ -163,8 +175,10 @@ final class UserViewModel: ObservableObject {
                 self.cardLoadingState = (draftCount == 0) ? .empty : .complete
             }
             print("Draft successfully deleted from Firestore and UI")
+            self.cardLoadingState = .complete
         } catch {
             print("Error deleting draft: \(error.localizedDescription)")
+            self.cardLoadingState = .error(error.localizedDescription)
         }
     }
 
