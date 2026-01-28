@@ -3,6 +3,7 @@ import SwiftUI
 struct ProfileGridContainer: View {
     @EnvironmentObject var userViewModel: UserViewModel
     @Binding var rootTabSelection: ContentTabViewSelection
+    @Binding var selectedDraft: Draft?
     let tab: ProfileTab
     
     var body: some View {
@@ -19,7 +20,7 @@ struct ProfileGridContainer: View {
                     emptyView
                 } else {
                     ResponsiveGridView(items: filteredData) { draft in
-                        CardView(draft: draft)
+                        CardView(userViewModel: userViewModel, draft: draft, selectedDraft: $selectedDraft)
                     }
                 }
             case .empty:
@@ -30,7 +31,7 @@ struct ProfileGridContainer: View {
         }
         .overlay(
             Rectangle()
-                .fill(Color.white.opacity(0.15))
+                .fill(Color("TextColor").opacity(0.2))
                 .frame(width: 0.5)
             , alignment: .trailing
         )

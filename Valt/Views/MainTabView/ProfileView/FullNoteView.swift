@@ -16,9 +16,12 @@ struct FullNoteView: View {
     @State private var showDeleteConfirmation = false
     @State private var editedContent: String
     
+    var onDismiss: () -> Void
     
-    init(draft: Draft) {
+    
+    init(draft: Draft, onDismiss: @escaping () -> Void) {
         self.draft = draft
+        self.onDismiss = onDismiss
         _editedContent = State(initialValue: draft.content)
     }
     
@@ -121,7 +124,7 @@ struct FullNoteView: View {
                     }
 
                     // Exit
-                    Button(action: { withAnimation { dismiss() } }) {
+                    Button(action: { withAnimation { onDismiss() } }) {
                         ZStack {
                             Ellipse().frame(width: 40, height: 40)
                                 .foregroundColor(.red)
@@ -191,7 +194,7 @@ struct FullNoteView: View {
                                     withAnimation { dismiss() }
                                     bannerManager.show("Saved")
                                 } else {
-                                    dismiss()
+                                    onDismiss()
                                 }
                             }
                         }

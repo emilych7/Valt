@@ -4,11 +4,13 @@ import UIKit
 struct MainTabView: View {
     @EnvironmentObject private var authViewModel: AuthViewModel
     @EnvironmentObject private var bannerManager: BannerManager
-    @StateObject private var userViewModel = UserViewModel()
-    @State private var selection: ContentTabViewSelection = .home
+    @EnvironmentObject private var userViewModel: UserViewModel
     @Environment(\.colorScheme) var colorScheme
+    @Binding var selectedDraft: Draft?
+    @State private var selection: ContentTabViewSelection = .home
 
     var body: some View {
+        ZStack {
             // Content Layer
             Group {
                 switch selection {
@@ -17,7 +19,7 @@ struct MainTabView: View {
                 case .home:
                     HomeView(userViewModel: userViewModel)
                 case .profile:
-                    ProfileView(mainTabSelection: $selection)
+                    ProfileView(mainTabSelection: $selection, selectedDraft: $selectedDraft)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -37,6 +39,22 @@ struct MainTabView: View {
                     notificationBanner
                 }
             }
+
+            // FullNoteView transition layer
+            if let draft = selectedDraft {
+                FullNoteView(draft: draft) {
+                    withAnimation(.easeOut(duration: 0.2)) {
+                        selectedDraft = nil
+                    }
+                }
+                .background(Color("AppBackgroundColor"))
+                .transition(.asymmetric(
+                    insertion: .scale(scale: 0.95).combined(with: .opacity),
+                    removal: .opacity
+                ))
+                .zIndex(2) // Keeps it above the tab bar
+            }
+        }
     }
 
     private var notificationBanner: some View {
@@ -128,7 +146,7 @@ struct CustomTabBar: View {
 
     private var defaultProfileIcon: some View {
         Circle()
-            .fill(Color("TextColor").opacity(selection == .profile ? 1.0 : 0.4))
+            .fill(Color("BubbleColor").opacity(selection == .profile ? 1.0 : 0.4))
             .frame(width: profileSize, height: profileSize)
     }
 }

@@ -6,11 +6,12 @@ struct ContentView: View {
     @StateObject var onBoardingViewModel = OnBoardingViewModel()
     @StateObject private var bannerManager = BannerManager()
     @StateObject private var userViewModel = UserViewModel()
+    @State private var selectedDraft: Draft? = nil
 
     var body: some View {
         Group {
             if authViewModel.isAuthenticated {
-                MainTabView()
+                MainTabView(selectedDraft: $selectedDraft)
                     .environmentObject(authViewModel)
                     .environmentObject(settingsViewModel)
                     .environmentObject(bannerManager)

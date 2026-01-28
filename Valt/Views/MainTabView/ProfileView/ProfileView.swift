@@ -6,6 +6,7 @@ struct ProfileView: View {
     @EnvironmentObject private var userViewModel: UserViewModel
     @EnvironmentObject var settingsViewModel: SettingsViewModel
     @Binding var mainTabSelection: ContentTabViewSelection
+    @Binding var selectedDraft: Draft?
     @State private var selectedTab: ProfileTab = .all
     @State private var showSettings: Bool = false
     @State private var selectedItem: PhotosPickerItem? = nil
@@ -40,20 +41,20 @@ struct ProfileView: View {
                 ProfileTabView(selectedTab: $selectedTab)
                 
                 TabView(selection: $selectedTab) {
-                    ProfileGridContainer(rootTabSelection: $mainTabSelection, tab: .all)
+                    ProfileGridContainer(rootTabSelection: $mainTabSelection, selectedDraft: $selectedDraft, tab: .all)
                         .tag(ProfileTab.all)
                     
-                    ProfileGridContainer(rootTabSelection: $mainTabSelection, tab: .favorited)
+                    ProfileGridContainer(rootTabSelection: $mainTabSelection, selectedDraft: $selectedDraft, tab: .favorited)
                         .tag(ProfileTab.favorited)
                     
-                    ProfileGridContainer(rootTabSelection: $mainTabSelection, tab: .published)
+                    ProfileGridContainer(rootTabSelection: $mainTabSelection, selectedDraft: $selectedDraft, tab: .published)
                         .tag(ProfileTab.published)
                     
-                    ProfileGridContainer(rootTabSelection: $mainTabSelection, tab: .hidden)
+                    ProfileGridContainer(rootTabSelection: $mainTabSelection, selectedDraft: $selectedDraft, tab: .hidden)
                         .tag(ProfileTab.hidden)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
-                .background(Color("TextFieldBackground").opacity(0.4))
+                .background(Color("TextFieldBackground").opacity(0.5))
                 .onAppear {
                     UIScrollView.appearance().bounces = false
                 }
