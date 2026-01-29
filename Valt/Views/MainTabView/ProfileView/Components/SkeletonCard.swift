@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct SkeletonCardView: View {
+struct SkeletonCard: View {
     var body: some View {
         RoundedRectangle(cornerRadius: 10)
             .fill(Color("TextFieldBackground"))

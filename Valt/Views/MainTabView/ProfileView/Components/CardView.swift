@@ -22,17 +22,17 @@ struct CardView: View {
                         Spacer()
                         
                         if draft.prompt != "" {
-                            StatusIcon(name: "promptsIcon")
+                            StatusIcon(name: "promptsIcon", size: 10)
                         }
         
                         if draft.isFavorited {
-                            StatusIcon(name: "Favorite-Active")
+                            StatusIcon(name: "Favorite-Active", size: 10)
                         }
                         if draft.isPublished {
-                            StatusIcon(name: "publishIcon")
+                            StatusIcon(name: "publishIcon", size: 10)
                         }
                         if draft.isHidden {
-                            StatusIcon(name: "hideIcon")
+                            StatusIcon(name: "hideIcon", size: 10)
                         }
                     }
                     .padding([.top, .trailing], 6)
@@ -86,10 +86,11 @@ struct CardView: View {
 // Sub-component for card icons
 struct StatusIcon: View {
     let name: String
+    let size: CGFloat
     var body: some View {
         Image(name)
             .resizable()
             .scaledToFit()
-            .frame(width: 10, height: 10)
+            .frame(width: size, height: size)
     }
 }

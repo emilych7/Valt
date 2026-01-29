@@ -74,17 +74,17 @@ final class UserViewModel: ObservableObject {
     func fetchAuthenticatedUsername() async {
         guard let uid = Auth.auth().currentUser?.uid else { return }
         let q = Firestore.firestore().collection("usernames").whereField("userID", isEqualTo: uid)
-
+        
         do {
             print("Trying cache first...")
             if let cached = try? await q.getDocuments(source: .cache).documents.first {
                 self.username = cached.documentID
-            }
-            
-            print("Trying server fetch...")
-            let fresh = try await q.getDocuments(source: .server)
-            if let doc = fresh.documents.first {
-                self.username = doc.documentID
+            } else {
+                print("Trying server fetch...")
+                let fresh = try await q.getDocuments(source: .server)
+                if let doc = fresh.documents.first {
+                    self.username = doc.documentID
+                }
             }
         } catch {
             if self.username == "@username" {

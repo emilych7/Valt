@@ -5,6 +5,24 @@ struct FullNotePreview: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 2) {
+                Spacer()
+                
+                if draft.prompt != "" {
+                    StatusIcon(name: "promptsIcon", size: 20)
+                }
+
+                if draft.isFavorited {
+                    StatusIcon(name: "Favorite-Active", size: 20)
+                }
+                if draft.isPublished {
+                    StatusIcon(name: "publishIcon", size: 20)
+                }
+                if draft.isHidden {
+                    StatusIcon(name: "hideIcon", size: 20)
+                }
+            }
+            .padding([.top, .trailing], 6)
             HStack {
                 Text(draft.timestamp.formatted(.dateTime.month().day().year()))
                     .font(.caption)

@@ -21,7 +21,7 @@ struct ProfileView: View {
                 
                 // Profile Info Section
                 HStack {
-                    AvatarView(
+                    Avatar(
                         loadingState: userViewModel.profileLoadingState,
                         profileImage: localProfileImage
                     )

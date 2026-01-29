@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct AvatarView: View {
+struct Avatar: View {
     let loadingState: ContentLoadingState
     let profileImage: UIImage?
     

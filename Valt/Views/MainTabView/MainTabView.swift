@@ -17,7 +17,7 @@ struct MainTabView: View {
                 case .explore:
                     ExploreView(userViewModel: userViewModel)
                 case .home:
-                    HomeView(userViewModel: userViewModel)
+                    HomeView()
                 case .profile:
                     ProfileView(mainTabSelection: $selection, selectedDraft: $selectedDraft)
                 }
