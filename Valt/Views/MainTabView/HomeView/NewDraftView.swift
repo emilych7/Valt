@@ -1,14 +1,17 @@
 import SwiftUI
 
-struct PromptNoteView: View {
-    @Environment(\.dismiss) var dismiss
+struct NewDraftView: View {
     @EnvironmentObject private var userViewModel: UserViewModel
     @EnvironmentObject private var bannerManager: BannerManager
-    @EnvironmentObject private var viewModel: ExploreViewModel
-    
+    @StateObject private var viewModel: HomeViewModel
     @FocusState private var isTextFieldFocused: Bool
     
-    let selectedPrompt: String
+    init(userViewModel: UserViewModel, onDismiss: @escaping () -> Void) {
+        self.onDismiss = onDismiss
+        _viewModel = StateObject(wrappedValue: HomeViewModel(userViewModel: userViewModel))
+    }
+    
+    var onDismiss: () -> Void
     
     var body: some View {
         VStack(spacing: 0) {
@@ -25,22 +28,23 @@ struct PromptNoteView: View {
                 .transition(.scale.combined(with: .opacity))
                 
                 HomeActionButton(icon: "exitIcon") {
-                    dismiss()
+                    onDismiss()
                 }
                 
             }
+            .padding(.horizontal, 30)
             .padding(.top, 20)
-            .padding(.horizontal, 20)
-            .padding(.bottom, 10)
             
             // Note Editor
-            VStack(alignment: .leading, spacing: 15) {
-                HStack {
-                    Text(selectedPrompt)
-                        .font(.custom("OpenSans-SemiBold", size: 16))
-                        .foregroundColor(Color("TextColor").opacity(0.7))
-                    Spacer()
+            ZStack(alignment: .topLeading) {
+                if viewModel.draftText.isEmpty && !isTextFieldFocused {
+                    Text("Start your draft here")
+                        .font(.custom("OpenSans-Regular", size: 16))
+                        .foregroundColor(Color("TextColor").opacity(0.5))
+                        .padding(.top, 8)
+                        .padding(.leading, 5)
                 }
+                
                 TextEditor(text: $viewModel.draftText)
                     .font(.custom("OpenSans-Regular", size: 16))
                     .foregroundColor(Color("TextColor"))
@@ -54,7 +58,7 @@ struct PromptNoteView: View {
             
             Spacer()
         }
-        .background(Color("AppBackgroundColor").ignoresSafeArea())
+        .background(Color("AppBackgroundColor"))
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 HStack {
@@ -66,7 +70,7 @@ struct PromptNoteView: View {
                     Spacer()
                     
                     Button {
-                        isTextFieldFocused = false
+                        $isTextFieldFocused.wrappedValue = false
                     } label: {
                         Image(systemName: "keyboard.chevron.compact.down")
                             .foregroundColor(Color("TextColor"))
@@ -75,19 +79,28 @@ struct PromptNoteView: View {
                     Spacer()
                     
                     Button("Save") {
-                        saveAndDismiss()
+                        Task {
+                            if viewModel.draftText != "" {
+                                saveAndDismiss()
+                            } else {
+                                onDismiss()
+                            }
+                        }
                     }
                     .foregroundColor(Color("TextColor"))
                 }
                 .font(.custom("OpenSans-Regular", size: 16))
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
-    private func saveAndDismiss() {
-        viewModel.prompt = selectedPrompt
-        viewModel.saveDraftToFirebase()
-        isTextFieldFocused = false
-        dismiss()
+    func saveAndDismiss() {
+        if !viewModel.draftText.isEmpty {
+            viewModel.saveDraftToFirebase()
+            bannerManager.show("Saved Draft")
+            isTextFieldFocused = false // Dismiss keyboard
+        }
     }
 }
+

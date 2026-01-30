@@ -11,7 +11,7 @@ struct ContentView: View {
     var body: some View {
         Group {
             if authViewModel.isAuthenticated {
-                MainTabView(selectedDraft: $selectedDraft)
+                MainTabView(userViewModel: userViewModel, selectedDraft: $selectedDraft)
                     .environmentObject(authViewModel)
                     .environmentObject(settingsViewModel)
                     .environmentObject(bannerManager)
