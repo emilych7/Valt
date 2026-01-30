@@ -3,11 +3,18 @@ import UIKit
 
 struct MainTabView: View {
     @EnvironmentObject private var authViewModel: AuthViewModel
+    @StateObject private var homeViewModel: HomeViewModel
     @EnvironmentObject private var bannerManager: BannerManager
     @EnvironmentObject private var userViewModel: UserViewModel
     @Environment(\.colorScheme) var colorScheme
     @Binding var selectedDraft: Draft?
     @State private var selection: ContentTabViewSelection = .home
+    
+    init(userViewModel: UserViewModel, selectedDraft: Binding<Draft?>) {
+        _homeViewModel = StateObject(wrappedValue: HomeViewModel(userViewModel: userViewModel))
+        _selection = State(initialValue: .home)
+        _selectedDraft = selectedDraft
+    }
 
     var body: some View {
         ZStack {
@@ -15,9 +22,9 @@ struct MainTabView: View {
             Group {
                 switch selection {
                 case .explore:
-                    ExploreView(userViewModel: userViewModel)
+                    ExploreView()
                 case .home:
-                    HomeView()
+                    HomeView(viewModel: homeViewModel)
                 case .profile:
                     ProfileView(mainTabSelection: $selection, selectedDraft: $selectedDraft)
                 }

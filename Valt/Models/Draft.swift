@@ -1,6 +1,6 @@
 import Foundation
 
-struct Draft: Identifiable {
+struct Draft: Identifiable, Codable, Equatable {
     var id: String
     var userID: String
     var title: String

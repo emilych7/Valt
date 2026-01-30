@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct PromptSuggestionView: View {
-    @ObservedObject var viewModel: ExploreViewModel
+    @ObservedObject var viewModel: HomeViewModel
     @EnvironmentObject var userViewModel: UserViewModel
     
     var body: some View {
@@ -35,10 +35,17 @@ struct PromptSuggestionView: View {
         .onAppear {
             attemptAutoGeneration(count: userViewModel.draftCount)
         }
+        .onChange(of: userViewModel.draftCount) { _, newCount in
+            if newCount < 3 {
+                viewModel.generatedPrompts = []
+                viewModel.showPrompts = false
+            }
+        }
     }
     
     private func attemptAutoGeneration(count: Int) {
-        if count >= 3 && !viewModel.showPrompts && !viewModel.isLoading {
+        // Only call the API if no prompts stored in the array
+        if count >= 3 && viewModel.generatedPrompts.isEmpty && !viewModel.isLoading {
             viewModel.generatePromptFromOwnDrafts(with: userViewModel.drafts)
             viewModel.showPrompts = true
         }
@@ -67,11 +74,9 @@ struct PromptSuggestionView: View {
                 VStack (spacing: 10) {
                     PromptGeneratorContainer(prompts: viewModel.generatedPrompts, viewModel: viewModel)
                     
-                    // Spacer()
                     if (!viewModel.isLoading) {
                         regenerateButton
                     }
-                    Spacer()
                 }
             }
         }
@@ -82,7 +87,7 @@ struct PromptSuggestionView: View {
             Image("promptsIcon")
                 .resizable()
                 .frame(width: 15, height: 15)
-            Text("GPT-5")
+            Text("GPT-4o")
                 .foregroundColor(Color("TextColor"))
                 .font(.custom("OpenSans-SemiBold", size: 15))
         }
@@ -90,8 +95,7 @@ struct PromptSuggestionView: View {
         .padding(.vertical, 5)
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color.purple.opacity(0.3))
-                .stroke(Color("TextColor").opacity(0.20), lineWidth: 1)
+                .fill(Color.purple.opacity(0.4))
         )
     }
     
@@ -99,27 +103,23 @@ struct PromptSuggestionView: View {
         Button {
             viewModel.generatePromptFromOwnDrafts(with: userViewModel.drafts)
         } label: {
-            buttonContent(text: "Refresh Prompts", image: "Refresh")
-                .background(Color("RequestButtonColor"))
-                .cornerRadius(12)
+            HStack(spacing: 10) {
+                if viewModel.isLoading {
+                    ProgressView().tint(.white)
+                } else {
+                    Text("Regenerate Prompts")
+                        .font(.custom("OpenSans-SemiBold", size: 17))
+                        .foregroundColor(.white)
+                    Image("Refresh")
+                        .resizable()
+                        .frame(width: 15, height: 15)
+                }
+            }
+            .frame(height: 50)
+            .frame(maxWidth: .infinity)
+            .background(Color("RequestButtonColor"))
+            .cornerRadius(12)
         }
         .disabled(viewModel.isLoading)
-    }
-    
-    private func buttonContent(text: String, image: String) -> some View {
-        HStack(spacing: 10) {
-            if viewModel.isLoading {
-                ProgressView().tint(.white)
-            } else {
-                Text(text)
-                    .font(.custom("OpenSans-SemiBold", size: 17))
-                    .foregroundColor(.white)
-                Image(image)
-                    .resizable()
-                    .frame(width: 15, height: 15)
-            }
-        }
-        .frame(height: 50)
-        .frame(maxWidth: .infinity)
     }
 }

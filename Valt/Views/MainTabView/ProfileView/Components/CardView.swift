@@ -11,11 +11,7 @@ struct CardView: View {
                 // Background Layer
                 RoundedRectangle(cornerRadius: 12)
                     .fill(Color("CardColor"))
-//                    .overlay(
-//                        RoundedRectangle(cornerRadius: 12)
-//                            .stroke(Color("TextColor").opacity(0.2), lineWidth: 0.5)
-//                            .shadow(color: .black, radius: 5, x: 0, y: 0)
-//                    )
+                
                 // Content Layer
                 VStack(spacing: 0) {
                     HStack(spacing: 4) {

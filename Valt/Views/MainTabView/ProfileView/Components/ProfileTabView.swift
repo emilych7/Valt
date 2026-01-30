@@ -45,7 +45,7 @@ struct ProfileTabView: View {
                     if selectedTab == tab {
                         Rectangle()
                             .fill(Color("TextColor"))
-                            .frame(height: 2)
+                            .frame(height: 1)
                             .padding(.horizontal, 20)
                             .matchedGeometryEffect(id: "underline", in: animation)
                     }

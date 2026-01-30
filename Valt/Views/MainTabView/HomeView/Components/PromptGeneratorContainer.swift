@@ -2,7 +2,7 @@ import SwiftUI
 
 struct PromptGeneratorContainer: View {
     let prompts: [String]
-    @ObservedObject var viewModel: ExploreViewModel
+    @ObservedObject var viewModel: HomeViewModel
     @EnvironmentObject var userViewModel: UserViewModel
     
     @State private var animateItems = false
@@ -23,9 +23,8 @@ struct PromptGeneratorContainer: View {
                                     prompt: prompt,
                                     isSelected: selectedPrompt == prompt
                                 ) {
-                                    // withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                        selectedPrompt = (selectedPrompt == prompt) ? nil : prompt
-                                    // }
+                                    selectedPrompt = (selectedPrompt == prompt) ? nil : prompt
+
                                 }
                             }
                         }
@@ -59,7 +58,7 @@ struct PromptGeneratorContainer: View {
             handleAnimation(for: prompts)
         }
         .fullScreenCover(isPresented: $viewModel.isPromptSelected) {
-            PromptNoteView(selectedPrompt: selectedPrompt ?? "")
+            NewPromptedDraftView(selectedPrompt: selectedPrompt ?? "")
                 .environmentObject(userViewModel)
                 .environmentObject(viewModel)
         }
@@ -74,6 +73,30 @@ struct PromptGeneratorContainer: View {
                 withAnimation { animateItems = true }
             }
         }
+    }
+    
+    private var regenerateButton: some View {
+        Button {
+            viewModel.generatePromptFromOwnDrafts(with: userViewModel.drafts)
+        } label: {
+            HStack(spacing: 10) {
+                if viewModel.isLoading {
+                    ProgressView().tint(.white)
+                } else {
+                    Text("Regenerate Prompts")
+                        .font(.custom("OpenSans-SemiBold", size: 17))
+                        .foregroundColor(.white)
+                    Image("Refresh")
+                        .resizable()
+                        .frame(width: 15, height: 15)
+                }
+            }
+            .frame(height: 50)
+            .frame(maxWidth: .infinity)
+            .background(Color("RequestButtonColor"))
+            .cornerRadius(12)
+        }
+        .disabled(viewModel.isLoading)
     }
 }
 
@@ -94,7 +117,7 @@ struct PromptBox: View {
             .padding(.vertical, 15)
             .background (
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(isSelected ? Color("TextColor") : Color("TextFieldBackground"))
+                    .fill(isSelected ? Color("TextColor") : Color("CardColor"))
                 
             )
             .overlay(

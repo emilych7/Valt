@@ -36,6 +36,5 @@ struct DraftText: View {
                 .background(Color.clear)
         }
         .padding(.horizontal, 25)
-        .background(Color("ValtRed"))
     }
 }

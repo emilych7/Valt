@@ -28,6 +28,7 @@ struct MainHeader: View {
         }
         .padding(.top, 20)
         .padding(.horizontal, 20)
-        .padding(.bottom, 10)
+        .padding(.bottom, 15)
+        .background(Color("AppBackgroundColor"))
     }
 }
