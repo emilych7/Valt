@@ -54,7 +54,7 @@ struct ProfileView: View {
                         .tag(ProfileTab.hidden)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
-                .background(Color("TextFieldBackground").opacity(0.5))
+                .background(Color("TextFieldBackground").opacity(0.7))
                 .onAppear {
                     UIScrollView.appearance().bounces = false
                 }

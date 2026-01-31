@@ -44,7 +44,7 @@ struct PromptSuggestionView: View {
     }
     
     private func attemptAutoGeneration(count: Int) {
-        // Only call the API if no prompts stored in the array
+        // Only call the API if there is 3 or more drafts and no prompts stored in the array
         if count >= 3 && viewModel.generatedPrompts.isEmpty && !viewModel.isLoading {
             viewModel.generatePromptFromOwnDrafts(with: userViewModel.drafts)
             viewModel.showPrompts = true
@@ -70,14 +70,12 @@ struct PromptSuggestionView: View {
                 .multilineTextAlignment(.leading)
                 .padding(.top, 5)
             
-            if viewModel.showPrompts {
+            if viewModel.showPrompts && !viewModel.isLoading {
                 VStack (spacing: 10) {
                     PromptGeneratorContainer(prompts: viewModel.generatedPrompts, viewModel: viewModel)
-                    
-                    if (!viewModel.isLoading) {
-                        regenerateButton
-                    }
                 }
+            } else if viewModel.isLoading {
+                SkeletonPromptView()
             }
         }
     }
@@ -97,29 +95,5 @@ struct PromptSuggestionView: View {
             RoundedRectangle(cornerRadius: 8)
                 .fill(Color.purple.opacity(0.4))
         )
-    }
-    
-    private var regenerateButton: some View {
-        Button {
-            viewModel.generatePromptFromOwnDrafts(with: userViewModel.drafts)
-        } label: {
-            HStack(spacing: 10) {
-                if viewModel.isLoading {
-                    ProgressView().tint(.white)
-                } else {
-                    Text("Regenerate Prompts")
-                        .font(.custom("OpenSans-SemiBold", size: 17))
-                        .foregroundColor(.white)
-                    Image("Refresh")
-                        .resizable()
-                        .frame(width: 15, height: 15)
-                }
-            }
-            .frame(height: 50)
-            .frame(maxWidth: .infinity)
-            .background(Color("RequestButtonColor"))
-            .cornerRadius(12)
-        }
-        .disabled(viewModel.isLoading)
     }
 }

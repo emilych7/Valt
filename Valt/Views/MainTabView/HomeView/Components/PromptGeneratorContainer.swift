@@ -10,45 +10,51 @@ struct PromptGeneratorContainer: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            if viewModel.isLoading {
-                SkeletonPromptView()
-            } else {
-                ScrollView {
-                    VStack(spacing: 15) {
-                        if animateItems && !prompts.isEmpty {
-                            ForEach(prompts.indices, id: \.self) { index in
-                                let prompt = prompts[index]
-                                
-                                PromptBox(
-                                    prompt: prompt,
-                                    isSelected: selectedPrompt == prompt
-                                ) {
-                                    selectedPrompt = (selectedPrompt == prompt) ? nil : prompt
+            ScrollView {
+                VStack(spacing: 15) {
+                    if animateItems && !prompts.isEmpty {
+                        ForEach(prompts.indices, id: \.self) { index in
+                            let prompt = prompts[index]
+                            
+                            PromptBox(
+                                prompt: prompt,
+                                isSelected: selectedPrompt == prompt
+                            ) {
+                                selectedPrompt = (selectedPrompt == prompt) ? nil : prompt
 
-                                }
                             }
                         }
                     }
-                    .frame(maxWidth: .infinity)
                 }
-                .scrollIndicators(.hidden)
-                .scrollBounceBehavior(.basedOnSize)
+                .frame(maxWidth: .infinity)
             }
+            .scrollIndicators(.hidden)
+            .scrollBounceBehavior(.basedOnSize)
+            
         }
         // Pinned button
         .safeAreaInset(edge: .bottom) {
-            if selectedPrompt != nil && viewModel.isLoading == false {
-                WriteButton {
-                    viewModel.isPromptSelected = true
+            VStack(spacing: 10) {
+                if let _ = selectedPrompt, !viewModel.isLoading {
+                    WriteButton {
+                        viewModel.isPromptSelected = true
+                    }
+                    .transition(.asymmetric(
+                        insertion: .scale(scale: 0.9),
+                        removal: .scale(scale: 0.8).combined(with: .opacity)
+                    ))
                 }
-                .padding(.bottom, 5)
-                .background(
-                    Color("AppBackgroundColor").opacity(0.8)
-                        // .blur(radius: 10)
-                        .ignoresSafeArea()
-                )
-                .transition(.move(edge: .bottom).combined(with: .opacity))
+                
+                if !viewModel.isLoading {
+                    regenerateButton
+                        .transition(.asymmetric(
+                            insertion: .scale(scale: 0.9),
+                            removal: .scale(scale: 0.8).combined(with: .opacity)
+                        ))
+                }
             }
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: selectedPrompt)
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: viewModel.isLoading)
         }
         .frame(maxWidth: .infinity)
         .onChange(of: prompts) { _, newValue in
@@ -77,7 +83,7 @@ struct PromptGeneratorContainer: View {
     
     private var regenerateButton: some View {
         Button {
-            viewModel.generatePromptFromOwnDrafts(with: userViewModel.drafts)
+            viewModel.refreshPrompts(with: userViewModel.drafts)
         } label: {
             HStack(spacing: 10) {
                 if viewModel.isLoading {
@@ -85,7 +91,7 @@ struct PromptGeneratorContainer: View {
                 } else {
                     Text("Regenerate Prompts")
                         .font(.custom("OpenSans-SemiBold", size: 17))
-                        .foregroundColor(.white)
+                        .foregroundColor(Color("TextColor"))
                     Image("Refresh")
                         .resizable()
                         .frame(width: 15, height: 15)
@@ -93,40 +99,10 @@ struct PromptGeneratorContainer: View {
             }
             .frame(height: 50)
             .frame(maxWidth: .infinity)
-            .background(Color("RequestButtonColor"))
+            .background(Color("BubbleColor"))
             .cornerRadius(12)
         }
         .disabled(viewModel.isLoading)
-    }
-}
-
-struct PromptBox: View {
-    let prompt: String
-    let isSelected: Bool
-    var onTap: () -> Void
-    
-    var body: some View {
-        Button(action: onTap) {
-            HStack(spacing: 15) {
-                Text(prompt)
-                    .font(.custom("OpenSans-Regular", size: 15))
-                    .foregroundColor(isSelected ? Color("ReverseTextColor") : Color("TextColor"))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 15)
-            .background (
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(isSelected ? Color("TextColor") : Color("CardColor"))
-                
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .strokeBorder(isSelected ? Color("ReverseTextColor") : Color("TextColor").opacity(0.2), lineWidth: 1)
-            )
-        }
-        .buttonStyle(.plain)
-        .animation(.easeOut(duration: 0.25), value: isSelected)
     }
 }
 
@@ -138,6 +114,7 @@ struct WriteButton: View {
             HStack(spacing: 10) {
                 Text("Start a Draft")
                     .font(.custom("OpenSans-SemiBold", size: 17))
+                    .foregroundColor(Color("ReverseTextColor"))
                     .foregroundColor(.white)
                 Image("editIcon")
                     .frame(width: 11, height: 11)
@@ -145,7 +122,7 @@ struct WriteButton: View {
             }
             .frame(height: 50)
             .frame(maxWidth: .infinity)
-            .background(Color("BubbleColor"))
+            .background(Color("TextColor"))
             .cornerRadius(12)
         }
     }

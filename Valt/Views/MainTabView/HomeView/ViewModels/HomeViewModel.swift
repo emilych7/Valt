@@ -4,7 +4,7 @@ import FirebaseAuth
 @MainActor
 final class HomeViewModel: ObservableObject {
     @Published var generatedPrompts: [String] = []
-    @Published var isLoading: Bool = false
+    @Published var isLoading: Bool = true
     @Published var showPrompts: Bool = false
     @Published var isPromptSelected: Bool = false
 
@@ -45,6 +45,7 @@ final class HomeViewModel: ObservableObject {
 
     // Manual refresh
     func refreshPrompts(with drafts: [Draft]) {
+        isLoading = true
         self.generatedPrompts = []
         generatePromptFromOwnDrafts(with: drafts)
     }
