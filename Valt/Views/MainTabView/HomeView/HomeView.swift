@@ -18,7 +18,7 @@ struct HomeView: View {
             
             Spacer()
         }
-        .background(Color("TextFieldBackground").opacity(0.5))
+        .background(Color("TextFieldBackground").opacity(0.7))
         .onAppear {
             // Only tries to generate if needed
             viewModel.generatePromptFromOwnDrafts(with: userViewModel.drafts)

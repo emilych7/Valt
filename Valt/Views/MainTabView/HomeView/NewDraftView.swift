@@ -27,7 +27,7 @@ struct NewDraftView: View {
                 }
                 .transition(.scale.combined(with: .opacity))
                 
-                HomeActionButton(icon: "exitIcon") {
+                HomeActionButton(icon: "exitDynamicIcon") {
                     onDismiss()
                 }
                 

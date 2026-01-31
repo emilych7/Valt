@@ -12,6 +12,8 @@ struct SkeletonPromptView: View {
                     .offset(x: animateItems ? 0 : -20)
                     .animation(.spring(response: 0.6, dampingFraction: 0.8).delay(Double(index) * 0.1), value: animateItems)
             }
+            
+            Spacer()
         }
         .frame(maxWidth: .infinity)
         .onAppear {
@@ -25,9 +27,5 @@ struct SkeletonPromptBox: View {
         RoundedRectangle(cornerRadius: 12)
             .fill(Color("TextFieldBackground"))
             .shimmer()
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .strokeBorder(Color("TextColor").opacity(0.2), lineWidth: 1)
-            )
     }
 }
