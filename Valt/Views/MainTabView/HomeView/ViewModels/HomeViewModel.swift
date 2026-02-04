@@ -16,7 +16,7 @@ final class HomeViewModel: ObservableObject {
     private let userViewModel: UserViewModel
 
     private let repository: DraftRepositoryProtocol
-    private var searchTask: Task<Void, Never>? // for debouncing
+    private var searchTask: Task<Void, Never>?
 
     init(userViewModel: UserViewModel, repository: DraftRepositoryProtocol = DraftRepository()) {
         self.userViewModel = userViewModel

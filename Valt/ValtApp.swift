@@ -3,6 +3,7 @@ import FirebaseCore
 import FirebaseAuth
 import GoogleSignIn
 import FirebaseAppCheck
+import TipKit
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(
@@ -16,6 +17,11 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         #endif
         
         FirebaseApp.configure()
+        
+        try? Tips.configure([
+            .displayFrequency(.immediate),
+            .datastoreLocation(.applicationDefault)
+        ])
 
         // Manually configure Google Sign-In
         if let clientID = FirebaseApp.app()?.options.clientID {

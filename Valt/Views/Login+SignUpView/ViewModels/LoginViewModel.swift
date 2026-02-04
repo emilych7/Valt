@@ -14,6 +14,8 @@ class LoginViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var isGoogleLoading = false
     @Published var errorMessage: String?
+    @Published var usernameBorderColor = "TextColor"
+    @Published var passwordBorderColor = "TextColor"
     
     private let db = Firestore.firestore()
 

@@ -6,9 +6,9 @@ struct AuthInputField<T: Hashable>: View {
     @Binding var text: String
     var isSecure: Bool = false
     var keyboardType: UIKeyboardType = .default
-    
     var field: T
     var focusState: FocusState<T?>.Binding
+    var borderColor: String
     
     var body: some View {
         VStack(spacing: 5) {
@@ -38,7 +38,7 @@ struct AuthInputField<T: Hashable>: View {
                     .foregroundColor(Color("TextFieldBackground"))
                     .overlay(
                         RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color("TextFieldBorder"), lineWidth: 1)
+                            .stroke(Color(borderColor).opacity(0.2), lineWidth: 1)
                     )
             )
         }
@@ -69,8 +69,8 @@ struct AuthActionButton: View {
                         .background(Color("RequestButtonColor"))
                         .cornerRadius(12)
                 }
-                .disabled(isDisabled)
-                .opacity(isDisabled ? 0.5 : 1.0)
+                // .disabled(isDisabled)
+                // .opacity(isDisabled ? 0.5 : 1.0)
             }
         }
         .padding(.top, 15)

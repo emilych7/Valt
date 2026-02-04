@@ -19,12 +19,7 @@ struct HomeView: View {
             Spacer()
         }
         .background(Color("TextFieldBackground").opacity(0.7))
-        .onAppear {
-            // Only tries to generate if needed
-            viewModel.generatePromptFromOwnDrafts(with: userViewModel.drafts)
-            }
         .onChange(of: userViewModel.drafts) { _, newDrafts in
-            // No generation if user has less than 3 drafts
             viewModel.generatePromptFromOwnDrafts(with: newDrafts)
         }
         .fullScreenCover(isPresented: $isNoteShowing) {

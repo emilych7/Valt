@@ -28,8 +28,7 @@ struct LoginView: View {
                             placeholder: "Username or Email",
                             text: $viewModel.identifier,
                             field: .identifier,
-                            focusState: $focusedField
-                        )
+                            focusState: $focusedField, borderColor: viewModel.usernameBorderColor)
                         .padding(.top, 20)
                         
                         AuthInputField(
@@ -38,8 +37,8 @@ struct LoginView: View {
                             text: $viewModel.password,
                             isSecure: true,
                             field: .password,
-                            focusState: $focusedField
-                        )
+                            focusState: $focusedField, borderColor: viewModel.passwordBorderColor)
+                        
                         
                         AuthActionButton(
                             title: "Log In",
@@ -66,7 +65,7 @@ struct LoginView: View {
                                 .multilineTextAlignment(.center)
                         }
                     }
-                    .padding(.horizontal, 30)
+                    .padding(.horizontal, 25)
                     
                     Spacer(minLength: 50)
                 }

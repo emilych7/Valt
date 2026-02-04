@@ -1,4 +1,5 @@
 import SwiftUI
+import TipKit
 
 @MainActor
 struct SignUpView: View {
@@ -7,6 +8,11 @@ struct SignUpView: View {
     @EnvironmentObject private var userViewModel: UserViewModel
     @StateObject private var viewModel: SignUpViewModel
     @FocusState private var focusedField: SignUpViewModel.Field?
+    
+    @State private var passwordTip = ValidationErrorTip(
+        title: Text("Invalid Password"),
+        message: nil // set in the OnChange modifier
+    )
     
     init(userViewModel: UserViewModel) {
         _viewModel = StateObject(wrappedValue: SignUpViewModel(userViewModel: userViewModel))
@@ -32,7 +38,7 @@ struct SignUpView: View {
                             UsernameSelectionView(viewModel: viewModel)
                         }
                     }
-                    .padding(.horizontal, 30)
+                    .padding(.horizontal, 25)
                     
                     Spacer(minLength: 50)
                 }
@@ -93,13 +99,22 @@ struct SignUpView: View {
     
     private var accountDetailsFields: some View {
         VStack(spacing: 5) {
-            AuthInputField(title: "Email", placeholder: "Email", text: $viewModel.email, keyboardType: .emailAddress, field: .email, focusState: $focusedField)
+            AuthInputField(title: "Email", placeholder: "Email", text: $viewModel.email, keyboardType: .emailAddress, field: .email, focusState: $focusedField, borderColor: viewModel.usernameBorderColor)
                 .submitLabel(.next)
             
-            AuthInputField(title: "Password", placeholder: "Password", text: $viewModel.password, isSecure: true, field: .password, focusState: $focusedField)
+            AuthInputField(title: "Password", placeholder: "Password", text: $viewModel.password, isSecure: true, field: .password, focusState: $focusedField, borderColor: viewModel.passwordBorderColor)
                 .submitLabel(.next)
+                .popoverTip(passwordTip, arrowEdge: .bottom)
+                .onChange(of: viewModel.passwordError) { _, newValue in
+                    if let errorMessage = newValue {
+                        passwordTip.message = Text(errorMessage)
+                        ValidationErrorTip.passwordHasError = true
+                    } else {
+                        ValidationErrorTip.passwordHasError = false
+                    }
+                }
             
-            AuthInputField(title: "Confirm Password", placeholder: "Re-Enter Password", text: $viewModel.passwordConfirmation, isSecure: true, field: .passwordConfirmation, focusState: $focusedField)
+            AuthInputField(title: "Confirm Password", placeholder: "Re-Enter Password", text: $viewModel.passwordConfirmation, isSecure: true, field: .passwordConfirmation, focusState: $focusedField, borderColor: viewModel.passwordBorderColor)
                 .submitLabel(.done)
             
             AuthActionButton(

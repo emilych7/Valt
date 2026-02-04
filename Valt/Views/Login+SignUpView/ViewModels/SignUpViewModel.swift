@@ -14,10 +14,14 @@ class SignUpViewModel: ObservableObject {
     @Published var email = ""
     @Published var password = ""
     @Published var passwordConfirmation = ""
+    @Published var usernameBorderColor = "TextColor"
+    @Published var passwordBorderColor = "TextColor"
     
     @Published var isLoading = false
     @Published var isGoogleLoading = false
     @Published var errorMessage: String?
+    @Published var emailError: String?
+    @Published var passwordError: String?
     @Published var isSignupComplete = false
 
     private let db = Firestore.firestore()
@@ -51,17 +55,25 @@ class SignUpViewModel: ObservableObject {
 
     func validateAndStartSignup() async {
         errorMessage = nil
+        passwordError = nil
+        
         if password != passwordConfirmation {
-            errorMessage = "Passwords do not match."
+            passwordError = "Passwords do not match."
+            print("Passwords do not match.")
+            ValidationErrorTip.passwordHasError = true
             return
         }
         
         if !AuthValidator.isValidPassword(password) {
             let missing = AuthValidator.getMissingValidation(password)
-            errorMessage = "Password missing: \(missing.joined(separator: ", "))"
+            passwordBorderColor = "ValtRed"
+            passwordError = "Password missing: \(missing.joined(separator: ", "))"
+            print("Error: \(missing.joined(separator: ", "))")
+            ValidationErrorTip.passwordHasError = true
             return
         }
         
+        ValidationErrorTip.passwordHasError = false
         await createAccountAndVerify()
     }
     
@@ -70,7 +82,7 @@ class SignUpViewModel: ObservableObject {
         do {
             let result = try await Auth.auth().createUser(withEmail: email, password: password)
             try await result.user.sendEmailVerification()
-            
+            print("Going to email verification step.")
             self.currentStep = .emailVerification
             startVerificationPolling()
             
@@ -81,6 +93,7 @@ class SignUpViewModel: ObservableObject {
     }
     
     func startVerificationPolling() {
+        print("Starting verification timer...")
         Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { timer in
             Task { @MainActor in
                 try? await Auth.auth().currentUser?.reload()
@@ -94,6 +107,7 @@ class SignUpViewModel: ObservableObject {
     }
 
     func resendEmail() {
+        print("Resending email...")
         Task {
             do {
                 try await Auth.auth().currentUser?.sendEmailVerification()
