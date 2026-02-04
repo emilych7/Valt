@@ -132,7 +132,7 @@ struct SignUpView: View {
                     await viewModel.signInWithGoogle()
                 }
             } onAppleTap: {
-                print("Apple Sign Up button tapped")
+                viewModel.performAppleSignIn()
             }
             
             loginRedirectSection
