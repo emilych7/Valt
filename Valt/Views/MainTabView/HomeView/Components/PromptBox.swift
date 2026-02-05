@@ -6,12 +6,20 @@ struct PromptBox: View {
     var onTap: () -> Void
     
     var body: some View {
-        Button(action: onTap) {
+        Button(action:
+                onTap
+        ) {
             HStack(spacing: 15) {
                 Text(prompt)
                     .font(.custom("OpenSans-Regular", size: 15))
                     .foregroundColor(isSelected ? Color("ReverseTextColor") : Color("TextColor"))
                     .frame(maxWidth: .infinity, alignment: .leading)
+                
+                Spacer()
+                
+                Image("carrotIcon")
+                    .resizable()
+                    .frame(width: 15, height: 15)
             }
             .padding(.horizontal, 15)
             .padding(.vertical, 15)

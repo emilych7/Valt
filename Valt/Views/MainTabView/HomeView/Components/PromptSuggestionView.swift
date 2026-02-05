@@ -45,7 +45,8 @@ struct PromptSuggestionView: View {
     
     private func attemptAutoGeneration(count: Int) {
         // Only call the API if there is 3 or more drafts and no prompts stored in the array
-        if count >= 3 && viewModel.generatedPrompts.isEmpty && !viewModel.isLoading {
+        // if count >= 3 && viewModel.generatedPrompts.isEmpty && !viewModel.isLoading {
+        if count >= 3 && viewModel.isLoading {
             viewModel.generatePromptFromOwnDrafts(with: userViewModel.drafts)
             viewModel.showPrompts = true
         }

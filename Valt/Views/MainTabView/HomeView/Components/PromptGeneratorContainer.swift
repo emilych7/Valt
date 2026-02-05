@@ -21,29 +21,12 @@ struct PromptGeneratorContainer: View {
                                 isSelected: selectedPrompt == prompt
                             ) {
                                 selectedPrompt = (selectedPrompt == prompt) ? nil : prompt
-
+                                viewModel.isPromptSelected = true
                             }
                         }
                     }
                 }
                 .frame(maxWidth: .infinity)
-            }
-            .scrollIndicators(.hidden)
-            .scrollBounceBehavior(.basedOnSize)
-            
-        }
-        // Pinned button
-        .safeAreaInset(edge: .bottom) {
-            VStack(spacing: 10) {
-                if let _ = selectedPrompt, !viewModel.isLoading {
-                    WriteButton {
-                        viewModel.isPromptSelected = true
-                    }
-                    .transition(.asymmetric(
-                        insertion: .scale(scale: 0.9),
-                        removal: .scale(scale: 0.8).combined(with: .opacity)
-                    ))
-                }
                 
                 if !viewModel.isLoading {
                     regenerateButton
@@ -53,16 +36,32 @@ struct PromptGeneratorContainer: View {
                         ))
                 }
             }
-            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: selectedPrompt)
-            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: viewModel.isLoading)
+            .scrollIndicators(.hidden)
+            .scrollBounceBehavior(.basedOnSize)
         }
-        .frame(maxWidth: .infinity)
+        // Pinned button
+//        .safeAreaInset(edge: .bottom) {
+//            VStack(spacing: 10) {
+//                if let _ = selectedPrompt, !viewModel.isLoading {
+//                    WriteButton {
+//                        viewModel.isPromptSelected = true
+//                    }
+//                    .transition(.asymmetric(
+//                        insertion: .scale(scale: 0.9),
+//                        removal: .scale(scale: 0.8).combined(with: .opacity)
+//                    ))
+//                }
+//            }
+//            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: selectedPrompt)
+//            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: viewModel.isLoading)
+//        }
+//        .frame(maxWidth: .infinity)
         .onChange(of: prompts) { _, newValue in
             handleAnimation(for: newValue)
-        }
-        .onAppear {
-            handleAnimation(for: prompts)
-        }
+       }
+      .onAppear {
+          handleAnimation(for: prompts)
+       }
         .fullScreenCover(isPresented: $viewModel.isPromptSelected) {
             NewPromptedDraftView(selectedPrompt: selectedPrompt ?? "")
                 .environmentObject(userViewModel)
@@ -103,27 +102,5 @@ struct PromptGeneratorContainer: View {
             .cornerRadius(12)
         }
         .disabled(viewModel.isLoading)
-    }
-}
-
-struct WriteButton: View {
-    var action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 10) {
-                Text("Start a Draft")
-                    .font(.custom("OpenSans-SemiBold", size: 17))
-                    .foregroundColor(Color("ReverseTextColor"))
-                    .foregroundColor(.white)
-                Image("editIcon")
-                    .frame(width: 11, height: 11)
-                    .foregroundColor(.white)
-            }
-            .frame(height: 50)
-            .frame(maxWidth: .infinity)
-            .background(Color("TextColor"))
-            .cornerRadius(12)
-        }
     }
 }

@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "General-Light.pdf",
+      "filename" : "Carrot-Light.pdf",
       "idiom" : "universal",
       "scale" : "1x"
     },
@@ -12,7 +12,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "General-Dark.pdf",
+      "filename" : "Carrot-Dark.pdf",
       "idiom" : "universal",
       "scale" : "1x"
     },
