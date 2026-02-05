@@ -5,7 +5,7 @@ struct NewPromptedDraftView: View {
     @EnvironmentObject private var userViewModel: UserViewModel
     @EnvironmentObject private var bannerManager: BannerManager
     @EnvironmentObject private var viewModel: HomeViewModel
-    
+    @EnvironmentObject var tabManager: TabManager
     @FocusState private var isTextFieldFocused: Bool
     
     let selectedPrompt: String
@@ -55,6 +55,11 @@ struct NewPromptedDraftView: View {
             Spacer()
         }
         .background(Color("AppBackgroundColor").ignoresSafeArea())
+        .onAppear {
+            tabManager.setTabBarHidden(true)
+            isTextFieldFocused = true
+        }
+        .onDisappear { tabManager.setTabBarHidden(false) }
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 HStack {

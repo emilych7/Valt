@@ -19,8 +19,11 @@ struct PromptSuggestionView: View {
                     }
                 }
                 Spacer()
+                
                 if userViewModel.draftCount >= 3 {
-                    gptBadge
+                    HomeActionButton(icon: "Refresh", isLoading: viewModel.isLoading) {
+                        viewModel.refreshPrompts(with: userViewModel.drafts)
+                    }
                 }
             }
             .padding(.vertical, 10)
@@ -71,30 +74,11 @@ struct PromptSuggestionView: View {
                 .multilineTextAlignment(.leading)
                 .padding(.top, 5)
             
-            if viewModel.showPrompts && !viewModel.isLoading {
+            if viewModel.showPrompts  {
                 VStack (spacing: 10) {
                     PromptGeneratorContainer(prompts: viewModel.generatedPrompts, viewModel: viewModel)
                 }
-            } else if viewModel.isLoading {
-                SkeletonPromptView()
             }
         }
-    }
-
-    private var gptBadge: some View {
-        HStack(spacing: 8) {
-            Image("promptsIcon")
-                .resizable()
-                .frame(width: 15, height: 15)
-            Text("GPT-4o")
-                .foregroundColor(Color("TextColor"))
-                .font(.custom("OpenSans-SemiBold", size: 15))
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 5)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color.purple.opacity(0.4))
-        )
     }
 }

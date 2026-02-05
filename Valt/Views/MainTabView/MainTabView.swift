@@ -3,6 +3,7 @@ import UIKit
 
 struct MainTabView: View {
     @EnvironmentObject private var authViewModel: AuthViewModel
+    @StateObject private var tabManager = TabManager()
     @StateObject private var homeViewModel: HomeViewModel
     @EnvironmentObject private var bannerManager: BannerManager
     @EnvironmentObject private var userViewModel: UserViewModel
@@ -21,25 +22,28 @@ struct MainTabView: View {
             // Content Layer
             Group {
                 switch selection {
-                case .explore:
-                    ExploreView()
-                case .home:
-                    HomeView(viewModel: homeViewModel)
-                case .profile:
-                    ProfileView(mainTabSelection: $selection, selectedDraft: $selectedDraft)
+                    case .home:
+                        HomeView(viewModel: homeViewModel)
+                    case .explore:
+                        ExploreView()
+                    case .profile:
+                        ProfileView(mainTabSelection: $selection, selectedDraft: $selectedDraft)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .safeAreaInset(edge: .bottom, spacing: 0) {
-                VStack(spacing: 0) {
-                    Rectangle()
-                        .fill(Color("TextColor").opacity(0.1))
-                        .frame(height: 1)
-                    
-                    CustomTabBar(selection: $selection, userViewModel: userViewModel)
-                        .background(Color("AppBackgroundColor"))
+                if !tabManager.isTabBarHidden {
+                    VStack(spacing: 0) {
+                        Rectangle()
+                            .fill(Color("TextColor").opacity(0.1))
+                            .frame(height: 1)
+                        
+                        CustomTabBar(selection: $selection, userViewModel: userViewModel)
+                            .background(Color("AppBackgroundColor"))
+                    }
+                    .ignoresSafeArea(.keyboard, edges: .bottom)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
-                .ignoresSafeArea(.keyboard, edges: .bottom)
             }
             .overlay {
                 if bannerManager.isVisible {
@@ -58,6 +62,7 @@ struct MainTabView: View {
                 .zIndex(2) // Keeps it above the tab bar
             }
         }
+        .environmentObject(tabManager)
     }
 
     private var notificationBanner: some View {
@@ -92,15 +97,6 @@ struct CustomTabBar: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            // Explore Tab
-            TabButton(
-                title: "Explore",
-                imageName: "promptsIcon",
-                tab: .explore,
-                selection: $selection,
-                size: iconSize
-            )
-
             // Home Tab
             TabButton(
                 title: "Create",
@@ -109,7 +105,14 @@ struct CustomTabBar: View {
                 selection: $selection,
                 size: iconSize
             )
-
+            // Explore Tab
+            TabButton(
+                title: "Explore",
+                imageName: "promptsIcon",
+                tab: .explore,
+                selection: $selection,
+                size: iconSize
+            )
             // Profile Tab
             Button(action: { selection = .profile }) {
                 VStack(spacing: 6) {

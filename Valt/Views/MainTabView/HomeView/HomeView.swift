@@ -8,23 +8,36 @@ struct HomeView: View {
     @State private var isNoteShowing = false
     
     var body: some View {
-        VStack(spacing: 10) {
-            MainHeader(title: "Start A Draft", image: "editIcon", action: toggleNewNote)
-                .overlay( Divider()
-                   .frame(maxWidth: .infinity, maxHeight:1)
-                   .background(Color("TextColor").opacity(0.2)), alignment: .bottom)
-            
-            PromptSuggestionView(viewModel: viewModel)
-            
-            Spacer()
-        }
-        .background(Color("TextFieldBackground").opacity(0.7))
-        .onChange(of: userViewModel.drafts) { _, newDrafts in
-            viewModel.generatePromptFromOwnDrafts(with: newDrafts)
-        }
-        .fullScreenCover(isPresented: $isNoteShowing) {
-            NewDraftView(userViewModel: userViewModel) {
-                self.isNoteShowing = false
+        NavigationStack {
+            VStack(spacing: 10) {
+                MainHeader(title: "Start A Draft", image: "editIcon", action: toggleNewNote)
+                    .overlay( Divider()
+                        .frame(maxWidth: .infinity, maxHeight:1)
+                        .background(Color("TextColor").opacity(0.2)), alignment: .bottom)
+                
+                PromptSuggestionView(viewModel: viewModel)
+                
+                Spacer()
+            }
+            .background(
+                ZStack {
+                    Color("AppBackgroundColor")
+                    Color("TextFieldBackground").opacity(0.7)
+                }
+                .ignoresSafeArea()
+            )
+            .onChange(of: userViewModel.drafts) { _, newDrafts in
+                viewModel.generatePromptFromOwnDrafts(with: newDrafts)
+            }
+            .onAppear {
+                if !userViewModel.drafts.isEmpty {
+                    viewModel.generatePromptFromOwnDrafts(with: userViewModel.drafts)
+                }
+            }
+            .fullScreenCover(isPresented: $isNoteShowing) {
+                NewDraftView(userViewModel: userViewModel) {
+                    self.isNoteShowing = false
+                }
             }
         }
     }

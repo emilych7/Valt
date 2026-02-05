@@ -12,7 +12,7 @@ struct PromptBox: View {
             HStack(spacing: 15) {
                 Text(prompt)
                     .font(.custom("OpenSans-Regular", size: 15))
-                    .foregroundColor(isSelected ? Color("ReverseTextColor") : Color("TextColor"))
+                    .foregroundColor(Color("TextColor"))
                     .frame(maxWidth: .infinity, alignment: .leading)
                 
                 Spacer()
@@ -25,7 +25,8 @@ struct PromptBox: View {
             .padding(.vertical, 15)
             .background (
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(isSelected ? Color("TextColor") : Color("CardColor"))
+                    .fill(Color("CardColor"))
+                    .stroke(Color("TextColor").opacity(0.2), lineWidth: 1)
             )
         }
         .buttonStyle(.plain)
