@@ -5,6 +5,7 @@ struct HomeView: View {
     @ObservedObject var viewModel: HomeViewModel
     @EnvironmentObject private var userViewModel: UserViewModel
     @EnvironmentObject private var bannerManager: BannerManager
+    @EnvironmentObject var tabManager: TabManager
     @State private var isNoteShowing = false
     
     var body: some View {
@@ -34,10 +35,12 @@ struct HomeView: View {
                     viewModel.generatePromptFromOwnDrafts(with: userViewModel.drafts)
                 }
             }
-            .fullScreenCover(isPresented: $isNoteShowing) {
+            .navigationDestination(isPresented: $isNoteShowing) {
                 NewDraftView(userViewModel: userViewModel) {
                     self.isNoteShowing = false
                 }
+                .navigationBarBackButtonHidden(true)
+                .toolbar(.hidden, for: .tabBar)
             }
         }
     }

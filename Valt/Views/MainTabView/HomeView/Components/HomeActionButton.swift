@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HomeActionButton: View {
     let icon: String
+    var backgroundColor: String = "BubbleColor"
     var isLoading: Bool = false
     let action: () -> Void
     
@@ -10,7 +11,7 @@ struct HomeActionButton: View {
             ZStack {
                 Circle()
                     .frame(width: 40, height: 40)
-                    .foregroundColor(Color("BubbleColor"))
+                    .foregroundColor(Color(backgroundColor))
                 
                 if isLoading {
                     ProgressView()

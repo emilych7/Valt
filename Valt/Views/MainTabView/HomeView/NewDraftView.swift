@@ -1,9 +1,11 @@
 import SwiftUI
 
 struct NewDraftView: View {
+    @Environment(\.dismiss) var dismiss
     @EnvironmentObject private var userViewModel: UserViewModel
     @EnvironmentObject private var bannerManager: BannerManager
     @StateObject private var viewModel: HomeViewModel
+    @EnvironmentObject var tabManager: TabManager
     @FocusState private var isTextFieldFocused: Bool
     
     init(userViewModel: UserViewModel, onDismiss: @escaping () -> Void) {
@@ -16,28 +18,29 @@ struct NewDraftView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 10) {
+                HomeActionButton(icon: "exitDynamicIcon", backgroundColor: "ValtRed") {
+                    onDismiss()
+                }
+                
                 Spacer()
                 
                 HomeActionButton(icon: viewModel.isFavorited ? "Favorite-Active" : "Favorite-Inactive") {
                     withAnimation { viewModel.isFavorited.toggle() }
                 }
+                .disabled(viewModel.draftText.isEmpty)
                 
                 HomeActionButton(icon: "saveIcon") {
                     saveAndDismiss()
                 }
                 .transition(.scale.combined(with: .opacity))
-                
-                HomeActionButton(icon: "exitDynamicIcon") {
-                    onDismiss()
-                }
-                
+                .disabled(viewModel.draftText.isEmpty)
             }
-            .padding(.horizontal, 30)
-            .padding(.top, 20)
+            .padding(.horizontal, 25)
+            .padding(.vertical, 20)
             
             // Note Editor
             ZStack(alignment: .topLeading) {
-                if viewModel.draftText.isEmpty && !isTextFieldFocused {
+                if viewModel.draftText.isEmpty {
                     Text("Start your draft here")
                         .font(.custom("OpenSans-Regular", size: 16))
                         .foregroundColor(Color("TextColor").opacity(0.5))
@@ -58,7 +61,12 @@ struct NewDraftView: View {
             
             Spacer()
         }
-        .background(Color("AppBackgroundColor"))
+        .background(Color("AppBackgroundColor").ignoresSafeArea())
+        .onAppear {
+            tabManager.setTabBarHidden(true)
+            isTextFieldFocused = true
+        }
+        .onDisappear { tabManager.setTabBarHidden(false) }
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 HStack {
@@ -66,6 +74,7 @@ struct NewDraftView: View {
                         viewModel.draftText = ""
                     }
                     .foregroundColor(.red)
+                    .disabled(viewModel.draftText.isEmpty)
                     
                     Spacer()
                     
@@ -80,26 +89,27 @@ struct NewDraftView: View {
                     
                     Button("Save") {
                         Task {
-                            if viewModel.draftText != "" {
-                                saveAndDismiss()
-                            } else {
-                                onDismiss()
-                            }
+                            saveAndDismiss()
                         }
                     }
                     .foregroundColor(Color("TextColor"))
+                    .disabled(viewModel.draftText.isEmpty)
                 }
                 .font(.custom("OpenSans-Regular", size: 16))
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
     func saveAndDismiss() {
         if !viewModel.draftText.isEmpty {
             viewModel.saveDraftToFirebase()
-            bannerManager.show("Saved Draft")
-            isTextFieldFocused = false // Dismiss keyboard
+            isTextFieldFocused = false
+            dismiss()
+            bannerManager.show("Saved Draft!")
+        } else if !viewModel.draftText.isEmpty {
+            bannerManager.show("Nothing to save...")
+            isTextFieldFocused = false
         }
     }
 }

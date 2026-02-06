@@ -13,9 +13,9 @@ class BannerManager: ObservableObject {
 
     func show(_ message: String,
               duration: Double = 1.0,
-              backgroundColor: Color = Color("RequestButtonColor"),
+              backgroundColor: Color = Color("AuthOptionsBackground"),
               icon: String? = nil,
-              position: BannerPosition = .center) { 
+              position: BannerPosition = .top) {
         self.message = message
         self.backgroundColor = backgroundColor
         self.icon = icon

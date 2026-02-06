@@ -21,12 +21,13 @@ struct PromptBox: View {
                     .resizable()
                     .frame(width: 15, height: 15)
             }
-            .padding(.horizontal, 15)
+            .padding(.leading, 15)
+            .padding(.trailing, 20)
             .padding(.vertical, 15)
             .background (
                 RoundedRectangle(cornerRadius: 12)
                     .fill(Color("CardColor"))
-                    .stroke(Color("TextColor").opacity(0.2), lineWidth: 1)
+                    // .stroke(Color("TextColor").opacity(0.2), lineWidth: 1)
             )
         }
         .buttonStyle(.plain)

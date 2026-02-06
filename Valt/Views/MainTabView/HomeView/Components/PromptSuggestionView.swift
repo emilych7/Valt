@@ -21,9 +21,10 @@ struct PromptSuggestionView: View {
                 Spacer()
                 
                 if userViewModel.draftCount >= 3 {
-                    HomeActionButton(icon: "Refresh", isLoading: viewModel.isLoading) {
+                    HomeActionButton(icon: "refreshIcon", isLoading: viewModel.isLoading) {
                         viewModel.refreshPrompts(with: userViewModel.drafts)
                     }
+                    .disabled(viewModel.isLoading)
                 }
             }
             .padding(.vertical, 10)

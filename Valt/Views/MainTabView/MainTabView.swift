@@ -45,11 +45,11 @@ struct MainTabView: View {
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
-            .overlay {
-                if bannerManager.isVisible {
-                    notificationBanner
-                }
-            }
+//            .overlay {
+//                if bannerManager.isVisible {
+//                    notificationBanner
+//                }
+//            }
 
             // FullNoteView transition layer
             if let draft = selectedDraft {
@@ -63,28 +63,31 @@ struct MainTabView: View {
             }
         }
         .environmentObject(tabManager)
+        .overlay(alignment: .top) {
+            if bannerManager.isVisible {
+                notificationBanner
+                    .padding(.top, 10)
+                    .padding(.horizontal, 20)
+            }
+        }
     }
 
     private var notificationBanner: some View {
-        VStack {
-            Spacer().frame(height: 300)
-            HStack(spacing: 8) {
-                if let icon = bannerManager.icon {
-                    Image(systemName: icon).foregroundColor(.white)
-                }
-                Text(bannerManager.message)
-                    .foregroundColor(.white)
-                    .font(.custom("OpenSans-Regular", size: 15))
-                    .multilineTextAlignment(.center)
+        HStack(spacing: 8) {
+            if let icon = bannerManager.icon {
+                Image(systemName: icon).foregroundColor(.white)
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 12)
-            .background(RoundedRectangle(cornerRadius: 14).fill(bannerManager.backgroundColor))
-            .padding(.horizontal, 40)
-            .shadow(radius: 8)
-            Spacer()
+            Text(bannerManager.message)
+                .foregroundColor(.white)
+                .font(.custom("OpenSans-Regular", size: 15))
+                .multilineTextAlignment(.leading)
         }
-        .transition(.scale.combined(with: .opacity))
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+        .background(RoundedRectangle(cornerRadius: 10).fill(bannerManager.backgroundColor))
+        .shadow(radius: 2)
+        .transition(.move(edge: .top).combined(with: .opacity))
     }
 }
 

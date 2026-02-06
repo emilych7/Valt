@@ -13,33 +13,34 @@ struct NewPromptedDraftView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 10) {
+                HomeActionButton(icon: "exitDynamicIcon", backgroundColor: "ValtRed") {
+                    dismiss()
+                    viewModel.draftText = ""
+                }
+                
                 Spacer()
                 
                 HomeActionButton(icon: viewModel.isFavorited ? "Favorite-Active" : "Favorite-Inactive") {
                     withAnimation { viewModel.isFavorited.toggle() }
                 }
+                .disabled(viewModel.draftText.isEmpty)
                 
                 HomeActionButton(icon: "saveIcon") {
                     saveAndDismiss()
                 }
                 .transition(.scale.combined(with: .opacity))
-                
-                HomeActionButton(icon: "exitDynamicIcon") {
-                    dismiss()
-                }
-                
+                .disabled(viewModel.draftText.isEmpty)
             }
-            .padding(.top, 20)
-            .padding(.horizontal, 20)
-            .padding(.bottom, 10)
+            .padding(.horizontal, 25)
+            .padding(.vertical, 20)
             
             // Note Editor
             VStack(alignment: .leading, spacing: 15) {
                 HStack {
                     Text(selectedPrompt)
                         .font(.custom("OpenSans-SemiBold", size: 16))
-                        .foregroundColor(Color("TextColor").opacity(0.7))
-                    Spacer()
+                        .foregroundColor(Color("TextColor").opacity(0.8))
+                        .multilineTextAlignment(.leading)
                 }
                 TextEditor(text: $viewModel.draftText)
                     .font(.custom("OpenSans-Regular", size: 16))
@@ -67,6 +68,7 @@ struct NewPromptedDraftView: View {
                         viewModel.draftText = ""
                     }
                     .foregroundColor(.red)
+                    .disabled(viewModel.draftText.isEmpty)
                     
                     Spacer()
                     
@@ -83,16 +85,30 @@ struct NewPromptedDraftView: View {
                         saveAndDismiss()
                     }
                     .foregroundColor(Color("TextColor"))
+                    .disabled(viewModel.draftText.isEmpty)
                 }
                 .font(.custom("OpenSans-Regular", size: 16))
             }
         }
     }
     
-    private func saveAndDismiss() {
-        viewModel.prompt = selectedPrompt
-        viewModel.savePromptedDraftToFirebase()
-        isTextFieldFocused = false
-        dismiss()
+//    private func saveAndDismiss() {
+//        viewModel.prompt = selectedPrompt
+//        viewModel.savePromptedDraftToFirebase()
+//        isTextFieldFocused = false
+//        dismiss()
+//    }
+    
+    func saveAndDismiss() {
+        if !viewModel.draftText.isEmpty {
+            viewModel.prompt = selectedPrompt
+            viewModel.savePromptedDraftToFirebase()
+            isTextFieldFocused = false
+            dismiss()
+            bannerManager.show("Saved Draft!")
+        } else if !viewModel.draftText.isEmpty {
+            bannerManager.show("Nothing to save...")
+            isTextFieldFocused = false
+        }
     }
 }
