@@ -101,7 +101,7 @@ struct NewDraftView: View {
         // .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
-    func saveAndDismiss() {
+    private func saveAndDismiss() {
         if !viewModel.draftText.isEmpty {
             viewModel.saveDraftToFirebase()
             isTextFieldFocused = false

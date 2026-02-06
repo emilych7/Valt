@@ -12,9 +12,7 @@ struct Draft: Identifiable, Codable, Equatable {
     var isPublished: Bool
     
     var prompt: String?
-    var isPrompted: Bool {
-        prompt != nil
-    }
+    var isPrompted: Bool 
     
     // Allows updating a field by name
     mutating func updateField(key: String, value: Any) {

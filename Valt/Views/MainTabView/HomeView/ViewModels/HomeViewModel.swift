@@ -14,6 +14,7 @@ final class HomeViewModel: ObservableObject {
     @Published var prompt: String? = nil
     @Published var draftText = ""
     @Published var animateItems: Bool = false
+    @Published var isPrompted = false
     
     private let userViewModel: UserViewModel
     private let repository: DraftRepositoryProtocol
@@ -157,14 +158,14 @@ final class HomeViewModel: ObservableObject {
     }
 
     func saveDraftToFirebase() {
-        saveDraftLogic(promptValue: nil)
+        saveDraftLogic(promptValue: nil, isPrompted: false)
     }
 
     func savePromptedDraftToFirebase() {
-        saveDraftLogic(promptValue: self.prompt)
+        saveDraftLogic(promptValue: self.prompt, isPrompted: true)
     }
 
-    private func saveDraftLogic(promptValue: String?) {
+    private func saveDraftLogic(promptValue: String?, isPrompted: Bool) {
         guard let userID = Auth.auth().currentUser?.uid,
               !draftText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         
@@ -178,7 +179,8 @@ final class HomeViewModel: ObservableObject {
             isHidden: false,
             isArchived: false,
             isPublished: false,
-            prompt: promptValue
+            prompt: promptValue,
+            isPrompted: isPrompted,
         )
         
         Task {

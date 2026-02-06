@@ -59,7 +59,8 @@ final class DraftRepository: DraftRepositoryProtocol {
                 isHidden: data["isHidden"] as? Bool ?? false,
                 isArchived: data["isArchived"] as? Bool ?? false,
                 isPublished: data["isPublished"] as? Bool ?? false,
-                prompt: data["prompt"] as? String ?? ""
+                prompt: data["prompt"] as? String ?? "",
+                isPrompted: data["isPrompted"] as? Bool ?? false
             )
         }
     }
@@ -83,6 +84,7 @@ final class DraftRepository: DraftRepositoryProtocol {
                 isArchived: data["isArchived"] as? Bool ?? false,
                 isPublished: data["isPublished"] as? Bool ?? false,
                 prompt: data["prompt"] as? String ?? "",
+                isPrompted: data["prompt"] as? Bool ?? false
             )
         }
     }

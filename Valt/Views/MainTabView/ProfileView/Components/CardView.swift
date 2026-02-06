@@ -17,7 +17,7 @@ struct CardView: View {
                     HStack(spacing: 4) {
                         Spacer()
                         
-                        if draft.prompt != "" {
+                        if draft.isPrompted {
                             StatusIcon(name: "promptsIcon", size: 10)
                         }
         
