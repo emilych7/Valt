@@ -8,13 +8,11 @@ struct MainTabView: View {
     @EnvironmentObject private var bannerManager: BannerManager
     @EnvironmentObject private var userViewModel: UserViewModel
     @Environment(\.colorScheme) var colorScheme
-    @Binding var selectedDraft: Draft?
     @State private var selection: ContentTabViewSelection = .home
     
     init(userViewModel: UserViewModel, selectedDraft: Binding<Draft?>) {
         _homeViewModel = StateObject(wrappedValue: HomeViewModel(userViewModel: userViewModel))
         _selection = State(initialValue: .home)
-        _selectedDraft = selectedDraft
     }
 
     var body: some View {
@@ -27,7 +25,7 @@ struct MainTabView: View {
                     case .explore:
                         ExploreView()
                     case .profile:
-                        ProfileView(mainTabSelection: $selection, selectedDraft: $selectedDraft)
+                        ProfileView(mainTabSelection: $selection)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -44,22 +42,6 @@ struct MainTabView: View {
                     .ignoresSafeArea(.keyboard, edges: .bottom)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
-            }
-//            .overlay {
-//                if bannerManager.isVisible {
-//                    notificationBanner
-//                }
-//            }
-
-            // FullNoteView transition layer
-            if let draft = selectedDraft {
-                FullNoteView(draft: draft) {
-                    withAnimation(.easeOut(duration: 0.2)) {
-                        selectedDraft = nil
-                    }
-                }
-                .background(Color("AppBackgroundColor"))
-                .zIndex(2) // Keeps it above the tab bar
             }
         }
         .environmentObject(tabManager)

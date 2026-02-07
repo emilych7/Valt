@@ -35,7 +35,7 @@ struct NewPromptedDraftView: View {
             .padding(.vertical, 20)
             
             // Note Editor
-            VStack(alignment: .leading, spacing: 15) {
+            VStack(alignment: .leading, spacing: 10) {
                 HStack {
                     Text(selectedPrompt)
                         .font(.custom("OpenSans-SemiBold", size: 16))
@@ -91,13 +91,6 @@ struct NewPromptedDraftView: View {
             }
         }
     }
-    
-//    private func saveAndDismiss() {
-//        viewModel.prompt = selectedPrompt
-//        viewModel.savePromptedDraftToFirebase()
-//        isTextFieldFocused = false
-//        dismiss()
-//    }
     
     func saveAndDismiss() {
         if !viewModel.draftText.isEmpty {

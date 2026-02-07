@@ -98,7 +98,6 @@ struct NewDraftView: View {
                 .font(.custom("OpenSans-Regular", size: 16))
             }
         }
-        // .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
     private func saveAndDismiss() {

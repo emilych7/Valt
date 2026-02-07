@@ -26,7 +26,7 @@ struct MainHeader: View {
                 .buttonStyle(PlainButtonStyle())
             }
         }
-        .padding(.top, 20)
+        .padding(.top, 10)
         .padding(.horizontal, 20)
         .padding(.bottom, 15)
         .background(Color("AppBackgroundColor"))

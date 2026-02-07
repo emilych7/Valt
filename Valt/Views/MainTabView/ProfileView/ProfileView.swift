@@ -6,7 +6,8 @@ struct ProfileView: View {
     @EnvironmentObject private var userViewModel: UserViewModel
     @EnvironmentObject var settingsViewModel: SettingsViewModel
     @Binding var mainTabSelection: ContentTabViewSelection
-    @Binding var selectedDraft: Draft?
+    @State private var selectedDraft: Draft? = nil
+    @State private var showNote: Bool = false
     @State private var selectedTab: ProfileTab = .all
     @State private var showSettings: Bool = false
     @State private var selectedItem: PhotosPickerItem? = nil
@@ -14,69 +15,78 @@ struct ProfileView: View {
     @State private var localProfileImage: UIImage? = nil
     
     var body: some View {
-        ZStack {
-            VStack(spacing: 0) {
-                // Header Section
-                MainHeader(title: "My Valt", image: "settingsIcon", action: toggleSettings)
-                
-                // Profile Info Section
-                HStack {
-                    Avatar(
-                        loadingState: userViewModel.profileLoadingState,
-                        profileImage: localProfileImage
-                    )
-                    .onTapGesture { isPhotoPickerPresented = true }
-                    .photosPicker(
-                        isPresented: $isPhotoPickerPresented,
-                        selection: $selectedItem,
-                        matching: .images
-                    )
+        NavigationStack {
+            ZStack {
+                VStack(spacing: 0) {
+                    // Header Section
+                    MainHeader(title: "My Valt", image: "settingsIcon", action: toggleSettings)
                     
-                    UserInfoView(userViewModel: userViewModel)
-                    Spacer()
+                    // Profile Info Section
+                    HStack {
+                        Avatar(
+                            loadingState: userViewModel.profileLoadingState,
+                            profileImage: localProfileImage
+                        )
+                        .onTapGesture { isPhotoPickerPresented = true }
+                        .photosPicker(
+                            isPresented: $isPhotoPickerPresented,
+                            selection: $selectedItem,
+                            matching: .images
+                        )
+                        
+                        UserInfoView(userViewModel: userViewModel)
+                        Spacer()
+                    }
+                    .padding(.bottom, 15)
+                    .padding(.horizontal, 25)
+                    
+                    ProfileTabView(selectedTab: $selectedTab)
+                    
+                    TabView(selection: $selectedTab) {
+                        ProfileGridContainer(rootTabSelection: $mainTabSelection, selectedDraft: $selectedDraft, showNote: $showNote, tab: .all)
+                            .tag(ProfileTab.all)
+                        
+                        ProfileGridContainer(rootTabSelection: $mainTabSelection, selectedDraft: $selectedDraft, showNote: $showNote, tab: .favorited)
+                            .tag(ProfileTab.favorited)
+                        
+                        ProfileGridContainer(rootTabSelection: $mainTabSelection, selectedDraft: $selectedDraft, showNote: $showNote, tab: .published)
+                            .tag(ProfileTab.published)
+                        
+                        ProfileGridContainer(rootTabSelection: $mainTabSelection, selectedDraft: $selectedDraft, showNote: $showNote, tab: .hidden)
+                            .tag(ProfileTab.hidden)
+                    }
+                    .tabViewStyle(.page(indexDisplayMode: .never))
+                    .background(Color("TextFieldBackground").opacity(0.7))
+                    .onAppear {
+                        UIScrollView.appearance().bounces = false
+                    }
+                    .onDisappear {
+                        UIScrollView.appearance().bounces = true
+                    }
                 }
-                .padding(.bottom, 15)
-                .padding(.horizontal, 25)
-                
-                ProfileTabView(selectedTab: $selectedTab)
-                
-                TabView(selection: $selectedTab) {
-                    ProfileGridContainer(rootTabSelection: $mainTabSelection, selectedDraft: $selectedDraft, tab: .all)
-                        .tag(ProfileTab.all)
-                    
-                    ProfileGridContainer(rootTabSelection: $mainTabSelection, selectedDraft: $selectedDraft, tab: .favorited)
-                        .tag(ProfileTab.favorited)
-                    
-                    ProfileGridContainer(rootTabSelection: $mainTabSelection, selectedDraft: $selectedDraft, tab: .published)
-                        .tag(ProfileTab.published)
-                    
-                    ProfileGridContainer(rootTabSelection: $mainTabSelection, selectedDraft: $selectedDraft, tab: .hidden)
-                        .tag(ProfileTab.hidden)
-                }
-                .tabViewStyle(.page(indexDisplayMode: .never))
-                .background(Color("TextFieldBackground").opacity(0.7))
-                .onAppear {
-                    UIScrollView.appearance().bounces = false
-                }
-                .onDisappear {
-                    UIScrollView.appearance().bounces = true
+                .background(Color("AppBackgroundColor").ignoresSafeArea())
+            }
+            .onReceive(userViewModel.$profileImage) { newImage in
+                localProfileImage = newImage
+            }
+            .onChange(of: selectedItem) { _, newValue in
+                Task {
+                    guard let item = newValue,
+                          let data = try? await item.loadTransferable(type: Data.self),
+                          let uiImage = UIImage(data: data) else { return }
+                    await userViewModel.uploadProfilePicture(uiImage)
                 }
             }
-            .background(Color("AppBackgroundColor").ignoresSafeArea())
-        }
-        .onReceive(userViewModel.$profileImage) { newImage in
-            localProfileImage = newImage
-        }
-        .onChange(of: selectedItem) { _, newValue in
-            Task {
-                guard let item = newValue,
-                      let data = try? await item.loadTransferable(type: Data.self),
-                      let uiImage = UIImage(data: data) else { return }
-                await userViewModel.uploadProfilePicture(uiImage)
+            .navigationDestination(isPresented: $showSettings) {
+                SettingsView()
+                .navigationBarBackButtonHidden(true)
             }
-        }
-        .fullScreenCover(isPresented: $showSettings) {
-            SettingsView()
+            .navigationDestination(isPresented: $showNote) {
+                if let draft = selectedDraft {
+                    FullNoteView(draft: draft, userViewModel: userViewModel)
+                        .toolbar(.hidden, for: .tabBar)
+                }
+            }
         }
     }
     

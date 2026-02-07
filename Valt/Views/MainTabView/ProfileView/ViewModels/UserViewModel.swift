@@ -167,6 +167,7 @@ final class UserViewModel: ObservableObject {
 
     func deleteDraft(draftID: String) async {
         self.cardLoadingState = .loading
+        
         do {
             try await repository.deleteDraft(draftID: draftID)
             if let index = self.drafts.firstIndex(where: { $0.id == draftID }) {

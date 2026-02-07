@@ -4,6 +4,7 @@ struct CardView: View {
     @ObservedObject var userViewModel: UserViewModel
     let draft: Draft
     @Binding var selectedDraft: Draft?
+    @Binding var showNote: Bool
 
     var body: some View {
         VStack(spacing: 4) {
@@ -45,13 +46,13 @@ struct CardView: View {
             .contentShape(.contextMenuPreview, RoundedRectangle(cornerRadius: 12))
             .aspectRatio(0.7, contentMode: .fit)
             .onTapGesture {
-                withAnimation(.smooth()) {
-                    selectedDraft = draft
-                }
+                selectedDraft = draft
+                showNote = true
             }
             .contextMenu {
                 Button {
                     withAnimation(.smooth()) { selectedDraft = draft }
+                    showNote = true
                 } label: {
                     Label("Open Full Note", image: "editIcon")
                 }

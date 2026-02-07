@@ -4,6 +4,7 @@ import FirebaseAuth
 struct SettingsView: View {
     @StateObject private var settingsViewModel = SettingsViewModel()
     @EnvironmentObject var authViewModel: AuthViewModel
+    @EnvironmentObject var tabManager: TabManager
     @Environment(\.dismiss) var dismiss
     
     var body: some View {
@@ -37,7 +38,10 @@ struct SettingsView: View {
             }
         }
         .background(Color("AppBackgroundColor").ignoresSafeArea())
-        .navigationBarHidden(true)
+        .onAppear {
+            tabManager.setTabBarHidden(true)
+        }
+        .onDisappear { tabManager.setTabBarHidden(false) }
         .scrollBounceBehavior(.basedOnSize)
         .environmentObject(settingsViewModel)
         }

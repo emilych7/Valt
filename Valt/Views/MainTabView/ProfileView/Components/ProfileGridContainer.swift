@@ -4,6 +4,7 @@ struct ProfileGridContainer: View {
     @EnvironmentObject var userViewModel: UserViewModel
     @Binding var rootTabSelection: ContentTabViewSelection
     @Binding var selectedDraft: Draft?
+    @Binding var showNote: Bool
     let tab: ProfileTab
     
     var body: some View {
@@ -29,7 +30,7 @@ struct ProfileGridContainer: View {
                     emptyView
                 } else {
                     ResponsiveGridView(items: filteredData) { draft in
-                        CardView(userViewModel: userViewModel, draft: draft, selectedDraft: $selectedDraft)
+                        CardView(userViewModel: userViewModel, draft: draft, selectedDraft: $selectedDraft, showNote: $showNote)
                     }
                 }
             case .empty:
