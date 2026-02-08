@@ -57,7 +57,8 @@ struct MainTabView: View {
     private var notificationBanner: some View {
         HStack(spacing: 8) {
             if let icon = bannerManager.icon {
-                Image(systemName: icon).foregroundColor(.white)
+                Image(icon)
+                    .foregroundColor(.white)
             }
             Text(bannerManager.message)
                 .foregroundColor(.white)

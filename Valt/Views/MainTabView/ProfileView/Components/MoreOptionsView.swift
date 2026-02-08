@@ -9,34 +9,38 @@ struct MoreOptionsView: View {
     let rows = [GridItem(.flexible(minimum: 100), spacing: 3)]
     
     var body: some View {
-        LazyVGrid(columns: rows, spacing: 8) {
+        LazyVGrid(columns: rows, spacing: 0) {
             ForEach(options) { moreOption in
-                Button {
-                    selection = moreOption
-                    onSelect(moreOption)
-                    withAnimation {
-                        dismiss()
+                    Button {
+                        selection = moreOption
+                        onSelect(moreOption)
+                        withAnimation {
+                            dismiss()
+                        }
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(moreOption.imageName)
+                                .resizable()
+                                .frame(width: 15, height: 15)
+                            
+                            Text(moreOption.rawValue)
+                                .foregroundColor(Color("TextColor"))
+                                .font(.custom("OpenSans-Regular", size: 17))
+                            
+                            Spacer()
+                        }
+                        .padding(.horizontal, 15)
+                        .padding(.vertical, 12)
+                        .frame(maxWidth: .infinity)
                     }
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(moreOption.imageName)
-                            .resizable()
-                            .frame(width: 20, height: 20)
-                        
-                        Text(moreOption.rawValue)
-                            .foregroundColor(Color("TextColor"))
-                            .font(.custom("OpenSans-Regular", size: 17))
-                        
-                        Spacer(minLength: 0)
+
+                    if moreOption.id != options.last?.id {
+                        Divider()
+                            .background(Color("TextColor").opacity(0.2))
                     }
-                    .padding(.horizontal, 8)
-                    .frame(maxWidth: .infinity, minHeight: 35)
-                    .cornerRadius(6)
                 }
-            }
         }
-        .padding(12)
-        .background(Color("AppBackgroundColor"))
+        .background(Color("BubbleColor"))
         .cornerRadius(12)
         .fixedSize()
     }

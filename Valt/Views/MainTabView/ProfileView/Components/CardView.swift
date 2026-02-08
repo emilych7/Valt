@@ -33,9 +33,9 @@ struct CardView: View {
                         }
                     }
                     .padding([.top, .trailing], 6)
-
+                    
                     Text(draft.content)
-                        .font(.custom("OpenSans-Regular", size: 5))
+                        .font(.custom("OpenSans-Regular", size: 8))
                         .foregroundColor(Color("TextColor"))
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                         .padding([.horizontal, .bottom], 6)
@@ -74,13 +74,12 @@ struct CardView: View {
                 .day(.defaultDigits)
                 .year(.twoDigits)
             ))
-            .font(.custom("OpenSans-Regular", size: 11))
+            .font(.custom("OpenSans-Regular", size: 13))
             .foregroundColor(Color("TextColor").opacity(0.7))
         }
     }
 }
 
-// Sub-component for card icons
 struct StatusIcon: View {
     let name: String
     let size: CGFloat

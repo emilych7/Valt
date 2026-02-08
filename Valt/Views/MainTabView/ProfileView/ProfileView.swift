@@ -55,6 +55,7 @@ struct ProfileView: View {
                         ProfileGridContainer(rootTabSelection: $mainTabSelection, selectedDraft: $selectedDraft, showNote: $showNote, tab: .hidden)
                             .tag(ProfileTab.hidden)
                     }
+                    .padding(.vertical, 5)
                     .tabViewStyle(.page(indexDisplayMode: .never))
                     .background(Color("TextFieldBackground").opacity(0.7))
                     .onAppear {

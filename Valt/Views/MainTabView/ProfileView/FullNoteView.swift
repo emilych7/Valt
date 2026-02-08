@@ -43,7 +43,7 @@ struct FullNoteView: View {
             .padding(.vertical, 20)
             
             VStack(alignment: .leading, spacing: 10) {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading) {
                     Text(viewModel.formattedDate)
                         .font(.custom("OpenSans-Regular", size: 14))
                         .foregroundColor(Color("TextColor").opacity(0.5))
@@ -52,8 +52,6 @@ struct FullNoteView: View {
                         Text(promptText)
                             .font(.custom("OpenSans-SemiBold", size: 16))
                             .foregroundColor(Color("TextColor").opacity(0.8))
-                            .multilineTextAlignment(.leading)
-                            .padding(.top, 4)
                     }
                 }
                 
@@ -103,10 +101,13 @@ struct FullNoteView: View {
                 switch option {
                 case .publish:
                     await viewModel.updateStatus(field: "isPublished", value: true)
+                    isTextFieldFocused = false
                     dismiss()
+                    bannerManager.show("Published Draft!", backgroundColor: Color("ValtGreen"), icon: "Publish-Dark")
                 case .hide:
                     await viewModel.updateStatus(field: "isHidden", value: true)
-                    dismiss()
+                    bannerManager.show("Draft Is Hidden.", backgroundColor: Color("RequestButtonColor"), icon: "Hide-Dark")
+                    
                 case .delete:
                     viewModel.showDeleteConfirmation = true
                 }
