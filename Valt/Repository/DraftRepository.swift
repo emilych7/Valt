@@ -6,15 +6,14 @@ protocol DraftRepositoryProtocol {
     func deleteDraft(draftID: String) async throws
     func saveDraft(draft: Draft) async throws
     func updateDraft(draftID: String, with fields: [AnyHashable: Any]) async throws
-
-    func searchUsernames(prefix: String, limit: Int) async throws -> [String]
+    func searchUsers(prefix: String, limit: Int) async throws -> [String]
     func fetchPublishedDrafts(forUsername username: String) async throws -> [Draft]
 }
 
 final class DraftRepository: DraftRepositoryProtocol {
     let db = Firestore.firestore()
 
-    func searchUsernames(prefix: String, limit: Int = 15) async throws -> [String] {
+    func searchUsers(prefix: String, limit: Int = 15) async throws -> [String] {
         let q = prefix.lowercased()
         if q.isEmpty { return [] }
 

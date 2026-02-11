@@ -17,8 +17,8 @@ final class UserViewModel: ObservableObject {
     @Published var drafts: [Draft] = []
     @Published var profileImage: UIImage? = nil
     @Published var profilePictureURL: URL? = nil
-    @Published var usernameResults: [String] = []
-    @Published var usernamePublishedDrafts: [Draft] = []
+//    @Published var usernameResults: [String] = []
+//    @Published var usernamePublishedDrafts: [Draft] = []
 
     private let repository: DraftRepositoryProtocol
     private var authHandler: AuthStateDidChangeListenerHandle?
@@ -248,30 +248,30 @@ final class UserViewModel: ObservableObject {
         }
     }
     
-    func searchUsernames(prefix: String) async {
-        let trimmed = prefix.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else {
-            self.usernameResults = []
-            return
-        }
-        do {
-            let names = try await repository.searchUsernames(prefix: trimmed, limit: 15)
-            self.usernameResults = names
-        } catch {
-            print("Error searching usernames: \(error.localizedDescription)")
-            self.usernameResults = []
-        }
-    }
+//    func searchUsernames(prefix: String) async {
+//        let trimmed = prefix.trimmingCharacters(in: .whitespacesAndNewlines)
+//        guard !trimmed.isEmpty else {
+//            self.usernameResults = []
+//            return
+//        }
+//        do {
+//            let names = try await repository.searchUsernames(prefix: trimmed, limit: 15)
+//            self.usernameResults = names
+//        } catch {
+//            print("Error searching usernames: \(error.localizedDescription)")
+//            self.usernameResults = []
+//        }
+//    }
 
-    func loadPublishedDrafts(for username: String) async {
-        do {
-            let items = try await repository.fetchPublishedDrafts(forUsername: username)
-            self.usernamePublishedDrafts = items
-        } catch {
-            print("Error loading published drafts for \(username): \(error.localizedDescription)")
-            self.usernamePublishedDrafts = []
-        }
-    }
+//    func loadPublishedDrafts(for username: String) async {
+//        do {
+//            let items = try await repository.fetchPublishedDrafts(forUsername: username)
+//            self.usernamePublishedDrafts = items
+//        } catch {
+//            print("Error loading published drafts for \(username): \(error.localizedDescription)")
+//            self.usernamePublishedDrafts = []
+//        }
+//    }
     
     func reloadUser() async {
         guard let user = Auth.auth().currentUser else { return }
