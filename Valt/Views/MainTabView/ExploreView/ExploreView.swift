@@ -34,34 +34,43 @@ struct ExploreView: View {
                 VStack {
                 // Results
                     if viewModel.isSearching && viewModel.userSuggestions.isEmpty {
-                        ProgressView()
-                            .padding()
+                        VStack {
+                            ProgressView()
+                                .padding(.vertical, 10)
+                        }
+                        .frame(maxWidth: .infinity)
+                        
                     } else {
-                        List(viewModel.userSuggestions) { user in
-                            Button {
-                                viewModel.selectUser(user)
-                            } label: {
-                                HStack(spacing: 8) {
-                                    Image(systemName: "person.circle.fill")
-                                        .resizable()
-                                        .frame(width: 25, height: 25)
-                                        .foregroundColor(Color("TextColor"))
-                                    
-                                    Text(user.username)
-                                        .foregroundColor(Color("TextColor"))
-                                        .font(.custom("OpenSans-Regular", size: 16))
-                                    
-                                    Spacer()
+                        ScrollView {
+                            LazyVStack(spacing: 0) {
+                                ForEach(viewModel.userSuggestions) { user in
+                                    Button {
+                                        viewModel.selectUser(user)
+                                    } label: {
+                                        HStack(spacing: 8) {
+                                            Image(systemName: "person.circle.fill")
+                                                .resizable()
+                                                .frame(width: 25, height: 25)
+                                                .foregroundColor(Color("TextColor"))
+                                            
+                                            Text(user.username)
+                                                .foregroundColor(Color("TextColor"))
+                                                .font(.custom("OpenSans-Regular", size: 16))
+                                            
+                                            Spacer()
+                                        }
+                                        .padding(.vertical, 12)
+                                        .padding(.horizontal, 20)
+                                        .contentShape(Rectangle())
+                                    }
                                 }
                             }
-                            .listRowBackground(Color("AppBackgroundColor"))
                         }
                     }
                     
                     Spacer()
                 }
-                .background(Color("ValtRed"))
-                
+                .background(Color("TextFieldBackground").opacity(0.7))
             }
             .background(
                 ZStack {
