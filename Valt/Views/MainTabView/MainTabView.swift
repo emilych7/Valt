@@ -29,6 +29,7 @@ struct MainTabView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .ignoresSafeArea(.keyboard, edges: tabManager.isTabBarHidden ? .bottom : [])
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 if !tabManager.isTabBarHidden {
                     VStack(spacing: 0) {
@@ -39,7 +40,7 @@ struct MainTabView: View {
                         CustomTabBar(selection: $selection, userViewModel: userViewModel)
                             .background(Color("AppBackgroundColor"))
                     }
-                    .ignoresSafeArea(.keyboard, edges: .bottom)
+                    // .ignoresSafeArea(.keyboard, edges: .bottom)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }

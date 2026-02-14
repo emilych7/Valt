@@ -3,14 +3,13 @@ import FirebaseAuth
 
 @MainActor
 final class ExploreViewModel: ObservableObject {
-    @Published var generatedPrompts: [String] = ["Come back when you have at least 3 notes..."]
-    @Published var isLoading: Bool = false
     @Published var searchText: String = ""
     @Published var isSearching: Bool = false
+    @Published var isLoading: Bool = false
     @Published var userSuggestions: [OtherUser] = []
     @Published var selectedUser: OtherUser? = nil
-    
     @Published var publishedDraftsForUser: [Draft] = []
+    @Published var generatedPrompts: [String] = ["Come back when you have at least 3 notes..."]
 
     private let repository: DraftRepositoryProtocol
     private var searchTask: Task<Void, Never>?
@@ -18,40 +17,42 @@ final class ExploreViewModel: ObservableObject {
     init(repository: DraftRepositoryProtocol = DraftRepository()) {
         self.repository = repository
     }
-
+    
+    // Triggered by .onChange(of: searchText) in the ExploreView
     func onSearchTextChanged() {
-        let q = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+
         searchTask?.cancel()
         
-        if q.isEmpty {
-            self.userSuggestions = []
-            self.isSearching = false
+        if query.isEmpty {
+            resetSearch()
             return
         }
 
         isSearching = true
 
-        searchTask = Task { [weak self] in
-            guard let self else { return }
-            try? await Task.sleep(nanoseconds: 250_000_000)
+        searchTask = Task {
+            // Waits for user to stop typing
+            try? await Task.sleep(nanoseconds: 250_000_000) // 0.25s
             guard !Task.isCancelled else { return }
             
             do {
-                let usernames = try await repository.searchUsers(prefix: q, limit: 15)
+                let usernames = try await repository.searchUsers(prefix: query, limit: 15)
                 
-                self.userSuggestions = usernames.map { name in
-                    OtherUser(
-                        id: name,
-                        username: name,
-                        profileImageUrl: nil,
-                        publishedDrafts: []
-                    )
+                let suggestions = usernames.map { name in
+                    OtherUser(id: name, username: name, profileImageUrl: nil, publishedDrafts: [])
+                }
+                
+                if !Task.isCancelled {
+                    self.userSuggestions = suggestions
+                    self.isSearching = false
                 }
             } catch {
-                self.userSuggestions = []
-                print("Search error: \(error.localizedDescription)")
+                if !Task.isCancelled {
+                    self.userSuggestions = []
+                    self.isSearching = false
+                }
             }
-            self.isSearching = false
         }
     }
 
@@ -65,13 +66,18 @@ final class ExploreViewModel: ObservableObject {
         }
     }
     
-    func loadPublishedDrafts(for username: String) async {
+    private func loadPublishedDrafts(for username: String) async {
         do {
             let items = try await repository.fetchPublishedDrafts(forUsername: username)
             self.publishedDraftsForUser = items
         } catch {
-            print("Error loading published drafts for \(username): \(error.localizedDescription)")
+            print("Error loading drafts: \(error.localizedDescription)")
             self.publishedDraftsForUser = []
         }
+    }
+
+    private func resetSearch() {
+        self.userSuggestions = []
+        self.isSearching = false
     }
 }
