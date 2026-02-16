@@ -91,9 +91,12 @@ struct ExploreView: View {
                 tabManager.setTabBarHidden(focused)
             }
             .navigationDestination(item: $viewModel.selectedUser) { user in
-                Text("Profile for \(user.username)")
+                // Text("Profile for \(user.username)")
+                OtherUserView()
+                    .environmentObject(viewModel)
+                    .navigationBarBackButtonHidden(true)
             }
-            .animation(.snappy(duration: 0.25), value: isSearchFocused)
+            // .animation(.snappy(duration: 0.25), value: isSearchFocused)
         }
     }
     

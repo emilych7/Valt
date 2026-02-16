@@ -32,15 +32,16 @@ final class DraftRepository: DraftRepositoryProtocol {
     }
 
     func fetchPublishedDrafts(forUsername username: String) async throws -> [Draft] {
-        let usersQuery = db.collection("users")
-            .whereField("username", isEqualTo: username)
-            .limit(to: 1)
-        let userSnap = try await usersQuery.getDocuments()
+        let userDoc = try await db.collection("usernames").document(username).getDocument()
+        
+        guard let data = userDoc.data(),
+              let userID = data["userID"] as? String else {
+            print("DEBUG: No userID found in 'usernames' for \(username)")
+            return []
+        }
+        
+        print("DEBUG: Successfully resolved \(username) to \(userID)")
 
-        guard let userDoc = userSnap.documents.first else { return [] }
-        let userID = userDoc.documentID
-
-        // Get published drafts for that userID
         let snapshot = try await db.collection("drafts")
             .whereField("userID", isEqualTo: userID)
             .whereField("isPublished", isEqualTo: true)
