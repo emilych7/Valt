@@ -1,12 +1,21 @@
 import SwiftUI
 
 struct OtherUserView: View {
+    @Environment(\.dismiss) var dismiss
     @EnvironmentObject private var viewModel: ExploreViewModel
+    @State private var isBookmarked = false
     
     var body: some View {
         VStack(spacing: 0) {
-            MainHeader(title: viewModel.selectedUser?.username ?? "User", image: "bookmarkIcon-Unselected")
-            
+            HStack {
+                HomeActionButton(icon: "exitDynamicIcon", backgroundColor: "ValtRed") {
+                    dismiss()
+                }
+                
+                Spacer()
+                
+                MainHeader(title: viewModel.selectedUser?.username ?? "User", image: isBookmarked ? "bookmarkIcon-Selected" :"bookmarkIcon-Unselected", action: toggleBookmark)
+            }
             ZStack {
                 if viewModel.isLoading {
                     VStack {
@@ -41,7 +50,7 @@ struct OtherUserView: View {
     
     private func draftCell(_ draft: Draft) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(draft.content) 
+            Text(draft.content)
                 .font(.custom("OpenSans-Regular", size: 14))
                 .foregroundColor(Color("TextColor").opacity(0.8))
                 .lineLimit(3)
@@ -51,5 +60,9 @@ struct OtherUserView: View {
         .background(Color("AppBackgroundColor").opacity(0.5))
         .cornerRadius(12)
         .padding(.horizontal, 20)
+    }
+    
+    func toggleBookmark() {
+        self.isBookmarked = !self.isBookmarked
     }
 }
