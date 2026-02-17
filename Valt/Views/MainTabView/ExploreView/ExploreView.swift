@@ -87,16 +87,18 @@ struct ExploreView: View {
                 }
             }
             .background(Color("AppBackgroundColor"))
-            .onChange(of: isSearchFocused) { _, focused in
-                tabManager.setTabBarHidden(focused)
+            .onChange(of: isSearchFocused) { _, newValue in
+                viewModel.isSearchFocused = newValue
+            }
+            .onAppear {
+                viewModel.setup(tabManager)
             }
             .navigationDestination(item: $viewModel.selectedUser) { user in
-                // Text("Profile for \(user.username)")
                 OtherUserView()
                     .environmentObject(viewModel)
                     .navigationBarBackButtonHidden(true)
             }
-            // .animation(.snappy(duration: 0.25), value: isSearchFocused)
+            .animation(.snappy(duration: 0.25), value: isSearchFocused)
         }
     }
     
@@ -117,8 +119,18 @@ struct ExploreView: View {
             viewModel.selectUser(user)
         } label: {
             HStack(spacing: 12) {
-                Image(systemName: "person.circle.fill")
-                    .resizable()
+                if let url = URL(string: user.profileImageURL), !user.profileImageURL.isEmpty {
+                    AsyncImage(url: url) { phase in
+                        if let image = phase.image {
+                            image.resizable()
+                                .aspectRatio(contentMode: .fill)
+                        } else if phase.error != nil {
+                            Image(systemName: "person.circle.fill") // fallback
+                                .foregroundColor(.secondary)
+                        } else {
+                            ProgressView()
+                        }
+                    }
                     .frame(width: 30, height: 30)
                     .foregroundColor(Color("TextColor"))
                 
@@ -126,10 +138,14 @@ struct ExploreView: View {
                     Text(user.username)
                         .font(.custom("OpenSans-SemiBold", size: 16))
                 }
+                
+                Text(user.username)
+                    .font(.custom("OpenSans-SemiBold", size: 16))
+                
                 Spacer()
             }
-            .padding(.vertical, 8)
-            .padding(.horizontal, 20)
+            .padding(.vertical, 10)
+            .padding(.horizontal, 25)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

@@ -3,11 +3,11 @@ import Foundation
 struct OtherUser: Identifiable, Codable, Equatable, Hashable {
     let id: String
     var username: String
-    var profileImageUrl: String?
+    var profileImageURL: String
     var publishedDrafts: [Draft]
     
     var hasProfilePicture: Bool {
-        return profileImageUrl != nil && !(profileImageUrl?.isEmpty ?? true)
+        !profileImageURL.isEmpty
     }
 
     func hash(into hasher: inout Hasher) {

@@ -1,5 +1,6 @@
 import Foundation
 import FirebaseAuth
+import FirebaseStorage
 
 @MainActor
 final class ExploreViewModel: ObservableObject {
@@ -10,18 +11,28 @@ final class ExploreViewModel: ObservableObject {
     @Published var selectedUser: OtherUser? = nil
     @Published var publishedDraftsForUser: [Draft] = []
     @Published var generatedPrompts: [String] = ["Come back when you have at least 3 notes..."]
+    
+    @Published var isSearchFocused: Bool = false {
+        didSet {
+            handleFocusChange(isSearchFocused)
+        }
+    }
 
     private let repository: DraftRepositoryProtocol
+    private var tabManager: TabManager?
     private var searchTask: Task<Void, Never>?
 
-    init(repository: DraftRepositoryProtocol = DraftRepository()) {
+    init(repository: DraftRepositoryProtocol = DraftRepository(), tabManager: TabManager? = nil) {
         self.repository = repository
+        self.tabManager = tabManager
     }
     
-    // Triggered by .onChange(of: searchText) in the ExploreView
+    func setup(_ manager: TabManager) {
+        self.tabManager = manager
+    }
+
     func onSearchTextChanged() {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-
         searchTask?.cancel()
         
         if query.isEmpty {
@@ -32,15 +43,27 @@ final class ExploreViewModel: ObservableObject {
         isSearching = true
 
         searchTask = Task {
-            // Waits for user to stop typing
-            try? await Task.sleep(nanoseconds: 250_000_000) // 0.25s
+            try? await Task.sleep(nanoseconds: 250_000_000) // Debounce
             guard !Task.isCancelled else { return }
             
             do {
-                let usernames = try await repository.searchUsers(prefix: query, limit: 15)
+                let users = try await repository.searchUsers(prefix: query, limit: 15)
                 
-                let suggestions = usernames.map { name in
-                    OtherUser(id: name, username: name, profileImageUrl: nil, publishedDrafts: [])
+                // Grabs Storage URLs in parallel
+                let suggestions = await withTaskGroup(of: OtherUser.self) { group in
+                    for var user in users {
+                        group.addTask {
+                            let url = await self.repository.getProfileImageURL(for: user.id)
+                            user.profileImageURL = url
+                            return user
+                        }
+                    }
+                    
+                    var results: [OtherUser] = []
+                    for await updatedUser in group {
+                        results.append(updatedUser)
+                    }
+                    return results
                 }
                 
                 if !Task.isCancelled {
@@ -48,21 +71,30 @@ final class ExploreViewModel: ObservableObject {
                     self.isSearching = false
                 }
             } catch {
-                if !Task.isCancelled {
-                    self.userSuggestions = []
-                    self.isSearching = false
-                }
+                self.isSearching = false
+                print("Search error: \(error.localizedDescription)")
             }
         }
     }
 
     func selectUser(_ user: OtherUser) {
         self.selectedUser = user
+        self.publishedDraftsForUser = []
         self.isLoading = true
         
         Task {
             await loadPublishedDrafts(for: user.username)
             self.isLoading = false
+        }
+    }
+
+    private func fetchProfileURL(for userID: String) async -> String {
+        let storageRef = Storage.storage().reference().child("profilePictures/\(userID).jpg")
+        do {
+            let url = try await storageRef.downloadURL()
+            return url.absoluteString
+        } catch {
+            return ""
         }
     }
     
@@ -71,8 +103,13 @@ final class ExploreViewModel: ObservableObject {
             let items = try await repository.fetchPublishedDrafts(forUsername: username)
             self.publishedDraftsForUser = items
         } catch {
-            print("Error loading drafts: \(error.localizedDescription)")
             self.publishedDraftsForUser = []
+        }
+    }
+
+    private func handleFocusChange(_ focused: Bool) {
+        Task {
+            tabManager?.setTabBarHidden(focused)
         }
     }
 

@@ -16,13 +16,6 @@ struct ProfileGridContainer: View {
                         .controlSize(.regular)
                         .tint(Color("TextColor"))
                 }
-                
-                /*
-                ResponsiveGridView(items: (1...12).map { FakeItem(id: $0) }) { _ in
-                    SkeletonCardView()
-                }
-                 */
-                
             case .complete:
                 let filteredData = getFilteredData()
                 
@@ -92,26 +85,6 @@ struct ProfileGridContainer: View {
         case .published: return "No published drafts yet."
         case .hidden: return "No hidden drafts yet."
         }
-    }
-}
-
-struct ResponsiveGridView<Content: View, T: Identifiable>: View {
-    let items: [T]
-    let content: (T) -> Content
-    
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 15), count: 4)
-    
-    var body: some View {
-        ScrollView {
-            LazyVGrid(columns: columns, spacing: 15) {
-                ForEach(items) { item in
-                    content(item)
-                }
-            }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 10)
-        }
-        .scrollIndicators(.hidden)
     }
 }
 
