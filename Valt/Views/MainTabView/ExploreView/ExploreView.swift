@@ -132,11 +132,12 @@ struct ExploreView: View {
                         }
                     }
                     .frame(width: 30, height: 30)
-                    .foregroundColor(Color("TextColor"))
-                
-                VStack(alignment: .leading) {
-                    Text(user.username)
-                        .font(.custom("OpenSans-SemiBold", size: 16))
+                    .clipShape(Circle())
+                } else {
+                    Image(systemName: "person.circle.fill")
+                        .resizable()
+                        .frame(width: 30, height: 30)
+                        .foregroundColor(Color("TextColor").opacity(0.6))
                 }
                 
                 Text(user.username)

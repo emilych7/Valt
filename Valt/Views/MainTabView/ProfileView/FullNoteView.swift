@@ -12,7 +12,7 @@ struct FullNoteView: View {
     init(draft: Draft, userViewModel: UserViewModel) {
         _viewModel = StateObject(wrappedValue: FullNoteViewModel(userViewModel: userViewModel, draft: draft))
     }
-
+    
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 10) {
@@ -69,7 +69,7 @@ struct FullNoteView: View {
 
             Spacer()
         }
-        .background(Color("AppBackgroundColor").ignoresSafeArea())
+        .background(Color("CardColor").ignoresSafeArea())
         .navigationBarBackButtonHidden(true)
         .onAppear {
             tabManager.setTabBarHidden(true)
@@ -95,8 +95,9 @@ struct FullNoteView: View {
     }
     
     private var moreOptionsPopover: some View {
-        MoreOptionsView(selection: $viewModel.selectedMoreOption) { option in
+        MoreOptionsView(selection: $viewModel.selectedMoreOption, options: viewModel.filteredOptions) { option in
             viewModel.showMoreOptions = false
+            
             Task {
                 switch option {
                 case .publish:
@@ -104,8 +105,17 @@ struct FullNoteView: View {
                     isTextFieldFocused = false
                     dismiss()
                     bannerManager.show("Published Draft!", backgroundColor: Color("ValtGreen"), icon: "Publish-Dark")
+                    
+                case .unpublish:
+                    await viewModel.updateStatus(field: "isPublished", value: false)
+                    isTextFieldFocused = false
+                    dismiss()
+                    bannerManager.show("Draft Unpublished", backgroundColor: Color("RequestButtonColor"), icon: "Publish-Dark")
+                    
                 case .hide:
                     await viewModel.updateStatus(field: "isHidden", value: true)
+                    isTextFieldFocused = false
+                    dismiss()
                     bannerManager.show("Draft Is Hidden.", backgroundColor: Color("RequestButtonColor"), icon: "Hide-Dark")
                     
                 case .delete:

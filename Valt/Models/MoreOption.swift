@@ -2,6 +2,7 @@ import Foundation
 
 enum MoreOption: String, CaseIterable, Identifiable {
     case publish = "Publish"
+    case unpublish = "Unpublish"
     case hide = "Hide"
     case delete = "Delete"
 
@@ -10,6 +11,8 @@ enum MoreOption: String, CaseIterable, Identifiable {
     var imageName: String {
         switch self {
         case .publish:
+            return "publishIcon"
+        case .unpublish:
             return "publishIcon"
         case .hide:
             return "hideIcon"

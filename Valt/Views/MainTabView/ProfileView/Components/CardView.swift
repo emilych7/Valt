@@ -35,7 +35,7 @@ struct CardView: View {
                     .padding([.top, .trailing], 6)
                     
                     Text(draft.content)
-                        .font(.custom("OpenSans-Regular", size: 8))
+                        .font(.custom("OpenSans-Regular", size: 6))
                         .foregroundColor(Color("TextColor"))
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                         .padding([.horizontal, .bottom], 6)

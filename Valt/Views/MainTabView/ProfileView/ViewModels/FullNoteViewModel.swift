@@ -23,6 +23,16 @@ class FullNoteViewModel: ObservableObject {
         return formatter.string(from: draft.timestamp)
     }
     
+    var filteredOptions: [MoreOption] {
+            MoreOption.allCases.filter { option in
+                if draft.isPublished {
+                    return option != .publish
+                } else {
+                    return option != .unpublish
+                }
+            }
+        }
+    
     init(userViewModel: UserViewModel, draft: Draft) {
         self.userViewModel = userViewModel
         self.draft = draft
