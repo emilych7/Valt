@@ -4,24 +4,23 @@ struct ActivityView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var settingsViewModel: SettingsViewModel
     @Environment(\.dismiss) var dismiss
+    @Binding var selectedDraft: Draft?
+    @Binding var showNote: Bool
     
     var body: some View {
-        GeometryReader { geometry in
-            VStack(spacing: 0) {
-                
-                SettingsHeader(title: "Activity", buttonTitle: "Exit") {
-                    dismiss()
+        VStack(spacing: 0) {
+            SettingsHeader(title: "Activity", buttonTitle: "Exit") {
+                dismiss()
+            }
+            
+            ScrollView {
+                VStack(spacing: 20) {
+                    interactionSection
+                    archiveSection
                 }
-                
-                ScrollView {
-                    VStack(spacing: 20) {
-                        interactionSection
-                        archiveSection
-                    }
-                    .padding(.top, 10)
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 30)
-                }
+                .padding(.top, 10)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 30)
             }
         }
         .background(Color("AppBackgroundColor").ignoresSafeArea())
@@ -65,22 +64,11 @@ struct ActivityView: View {
                 .frame(height: 1)
                 .background(Color("TextFieldBorder"))
             
-            NavigationLink(destination: Text("Archived")) { SettingsRow(title: "Archived", icon: "archiveIcon") }
+            NavigationLink(destination: ArchiveView(selectedDraft: $selectedDraft, showNote: $showNote).navigationBarBackButtonHidden(true)) { SettingsRow(title: "Archived", icon: "archiveIcon") }
                 .padding(.horizontal, 15)
                 .padding(.bottom, 5)
         }
         .background(Color("TextFieldBackground"))
         .cornerRadius(12)
-    }
-}
-
-#Preview("Logged In State") {
-    let mockAuth = AuthViewModel()
-    let mockSettings = SettingsViewModel()
-    
-    return NavigationView {
-        ActivityView()
-            .environmentObject(mockAuth)
-            .environmentObject(mockSettings)
     }
 }

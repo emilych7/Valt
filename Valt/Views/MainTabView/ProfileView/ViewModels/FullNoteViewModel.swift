@@ -24,14 +24,18 @@ class FullNoteViewModel: ObservableObject {
     }
     
     var filteredOptions: [MoreOption] {
-            MoreOption.allCases.filter { option in
-                if draft.isPublished {
-                    return option != .publish
-                } else {
-                    return option != .unpublish
-                }
-            }
+        MoreOption.allCases.filter { option in
+            // Publish/Unpublish
+            if option == .publish && draft.isPublished { return false }
+            if option == .unpublish && !draft.isPublished { return false }
+            
+            // Archive/Unarchive
+            if option == .archive && draft.isArchived { return false }
+            if option == .unarchive && !draft.isArchived { return false }
+            
+            return true
         }
+    }
     
     init(userViewModel: UserViewModel, draft: Draft) {
         self.userViewModel = userViewModel

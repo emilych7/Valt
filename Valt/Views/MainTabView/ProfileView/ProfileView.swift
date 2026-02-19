@@ -79,7 +79,7 @@ struct ProfileView: View {
                 }
             }
             .navigationDestination(isPresented: $showSettings) {
-                SettingsView()
+                SettingsView(selectedDraft: $selectedDraft, showNote: $showNote)
                 .navigationBarBackButtonHidden(true)
             }
             .navigationDestination(isPresented: $showNote) {

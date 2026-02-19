@@ -5,6 +5,8 @@ enum MoreOption: String, CaseIterable, Identifiable {
     case unpublish = "Unpublish"
     case hide = "Hide"
     case delete = "Delete"
+    case archive = "Archive"
+    case unarchive = "Unarchive"
 
     var id: String { rawValue }
 
@@ -18,6 +20,10 @@ enum MoreOption: String, CaseIterable, Identifiable {
             return "hideIcon"
         case .delete:
             return "deleteIcon"
+        case .archive:
+            return "archiveIcon"
+        case .unarchive:
+            return "archiveIcon"
         }
     }
 }

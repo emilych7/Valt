@@ -10,9 +10,8 @@ struct Draft: Identifiable, Codable, Equatable {
     var isHidden: Bool
     var isArchived: Bool
     var isPublished: Bool
-    
     var prompt: String?
-    var isPrompted: Bool 
+    var isPrompted: Bool
     
     // Allows updating a field by name
     mutating func updateField(key: String, value: Any) {

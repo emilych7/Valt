@@ -6,7 +6,7 @@ struct MoreOptionsView: View {
     var options: [MoreOption] = MoreOption.allCases
     var onSelect: (MoreOption) -> Void
     
-    let rows = [GridItem(.flexible(minimum: 100), spacing: 3)]
+    let rows = [GridItem(.flexible(minimum: 150), spacing: 3)]
     
     var body: some View {
         LazyVGrid(columns: rows, spacing: 0) {
