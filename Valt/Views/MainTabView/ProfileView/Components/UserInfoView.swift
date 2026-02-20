@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct UserInfoView: View {
-    @ObservedObject var userViewModel: UserViewModel
+    @EnvironmentObject var userViewModel: UserViewModel
     
     var body: some View {
         switch userViewModel.userLoadingState {

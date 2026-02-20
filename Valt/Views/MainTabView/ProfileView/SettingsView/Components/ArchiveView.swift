@@ -7,7 +7,7 @@ struct ArchiveView: View {
     @Binding var showNote: Bool
     
     var body: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 0) {
             HStack {
                 Text("Archived Content")
                     .font(.custom("OpenSans-SemiBold", size: 24))
@@ -33,25 +33,30 @@ struct ArchiveView: View {
             
             let filteredData = getFilteredData()
             
-            VStack {
+            VStack(alignment: .center) {
                 if !filteredData.isEmpty {
                     ResponsiveGridView(items: filteredData) { draft in
                         CardView(userViewModel: userViewModel, draft: draft, selectedDraft: $selectedDraft, showNote: $showNote)
                     }
                 } else if filteredData.isEmpty {
-                    Text("No archived content.")
-                        .font(.custom("OpenSans-Regular", size: 14))
+                    VStack {
+                        Spacer()
+                        
+                        Text("No archived content.")
+                            .font(.custom("OpenSans-Regular", size: 14))
+                        
+                        Spacer()
+                    }
+                    .frame(maxWidth: .infinity)
                 } else {
                     ProgressView()
-                        .foregroundStyle(Color("TextColor"))
+                        .controlSize(.regular)
+                        .tint(Color("TextColor"))
                 }
             }
-            
-            Spacer()
         }
         .background(Color("AppBackgroundColor"))
         .foregroundColor(Color("TextColor"))
-        .frame(maxWidth: .infinity)
     }
     
     private func getFilteredData() -> [Draft] {

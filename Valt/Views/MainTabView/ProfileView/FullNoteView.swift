@@ -118,11 +118,14 @@ struct FullNoteView: View {
                     dismiss()
                     bannerManager.show("Draft Is Hidden.", backgroundColor: Color("RequestButtonColor"), icon: "Hide-Dark")
                 
-                case .delete:
-                    viewModel.showDeleteConfirmation = true
+                case .unhide:
+                    await viewModel.updateStatus(field: "isHidden", value: true)
+                    isTextFieldFocused = false
+                    dismiss()
+                    bannerManager.show("Draft Is Unhidden.", backgroundColor: Color("RequestButtonColor"), icon: "Hide-Dark")
                 
                 case .archive:
-                    await viewModel.updateStatus(field: "isArchived", value: true)
+                    await viewModel.archiveDraft()
                     isTextFieldFocused = false
                     dismiss()
                     bannerManager.show("Draft Archived", backgroundColor: Color("RequestButtonColor"), icon: "Publish-Dark")
@@ -132,6 +135,9 @@ struct FullNoteView: View {
                     isTextFieldFocused = false
                     dismiss()
                     bannerManager.show("Draft Unarchived", backgroundColor: Color("RequestButtonColor"), icon: "Publish-Dark")
+                    
+                case .delete:
+                    viewModel.showDeleteConfirmation = true
                 }
             }
         }

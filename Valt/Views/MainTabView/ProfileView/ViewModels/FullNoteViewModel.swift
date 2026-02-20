@@ -4,7 +4,7 @@ import SwiftUI
 class FullNoteViewModel: ObservableObject {
     // Dependencies
     private let userViewModel: UserViewModel
-    let draft: Draft
+    var draft: Draft
     
     // UI State
     @Published var editedContent: String
@@ -33,6 +33,10 @@ class FullNoteViewModel: ObservableObject {
             if option == .archive && draft.isArchived { return false }
             if option == .unarchive && !draft.isArchived { return false }
             
+            // Hide/Unhide
+            if option == .hide && draft.isHidden { return false }
+            if option == .unhide && !draft.isHidden  { return false }
+            
             return true
         }
     }
@@ -54,10 +58,28 @@ class FullNoteViewModel: ObservableObject {
     
     func updateDraft() async {
         guard isDirty else { return }
+        
         await userViewModel.updateDraft(
             draftID: draft.id,
             updatedFields: ["content": editedContent, "timestamp": Date()]
         )
+        self.draft.content = editedContent
+    }
+    
+    func archiveDraft() async {
+        let updates: [String: Any] = [
+            "isArchived": true,
+            "isPublished": false,
+            "isHidden": false
+        ]
+        print("Archiving draft, and setting isPublished and isHidden to false...")
+        await userViewModel.updateDraft(draftID: draft.id, updatedFields: updates)
+        
+        self.draft.isArchived = true
+        self.draft.isPublished = false
+        self.draft.isHidden = false
+        
+        objectWillChange.send()
     }
     
     func updateStatus(field: String, value: Any) async {

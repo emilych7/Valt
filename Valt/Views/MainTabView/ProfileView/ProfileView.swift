@@ -3,6 +3,7 @@ import PhotosUI
 
 @MainActor
 struct ProfileView: View {
+    @Namespace private var profileNamespace
     @EnvironmentObject private var userViewModel: UserViewModel
     @EnvironmentObject var settingsViewModel: SettingsViewModel
     @Binding var mainTabSelection: ContentTabViewSelection
@@ -34,7 +35,8 @@ struct ProfileView: View {
                             matching: .images
                         )
                         
-                        UserInfoView(userViewModel: userViewModel)
+                        UserInfoView()
+                        
                         Spacer()
                     }
                     .padding(.bottom, 15)
@@ -43,16 +45,16 @@ struct ProfileView: View {
                     ProfileTabView(selectedTab: $selectedTab)
                     
                     TabView(selection: $selectedTab) {
-                        ProfileGridContainer(rootTabSelection: $mainTabSelection, selectedDraft: $selectedDraft, showNote: $showNote, tab: .all)
+                        ProfileGridContainer(rootTabSelection: $mainTabSelection, selectedDraft: $selectedDraft, showNote: $showNote, tab: .all, namespace: profileNamespace)
                             .tag(ProfileTab.all)
                         
-                        ProfileGridContainer(rootTabSelection: $mainTabSelection, selectedDraft: $selectedDraft, showNote: $showNote, tab: .favorited)
+                        ProfileGridContainer(rootTabSelection: $mainTabSelection, selectedDraft: $selectedDraft, showNote: $showNote, tab: .favorited, namespace: profileNamespace)
                             .tag(ProfileTab.favorited)
                         
-                        ProfileGridContainer(rootTabSelection: $mainTabSelection, selectedDraft: $selectedDraft, showNote: $showNote, tab: .published)
+                        ProfileGridContainer(rootTabSelection: $mainTabSelection, selectedDraft: $selectedDraft, showNote: $showNote, tab: .published, namespace: profileNamespace)
                             .tag(ProfileTab.published)
                         
-                        ProfileGridContainer(rootTabSelection: $mainTabSelection, selectedDraft: $selectedDraft, showNote: $showNote, tab: .hidden)
+                        ProfileGridContainer(rootTabSelection: $mainTabSelection, selectedDraft: $selectedDraft, showNote: $showNote, tab: .hidden, namespace: profileNamespace)
                             .tag(ProfileTab.hidden)
                     }
                     .padding(.vertical, 5)
@@ -86,6 +88,7 @@ struct ProfileView: View {
                 if let draft = selectedDraft {
                     FullNoteView(draft: draft, userViewModel: userViewModel)
                         .toolbar(.hidden, for: .tabBar)
+                        .navigationTransition(.automatic)
                 }
             }
         }

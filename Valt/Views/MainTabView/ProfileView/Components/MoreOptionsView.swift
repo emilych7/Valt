@@ -18,21 +18,19 @@ struct MoreOptionsView: View {
                             dismiss()
                         }
                     } label: {
-                        HStack(spacing: 8) {
-                            Image(moreOption.imageName)
-                                .resizable()
-                                .frame(width: 15, height: 15)
-                            
                             Text(moreOption.rawValue)
                                 .foregroundColor(Color("TextColor"))
                                 .font(.custom("OpenSans-Regular", size: 17))
                             
                             Spacer()
-                        }
-                        .padding(.horizontal, 15)
-                        .padding(.vertical, 12)
-                        .frame(maxWidth: .infinity)
+                        
+                            Image(moreOption.imageName)
+                                .resizable()
+                                .frame(width: 20, height: 20)
                     }
+                    .frame(maxWidth: .infinity)
+                    .padding(.horizontal, 15)
+                    .padding(.vertical, 12)
 
                     if moreOption.id != options.last?.id {
                         Divider()
@@ -40,8 +38,7 @@ struct MoreOptionsView: View {
                     }
                 }
         }
-        .background(Color("BubbleColor"))
-        .cornerRadius(12)
+        .background(Color("TextFieldBackground"))
         .fixedSize()
     }
 }

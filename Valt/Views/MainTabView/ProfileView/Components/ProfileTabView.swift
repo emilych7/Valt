@@ -36,6 +36,7 @@ struct ProfileTabView: View {
                     .frame(width: 20, height: 20)
                     .foregroundColor(selectedTab == tab ? Color("TextColor") : .gray)
                     .padding(.bottom, 2)
+                    .opacity("hideIcon" == image ? 0.4 : 1 )
                 
                 ZStack {
                     Rectangle()

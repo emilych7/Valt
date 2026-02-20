@@ -12,8 +12,8 @@ final class UserViewModel: ObservableObject {
     @Published var profileLoadingState: ContentLoadingState = .loading
 
     @Published var username: String = "@username"
-    @Published var draftCount: Int = 0
-    @Published var publishedDraftCount: Int = 0
+    // @Published var draftCount: Int = 0
+    // @Published var publishedDraftCount: Int = 0
     @Published var drafts: [Draft] = []
     @Published var profileImage: UIImage? = nil
     @Published var profilePictureURL: URL? = nil
@@ -21,6 +21,14 @@ final class UserViewModel: ObservableObject {
     private let repository: DraftRepositoryProtocol
     private var authHandler: AuthStateDidChangeListenerHandle?
     private var isFetching = false
+    
+    var draftCount: Int {
+        drafts.filter { !$0.isArchived }.count
+    }
+
+    var publishedDraftCount: Int {
+        drafts.filter { $0.isPublished }.count
+    }
 
     init(repository: DraftRepositoryProtocol = DraftRepository()) {
         self.repository = repository
@@ -95,40 +103,36 @@ final class UserViewModel: ObservableObject {
         print("Fetching draft count...")
         self.userLoadingState = .loading
         guard let userID = Auth.auth().currentUser?.uid else { return }
-        do {
+        // do {
             let query = Firestore.firestore()
                 .collection("drafts")
                 .whereField("userID", isEqualTo: userID)
 
-            let agg = try await query.count.getAggregation(source: .server)
-            self.draftCount = Int(truncating: agg.count)
-            // if self.draftCount == 0 { self.cardLoadingState = .empty }
+            // let agg = try await query.count.getAggregation(source: .server)
+            // self.draftCount = Int(truncating: agg.count)
             self.userLoadingState = .complete
-        } catch {
-            print("Count error: \(error.localizedDescription)")
-            self.draftCount = 0
-            self.userLoadingState = .complete
-        }
+//        } catch {
+//            print("Count error: \(error.localizedDescription)")
+//            self.userLoadingState = .complete
+//        }
     }
 
     func fetchPublishedCount() async {
         print("Fetching published draft count...")
         self.userLoadingState = .loading
         guard let userID = Auth.auth().currentUser?.uid else { return }
-        do {
+        // do {
             let query = Firestore.firestore()
                 .collection("drafts")
                 .whereField("userID", isEqualTo: userID)
                 .whereField("isPublished", isEqualTo: true)
 
-            let agg = try await query.count.getAggregation(source: .server)
-            self.publishedDraftCount = Int(truncating: agg.count)
+            // let agg = try await query.count.getAggregation(source: .server)
             self.userLoadingState = .complete
-        } catch {
-            print("Count error: \(error.localizedDescription)")
-            self.publishedDraftCount = 0
-            self.userLoadingState = .complete
-        }
+//        } catch {
+//            print("Count error: \(error.localizedDescription)")
+//            self.userLoadingState = .complete
+//        }
     }
 
     func loadDrafts() async {
@@ -148,33 +152,27 @@ final class UserViewModel: ObservableObject {
     }
 
     func updateDraft(draftID: String, updatedFields: [String: Any]) async {
-        self.cardLoadingState = .loading
         do {
             try await repository.updateDraft(draftID: draftID, with: updatedFields)
+            
             if let index = drafts.firstIndex(where: { $0.id == draftID }) {
                 for (key, value) in updatedFields {
                     drafts[index].updateField(key: key, value: value)
                 }
+                objectWillChange.send()
             }
-            self.cardLoadingState = .complete
         } catch {
             print("Error updating draft: \(error.localizedDescription)")
-            self.cardLoadingState = .error(error.localizedDescription)
         }
     }
 
     func deleteDraft(draftID: String) async {
-        self.cardLoadingState = .loading
-        
         do {
             try await repository.deleteDraft(draftID: draftID)
             if let index = self.drafts.firstIndex(where: { $0.id == draftID }) {
                 self.drafts.remove(at: index)
-                self.draftCount = self.drafts.count
-                self.cardLoadingState = (draftCount == 0) ? .empty : .complete
+                // No need to manually update draftCount anymore!
             }
-            print("Draft successfully deleted from Firestore and UI")
-            self.cardLoadingState = .complete
         } catch {
             print("Error deleting draft: \(error.localizedDescription)")
             self.cardLoadingState = .error(error.localizedDescription)
@@ -185,7 +183,6 @@ final class UserViewModel: ObservableObject {
         do {
             try await repository.saveDraft(draft: draft)
             self.drafts.insert(draft, at: 0)
-            self.draftCount = self.drafts.count
             self.cardLoadingState = .complete
             print("Draft successfully added to Firestore and UI.")
         } catch {
@@ -252,6 +249,8 @@ final class UserViewModel: ObservableObject {
             try await user.reload()
             objectWillChange.send()
             await fetchAuthenticatedUsername()
+            await fetchDraftCount()
+            await fetchPublishedCount()
         } catch {
             print("Error reloading: \(error.localizedDescription)")
         }
