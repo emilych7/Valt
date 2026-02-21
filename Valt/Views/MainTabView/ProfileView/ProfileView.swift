@@ -11,9 +11,14 @@ struct ProfileView: View {
     @State private var showNote: Bool = false
     @State private var selectedTab: ProfileTab = .all
     @State private var showSettings: Bool = false
+    
     @State private var selectedItem: PhotosPickerItem? = nil
+    
     @State private var isPhotoPickerPresented: Bool = false
     @State private var localProfileImage: UIImage? = nil
+    
+    @State private var isHiddenUnlocked = false
+    @State private var showingPinEntry = false
     
     var body: some View {
         NavigationStack {
@@ -43,6 +48,11 @@ struct ProfileView: View {
                     .padding(.horizontal, 25)
                     
                     ProfileTabView(selectedTab: $selectedTab)
+                        .onChange(of: selectedTab) { oldValue, newValue in
+                            if newValue == .hidden && !isHiddenUnlocked {
+                                showingPinEntry = true
+                            }
+                        }
                     
                     TabView(selection: $selectedTab) {
                         ProfileGridContainer(rootTabSelection: $mainTabSelection, selectedDraft: $selectedDraft, showNote: $showNote, tab: .all, namespace: profileNamespace)
@@ -54,8 +64,16 @@ struct ProfileView: View {
                         ProfileGridContainer(rootTabSelection: $mainTabSelection, selectedDraft: $selectedDraft, showNote: $showNote, tab: .published, namespace: profileNamespace)
                             .tag(ProfileTab.published)
                         
-                        ProfileGridContainer(rootTabSelection: $mainTabSelection, selectedDraft: $selectedDraft, showNote: $showNote, tab: .hidden, namespace: profileNamespace)
-                            .tag(ProfileTab.hidden)
+                        Group {
+                            if isHiddenUnlocked {
+                                ProfileGridContainer(rootTabSelection: $mainTabSelection, selectedDraft: $selectedDraft, showNote: $showNote, tab: .hidden, namespace: profileNamespace)
+                            } else {
+                                LockedTabPlaceholder(action: { // View that asks for the PIN
+                                    showingPinEntry = true
+                                })
+                            }
+                        }
+                        .tag(ProfileTab.hidden)
                     }
                     .padding(.vertical, 5)
                     .tabViewStyle(.page(indexDisplayMode: .never))
@@ -68,6 +86,9 @@ struct ProfileView: View {
                     }
                 }
                 .background(Color("AppBackgroundColor").ignoresSafeArea())
+            }
+            .fullScreenCover(isPresented: $showingPinEntry) {
+                PinEntryView(isUnlocked: $isHiddenUnlocked)
             }
             .onReceive(userViewModel.$profileImage) { newImage in
                 localProfileImage = newImage

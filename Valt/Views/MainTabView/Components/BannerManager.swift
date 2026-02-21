@@ -12,7 +12,7 @@ class BannerManager: ObservableObject {
     }
 
     func show(_ message: String,
-              duration: Double = 1.0,
+              duration: Double = 2.0,
               backgroundColor: Color = Color("AuthOptionsBackground"),
               icon: String? = nil,
               position: BannerPosition = .top) {

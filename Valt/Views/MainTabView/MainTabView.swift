@@ -8,11 +8,11 @@ struct MainTabView: View {
     @EnvironmentObject private var bannerManager: BannerManager
     @EnvironmentObject private var userViewModel: UserViewModel
     @Environment(\.colorScheme) var colorScheme
-    @State private var selection: ContentTabViewSelection = .home
+    @State private var selection: ContentTabViewSelection = .profile
     
     init(userViewModel: UserViewModel, selectedDraft: Binding<Draft?>) {
         _homeViewModel = StateObject(wrappedValue: HomeViewModel(userViewModel: userViewModel))
-        _selection = State(initialValue: .home)
+        _selection = State(initialValue: .profile)
     }
 
     var body: some View {
