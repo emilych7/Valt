@@ -10,14 +10,17 @@ final class UserViewModel: ObservableObject {
     @Published var cardLoadingState: ContentLoadingState = .loading
     @Published var userLoadingState: ContentLoadingState = .complete
     @Published var profileLoadingState: ContentLoadingState = .loading
-
     @Published var username: String = "@username"
-    // @Published var draftCount: Int = 0
-    // @Published var publishedDraftCount: Int = 0
     @Published var drafts: [Draft] = []
     @Published var profileImage: UIImage? = nil
     @Published var profilePictureURL: URL? = nil
-
+    
+    @Published var enteredPin: String = ""
+    @Published var pinColor: String = "TextColor"
+    @Published var isUnlocked: Bool = false
+    @Published var maxDigits: Int = 4
+    @Published var shakeAttempts: CGFloat = 0
+    
     private let repository: DraftRepositoryProtocol
     private var authHandler: AuthStateDidChangeListenerHandle?
     private var isFetching = false
@@ -253,6 +256,35 @@ final class UserViewModel: ObservableObject {
             await fetchPublishedCount()
         } catch {
             print("Error reloading: \(error.localizedDescription)")
+        }
+    }
+    
+    func checkPin(enteredPin: String) -> Void {
+        let correctPin = "1234"
+        let feedbackGenerator = UINotificationFeedbackGenerator()
+        
+        guard enteredPin.count == maxDigits else { return }
+        
+        // Tiny delay
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            if enteredPin == correctPin {
+                self.pinColor = "TextColor"
+                return self.isUnlocked = true
+            } else {
+                print("Incorrect PIN")
+                self.shakeAttempts += 1
+                self.pinColor = "ValtRed"
+                
+                feedbackGenerator.notificationOccurred(.error)
+                
+                // Clear the pin field after the shake
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    self.pinColor = "TextColor"
+                    self.enteredPin = ""
+                }
+                
+                return
+            }
         }
     }
 }

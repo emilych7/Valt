@@ -5,6 +5,7 @@ struct ProfileGridContainer: View {
     @Binding var rootTabSelection: ContentTabViewSelection
     @Binding var selectedDraft: Draft?
     @Binding var showNote: Bool
+    @Binding var activeTab: ProfileTab
     let tab: ProfileTab
     var namespace: Namespace.ID
     
@@ -24,7 +25,7 @@ struct ProfileGridContainer: View {
                     } else {
                         ResponsiveGridView(items: filteredData) { draft in
                             CardView(userViewModel: userViewModel, draft: draft, selectedDraft: $selectedDraft, showNote: $showNote)
-                                .matchedGeometryEffect(id: draft.id, in: namespace)
+                                .matchedGeometryEffect(id: draft.id, in: namespace, isSource: tab == activeTab)
                         }
                     }
                 case .empty:

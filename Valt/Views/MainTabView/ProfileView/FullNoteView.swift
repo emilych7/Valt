@@ -73,6 +73,7 @@ struct FullNoteView: View {
         .navigationBarBackButtonHidden(true)
         .onAppear {
             tabManager.setTabBarHidden(true)
+            UIScreenEdgePanGestureRecognizer().isEnabled = true
         }
         .onDisappear {
             tabManager.setTabBarHidden(false)

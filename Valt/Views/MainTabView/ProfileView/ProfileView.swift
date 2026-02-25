@@ -17,7 +17,6 @@ struct ProfileView: View {
     @State private var isPhotoPickerPresented: Bool = false
     @State private var localProfileImage: UIImage? = nil
     
-    @State private var isHiddenUnlocked = false
     @State private var showingPinEntry = false
     
     var body: some View {
@@ -49,24 +48,24 @@ struct ProfileView: View {
                     
                     ProfileTabView(selectedTab: $selectedTab)
                         .onChange(of: selectedTab) { oldValue, newValue in
-                            if newValue == .hidden && !isHiddenUnlocked {
-                                showingPinEntry = true
+                            if newValue == .hidden && !userViewModel.isUnlocked {
+                                print("Tab changed to: \(newValue)")
                             }
                         }
                     
                     TabView(selection: $selectedTab) {
-                        ProfileGridContainer(rootTabSelection: $mainTabSelection, selectedDraft: $selectedDraft, showNote: $showNote, tab: .all, namespace: profileNamespace)
+                        ProfileGridContainer(rootTabSelection: $mainTabSelection, selectedDraft: $selectedDraft, showNote: $showNote, activeTab: $selectedTab, tab: .all, namespace: profileNamespace)
                             .tag(ProfileTab.all)
                         
-                        ProfileGridContainer(rootTabSelection: $mainTabSelection, selectedDraft: $selectedDraft, showNote: $showNote, tab: .favorited, namespace: profileNamespace)
+                        ProfileGridContainer(rootTabSelection: $mainTabSelection, selectedDraft: $selectedDraft, showNote: $showNote, activeTab: $selectedTab, tab: .favorited, namespace: profileNamespace)
                             .tag(ProfileTab.favorited)
                         
-                        ProfileGridContainer(rootTabSelection: $mainTabSelection, selectedDraft: $selectedDraft, showNote: $showNote, tab: .published, namespace: profileNamespace)
+                        ProfileGridContainer(rootTabSelection: $mainTabSelection, selectedDraft: $selectedDraft, showNote: $showNote, activeTab: $selectedTab, tab: .published, namespace: profileNamespace)
                             .tag(ProfileTab.published)
                         
                         Group {
-                            if isHiddenUnlocked {
-                                ProfileGridContainer(rootTabSelection: $mainTabSelection, selectedDraft: $selectedDraft, showNote: $showNote, tab: .hidden, namespace: profileNamespace)
+                            if userViewModel.isUnlocked {
+                                ProfileGridContainer(rootTabSelection: $mainTabSelection, selectedDraft: $selectedDraft, showNote: $showNote, activeTab: $selectedTab, tab: .hidden, namespace: profileNamespace)
                             } else {
                                 LockedTabPlaceholder(action: { // View that asks for the PIN
                                     showingPinEntry = true
@@ -87,8 +86,21 @@ struct ProfileView: View {
                 }
                 .background(Color("AppBackgroundColor").ignoresSafeArea())
             }
-            .fullScreenCover(isPresented: $showingPinEntry) {
-                PinEntryView(isUnlocked: $isHiddenUnlocked)
+            .onAppear {
+                if !userViewModel.isUnlocked {
+                    showingPinEntry = true
+                }
+            }
+            .fullScreenCover(isPresented: Binding(
+                get: { !userViewModel.isUnlocked && selectedTab == .hidden },
+                set: { isPresented in
+                    if !isPresented && !userViewModel.isUnlocked {
+                        selectedTab = .all
+                    }
+                }
+            )) {
+                PinEntryView(selectedTab: $selectedTab)
+                    .environmentObject(userViewModel)
             }
             .onReceive(userViewModel.$profileImage) { newImage in
                 localProfileImage = newImage
