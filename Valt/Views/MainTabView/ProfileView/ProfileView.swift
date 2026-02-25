@@ -99,8 +99,13 @@ struct ProfileView: View {
                     }
                 }
             )) {
-                PinEntryView(selectedTab: $selectedTab)
-                    .environmentObject(userViewModel)
+                if userViewModel.hasPinSet {
+                    PinEntryView(selectedTab: $selectedTab)
+                        .environmentObject(userViewModel)
+                } else {
+                    SetPinView(selectedTab: $selectedTab)
+                        .environmentObject(userViewModel)
+                }
             }
             .onReceive(userViewModel.$profileImage) { newImage in
                 localProfileImage = newImage

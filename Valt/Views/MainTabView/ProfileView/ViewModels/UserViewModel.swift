@@ -15,6 +15,10 @@ final class UserViewModel: ObservableObject {
     @Published var profileImage: UIImage? = nil
     @Published var profilePictureURL: URL? = nil
     
+    @Published var hasPinSet: Bool = false
+    @Published var newPin: String = ""
+    @Published var confirmNewPin: String = ""
+    
     @Published var enteredPin: String = ""
     @Published var pinColor: String = "TextColor"
     @Published var isUnlocked: Bool = false
@@ -24,6 +28,8 @@ final class UserViewModel: ObservableObject {
     private let repository: DraftRepositoryProtocol
     private var authHandler: AuthStateDidChangeListenerHandle?
     private var isFetching = false
+    
+    private var storedPin: String? = nil
     
     var draftCount: Int {
         drafts.filter { !$0.isArchived }.count
@@ -80,23 +86,24 @@ final class UserViewModel: ObservableObject {
 
     func fetchAuthenticatedUsername() async {
         guard let uid = Auth.auth().currentUser?.uid else { return }
-        let q = Firestore.firestore().collection("usernames").whereField("userID", isEqualTo: uid)
+        
+        let userRef = Firestore.firestore().collection("users").document(uid)
         
         do {
-            print("Trying cache first...")
-            if let cached = try? await q.getDocuments(source: .cache).documents.first {
-                self.username = cached.documentID
-            } else {
-                print("Trying server fetch...")
-                let fresh = try await q.getDocuments(source: .server)
-                if let doc = fresh.documents.first {
-                    self.username = doc.documentID
+            let snapshot = try await userRef.getDocument()
+            if let data = snapshot.data() {
+                if let uname = data["username"] as? String {
+                    self.username = uname
+                }
+                
+                // Grab the PIN too
+                if let pin = data["hiddenPin"] as? String {
+                    self.storedPin = pin
+                    self.hasPinSet = true
                 }
             }
         } catch {
-            if self.username == "@username" {
-                print("Server fetch failed and no cache available: \(error.localizedDescription)")
-            }
+            print("Error fetching user profile: \(error.localizedDescription)")
         }
     }
  
@@ -219,8 +226,32 @@ final class UserViewModel: ObservableObject {
         }
     }
     
+    func createPin(newPin: String) {
+        let db = Firestore.firestore()
+        guard let uid = Auth.auth().currentUser?.uid else {
+            print("Error: No authenticated user found.")
+            return
+        }
+                
+        let docRef = db.collection("users").document("\(uid)")
+
+        Task {
+            do {
+                try await docRef.setData(["hiddenPin": newPin], merge: true)
+                print("PIN successfully saved to Firestore. Setting hasPinSet = true")
+                hasPinSet = true
+            } catch {
+                print("Error saving PIN: \(error.localizedDescription)")
+            }
+        }
+    }
+    
     func checkPin(enteredPin: String) -> Void {
-        let correctPin = "1234"
+        guard let correctPin = storedPin else {
+            print("No PIN set for this user.")
+            return
+        }
+        
         let feedbackGenerator = UINotificationFeedbackGenerator()
         
         guard enteredPin.count == maxDigits else { return }

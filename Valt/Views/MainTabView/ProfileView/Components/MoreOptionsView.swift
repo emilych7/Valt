@@ -19,7 +19,7 @@ struct MoreOptionsView: View {
                         }
                     } label: {
                             Text(moreOption.rawValue)
-                                .foregroundColor(Color("TextColor"))
+                            .foregroundColor(moreOption == .delete ? Color("ValtRed") : Color("TextColor"))
                                 .font(.custom("OpenSans-Regular", size: 17))
                             
                             Spacer()
