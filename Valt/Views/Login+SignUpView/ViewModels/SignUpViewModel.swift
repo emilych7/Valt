@@ -234,16 +234,34 @@ class SignUpViewModel: NSObject, ObservableObject {
             
             do {
                 let authResult = try await Auth.auth().signIn(with: credential)
-                // If this is the user's first time, appleIDCredential.fullName will have data
-                if let name = appleIDCredential.fullName {
-                    // Save name to Firestore here
+                
+                // Check if they already have a Firestore profile
+                let userDoc = try await db.collection("users").document(authResult.user.uid).getDocument()
+                
+                if userDoc.exists {
+                    // Returning User
+                    self.isSignupComplete = true
+                } else {
+                    // New User: Save their email and move to Username choice
+                    self.email = authResult.user.email ?? ""
+                    
+                    // If Apple provides a name, its stored here
+                    if let name = appleIDCredential.fullName {
+                        print("Apple Username: \(name.givenName ?? "")")
+                    }
+                    
+                    self.currentStep = .chooseUsername
                 }
             } catch {
+                self.errorMessage = error.localizedDescription
                 print("Firebase Apple Sign-In Error: \(error.localizedDescription)")
             }
             
         case .failure(let error):
-            print("Apple Sign-In failed: \(error.localizedDescription)")
+            // Ignore user cancellations to avoid error message
+            if (error as NSError).code != ASAuthorizationError.canceled.rawValue {
+                self.errorMessage = error.localizedDescription
+            }
         }
     }
     

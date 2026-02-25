@@ -64,8 +64,6 @@ final class UserViewModel: ObservableObject {
         await withTaskGroup(of: Void.self) { group in
             group.addTask { await self.fetchProfilePicture() }
             group.addTask { await self.fetchAuthenticatedUsername() }
-            group.addTask { await self.fetchDraftCount() }
-            group.addTask { await self.fetchPublishedCount() }
             group.addTask { await self.loadDrafts() }
         }
         
@@ -101,43 +99,7 @@ final class UserViewModel: ObservableObject {
             }
         }
     }
-    
-    func fetchDraftCount() async {
-        print("Fetching draft count...")
-        self.userLoadingState = .loading
-        guard let userID = Auth.auth().currentUser?.uid else { return }
-        // do {
-            let query = Firestore.firestore()
-                .collection("drafts")
-                .whereField("userID", isEqualTo: userID)
-
-            // let agg = try await query.count.getAggregation(source: .server)
-            // self.draftCount = Int(truncating: agg.count)
-            self.userLoadingState = .complete
-//        } catch {
-//            print("Count error: \(error.localizedDescription)")
-//            self.userLoadingState = .complete
-//        }
-    }
-
-    func fetchPublishedCount() async {
-        print("Fetching published draft count...")
-        self.userLoadingState = .loading
-        guard let userID = Auth.auth().currentUser?.uid else { return }
-        // do {
-            let query = Firestore.firestore()
-                .collection("drafts")
-                .whereField("userID", isEqualTo: userID)
-                .whereField("isPublished", isEqualTo: true)
-
-            // let agg = try await query.count.getAggregation(source: .server)
-            self.userLoadingState = .complete
-//        } catch {
-//            print("Count error: \(error.localizedDescription)")
-//            self.userLoadingState = .complete
-//        }
-    }
-
+ 
     func loadDrafts() async {
         print("Loading drafts...")
         self.cardLoadingState = .loading
@@ -252,8 +214,6 @@ final class UserViewModel: ObservableObject {
             try await user.reload()
             objectWillChange.send()
             await fetchAuthenticatedUsername()
-            await fetchDraftCount()
-            await fetchPublishedCount()
         } catch {
             print("Error reloading: \(error.localizedDescription)")
         }
