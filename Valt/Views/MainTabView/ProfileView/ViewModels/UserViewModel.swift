@@ -53,17 +53,19 @@ final class UserViewModel: ObservableObject {
     }
     
     func fetchAllData() async {
+        userLoadingState = .loading
         guard !isFetching else { return }
         isFetching = true
         
         guard let uid = Auth.auth().currentUser?.uid else {
             print("No authenticated user. No fetching data.")
             isFetching = false
+            userLoadingState = .error("No user found.")
             return
         }
         
-        self.profileLoadingState = .loading
-        self.cardLoadingState = .loading
+        profileLoadingState = .loading
+        cardLoadingState = .loading
         
         print("Starting authenticated fetch for: \(uid)")
         
@@ -74,6 +76,7 @@ final class UserViewModel: ObservableObject {
         }
         
         isFetching = false
+        userLoadingState = .complete
     }
     
     var currentUserEmail: String {

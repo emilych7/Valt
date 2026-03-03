@@ -75,7 +75,7 @@ struct PreferencesView: View {
     private var managementSection: some View {
         VStack(spacing: 0) {
             SectionHeader(title: "Account Management")
-            NavigationLink(destination: Text("Deactivate Account")) {
+            NavigationLink(destination: DeactivateView().navigationBarBackButtonHidden(true)) {
                 SettingsRow(title: "Deactivate Account", icon: "trashIcon")
                     .padding(.horizontal, 15)
                     .padding(.bottom, 5)

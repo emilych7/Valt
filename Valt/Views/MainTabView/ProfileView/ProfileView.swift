@@ -90,6 +90,9 @@ struct ProfileView: View {
                 if !userViewModel.isUnlocked {
                     showingPinEntry = true
                 }
+                Task {
+                    await userViewModel.fetchAuthenticatedUsername()
+                }
             }
             .fullScreenCover(isPresented: Binding(
                 get: { !userViewModel.isUnlocked && selectedTab == .hidden },

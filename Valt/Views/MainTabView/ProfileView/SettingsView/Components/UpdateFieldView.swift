@@ -16,79 +16,80 @@ struct UpdateFieldView: View {
     
     var body: some View {
         ScrollView {
-        VStack(spacing: 0) {
-            SettingsHeader(title: fieldType.title, buttonTitle: "Exit") {
-                dismiss()
-            }
-            
-            VStack(spacing: 15) {
-                Text(fieldType.subtitle)
-                    .font(.custom("OpenSans-SemiBold", size: 18))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .foregroundColor(Color("TextColor"))
+            VStack(spacing: 0) {
+                SettingsHeader(title: fieldType.title, buttonTitle: "Exit") {
+                    dismiss()
+                }
                 
-                HStack {
-                    TextField(dynamicPlaceholder, text: $newValue)
-                        .padding()
-                        .font(.custom("OpenSans-Regular", size: 17))
-                        .frame(maxWidth: .infinity)
-                        .cornerRadius(12)
-                        .keyboardType(fieldType.keyboardType)
-                        .autocapitalization(.none)
-                        .disableAutocorrection(true)
+                VStack(spacing: 15) {
+                    Text(fieldType.subtitle)
+                        .font(.custom("OpenSans-SemiBold", size: 18))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .foregroundColor(Color("TextColor"))
                     
-                    Image("Caution")
-                        .resizable()
-                        .frame(width: 15, height: 15)
-                        .padding(.trailing, 20)
-                        .padding(.leading, 10)
-                }
-                .background(Color("TextFieldBackground"))
-                .overlay {
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color("TextFieldBorder"), lineWidth: 1)
-                }
-                
-                Text(fieldType.subtitle2)
-                    .font(.custom("OpenSans-Regular", size: 14))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .foregroundColor(Color("TextColor").opacity(0.7))
-                
-                if let error = settingsViewModel.errorMessage {
-                    Text(error)
-                        .font(.caption)
-                        .foregroundColor(.red)
-                        .padding(.top, 5)
-                }
-                
-                Spacer()
-                
-                // Save Button
-                Button {
-                    handleSave()
-                } label: {
-                    ZStack {
-                        if settingsViewModel.isSaving {
-                            ProgressView()
-                                .tint(.white)
-                        } else {
-                            Text("Save Changes")
-                                .font(.custom("OpenSans-Bold", size: 16))
-                        }
+                    HStack {
+                        TextField(dynamicPlaceholder, text: $newValue)
+                            .padding()
+                            .font(.custom("OpenSans-Regular", size: 17))
+                            .frame(maxWidth: .infinity)
+                            .cornerRadius(12)
+                            .keyboardType(fieldType.keyboardType)
+                            .autocapitalization(.none)
+                            .disableAutocorrection(true)
+                        
+                        Image("Caution")
+                            .resizable()
+                            .frame(width: 15, height: 15)
+                            .padding(.trailing, 20)
+                            .padding(.leading, 10)
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(isInputValid ? Color.blue : Color.gray)
-                    .foregroundColor(.white)
-                    .cornerRadius(12)
+                    .background(Color("TextFieldBackground"))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color("TextFieldBorder"), lineWidth: 1)
+                    }
+                    
+                    Text(fieldType.subtitle2)
+                        .font(.custom("OpenSans-Regular", size: 14))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .foregroundColor(Color("TextColor").opacity(0.7))
+                    
+                    if let error = settingsViewModel.errorMessage {
+                        Text(error)
+                            .font(.caption)
+                            .foregroundColor(.red)
+                            .padding(.top, 5)
+                    }
+                    
+                    Spacer()
+                    
+                    // Save Button
+                    Button {
+                        handleSave()
+                    } label: {
+                        ZStack {
+                            if settingsViewModel.isSaving {
+                                ProgressView()
+                                    .tint(.white)
+                            } else {
+                                Text("Save Changes")
+                                    .font(.custom("OpenSans-Bold", size: 16))
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(isInputValid ? Color.blue : Color.gray)
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                    }
+                    .disabled(!isInputValid || settingsViewModel.isSaving)
                 }
-                .disabled(!isInputValid || settingsViewModel.isSaving)
+                .padding(.horizontal, 20)
+                .padding(.top, 10)
+                .padding(.bottom, 30)
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 10)
-            .padding(.bottom, 30)
-        }
     }
+    .scrollBounceBehavior(.basedOnSize)
     .refreshable {
         // Runs when the user pulls down on the list
         await userViewModel.reloadUser()
