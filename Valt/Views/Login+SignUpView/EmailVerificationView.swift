@@ -5,21 +5,28 @@ struct EmailVerificationView: View {
     
     var body: some View {
         VStack(spacing: 20) {
-            Image(systemName: "envelope.badge.shield.half.filled")
-                .font(.system(size: 60))
-                .foregroundColor(.blue)
-                .padding(.top, 40)
-            
-            Text("Verify your email")
-                .font(.custom("OpenSans-Bold", size: 20))
+            HStack(alignment: .center) {
+                Spacer()
+                
+                Image(systemName: "envelope.badge")
+                    .resizable()
+                    .frame(width: 80, height: 60)
+                    .foregroundColor(Color("TextColor"))
+                
+                Spacer()
+            }
+            .padding(.vertical, 10)
             
             Text("We sent a link to \(viewModel.email). Please click the link to continue.")
                 .font(.custom("OpenSans-Regular", size: 16))
-                .multilineTextAlignment(.center)
             
             Button("Resend Email") {
                 viewModel.resendEmail()
             }
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity, minHeight: 50)
+            .background(Color("RequestButtonColor"))
+            .cornerRadius(12)
             .font(.custom("OpenSans-SemiBold", size: 16))
         }
     }

@@ -78,10 +78,12 @@ struct DeactivateView: View {
     private func executeDeletion() {
         Task {
             viewModel.isSaving = true
+            
             do {
                 try await viewModel.deleteAccount()
+                dismiss()
             } catch {
-                print("Deletion failed: \(error.localizedDescription)")
+                print("Actual deletion error: \(error.localizedDescription)")
             }
             viewModel.isSaving = false
         }

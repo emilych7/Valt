@@ -28,14 +28,14 @@ struct SignUpView: View {
                     
                     Header(title: headerTitle)
                     
-                    VStack(spacing: 5) {
+                    ZStack {
                         switch viewModel.currentStep {
-                        case .accountDetails:
-                            accountDetailsFields
-                        case .emailVerification:
-                            EmailVerificationView(viewModel: viewModel)
-                        case .chooseUsername:
-                            UsernameSelectionView(viewModel: viewModel)
+                            case .accountDetails:
+                                accountDetailsFields
+                            case .emailVerification:
+                                EmailVerificationView(viewModel: viewModel)
+                            case .chooseUsername:
+                                UsernameSelectionView(viewModel: viewModel)
                         }
                     }
                     .padding(.horizontal, 25)
@@ -45,11 +45,11 @@ struct SignUpView: View {
             }
             .onSubmit {
                 switch focusedField {
-                case .email: focusedField = .password
-                case .password: focusedField = .passwordConfirmation
-                case .passwordConfirmation: focusedField = nil
-                case .username: focusedField = nil
-                default: focusedField = nil
+                    case .email: focusedField = .password
+                    case .password: focusedField = .passwordConfirmation
+                    case .passwordConfirmation: focusedField = nil
+                    case .username: focusedField = nil
+                    default: focusedField = nil
                 }
             }
             .scrollIndicators(.hidden)

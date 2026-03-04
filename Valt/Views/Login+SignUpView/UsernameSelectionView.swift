@@ -5,8 +5,8 @@ struct UsernameSelectionView: View {
     @FocusState private var focusedField: SignUpViewModel.Field?
 
     var body: some View {
-        VStack(spacing: 15) {
-            AuthInputField(title: "Choose a Username", placeholder: "Username", text: $viewModel.username, field: .username, focusState: $focusedField, borderColor: viewModel.usernameBorderColor)
+        VStack(spacing: 0) {
+            AuthInputField(title: "Username", placeholder: "", text: $viewModel.username, field: .username, focusState: $focusedField, borderColor: viewModel.usernameBorderColor)
                 .submitLabel(.done)
             
             AuthActionButton(title: "Finish", isLoading: viewModel.isLoading, isDisabled: viewModel.username.isEmpty) {

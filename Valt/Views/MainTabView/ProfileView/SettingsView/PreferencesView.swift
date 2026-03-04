@@ -76,14 +76,14 @@ struct PreferencesView: View {
         VStack(spacing: 0) {
             SectionHeader(title: "Account Management")
             NavigationLink(destination: DeactivateView().navigationBarBackButtonHidden(true)) {
-                SettingsRow(title: "Deactivate Account", icon: "trashIcon")
+                SettingsRow(title: "Delete Account", icon: "deleteIcon")
                     .padding(.horizontal, 15)
                     .padding(.bottom, 5)
             }
             Button(action: {
                 authViewModel.signOut()
             }) {
-                SettingsRow(title: "Log Out", icon: "trashIcon")
+                SettingsRow(title: "Log Out", icon: "logoutIcon")
                     .padding(.horizontal, 15)
                     .padding(.bottom, 5)
             }

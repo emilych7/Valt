@@ -6,10 +6,12 @@ struct Header: View {
     var body: some View {
         HStack {
             Text(title)
-                .font(.custom("OpenSans-SemiBold", size: 30))
+                .font(.custom("OpenSans-SemiBold", size: 24))
                 .foregroundColor(Color("TextColor"))
             Spacer()
         }
-        .padding(.horizontal, 30)
+        .padding(.horizontal, 20)
+        .padding(.bottom, 15)
+        .padding(.top, 15)
     }
 }

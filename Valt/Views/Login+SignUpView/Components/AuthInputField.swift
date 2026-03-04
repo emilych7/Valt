@@ -57,20 +57,18 @@ struct AuthActionButton: View {
             if isLoading {
                 ProgressView()
                     .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                    .frame(maxWidth: .infinity, minHeight: 60)
+                    .frame(maxWidth: .infinity, minHeight: 50)
                     .background(Color("RequestButtonColor"))
                     .cornerRadius(12)
             } else {
                 Button(action: action) {
                     Text(title)
                         .foregroundColor(.white)
-                        .font(.custom("OpenSans-Bold", size: 20))
-                        .frame(maxWidth: .infinity, minHeight: 60)
+                        .font(.custom("OpenSans-Bold", size: 18))
+                        .frame(maxWidth: .infinity, minHeight: 50)
                         .background(Color("RequestButtonColor"))
                         .cornerRadius(12)
                 }
-                // .disabled(isDisabled)
-                // .opacity(isDisabled ? 0.5 : 1.0)
             }
         }
         .padding(.top, 15)

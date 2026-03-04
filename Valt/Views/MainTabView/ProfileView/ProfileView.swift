@@ -129,7 +129,7 @@ struct ProfileView: View {
                 if let draft = selectedDraft {
                     FullNoteView(draft: draft, userViewModel: userViewModel)
                         .toolbar(.hidden, for: .tabBar)
-                        .navigationTransition(.automatic)
+                        .navigationBarBackButtonHidden(true)
                 }
             }
         }
