@@ -81,7 +81,11 @@ struct PreferencesView: View {
                     .padding(.bottom, 5)
             }
             Button(action: {
-                authViewModel.signOut()
+                // authViewModel.signOut()
+                dismiss()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    authViewModel.signOut()
+                }
             }) {
                 SettingsRow(title: "Log Out", icon: "logoutIcon")
                     .padding(.horizontal, 15)

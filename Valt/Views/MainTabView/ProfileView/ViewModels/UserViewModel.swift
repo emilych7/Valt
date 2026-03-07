@@ -43,42 +43,46 @@ final class UserViewModel: ObservableObject {
         self.repository = repository
         
         authHandler = Auth.auth().addStateDidChangeListener { [weak self] _, user in
-            guard let self = self, user != nil else { return }
+            guard let self = self, user != nil else {
+                self?.clearData() // Clear data if user is nil
+                return
+            }
+            
             if !self.isFetching {
-                Task {
-                    await self.fetchAllData()
-                }
+                Task { await self.fetchAllData() }
             }
         }
     }
     
+    deinit {
+        if let handler = authHandler {
+            Auth.auth().removeStateDidChangeListener(handler)
+        }
+    }
+
     func fetchAllData() async {
-        userLoadingState = .loading
+        // Lock it immediately
         guard !isFetching else { return }
         isFetching = true
+        userLoadingState = .loading
         
-        guard let uid = Auth.auth().currentUser?.uid else {
-            print("No authenticated user. No fetching data.")
+        guard Auth.auth().currentUser?.uid != nil else {
             isFetching = false
             userLoadingState = .error("No user found.")
             return
         }
         
-        profileLoadingState = .loading
-        cardLoadingState = .loading
-        
-        print("Starting authenticated fetch for: \(uid)")
+        isFetching = true
         
         await withTaskGroup(of: Void.self) { group in
             group.addTask { await self.fetchProfilePicture() }
             group.addTask { await self.fetchAuthenticatedUsername() }
             group.addTask { await self.loadDrafts() }
         }
-        
-        isFetching = false
         userLoadingState = .complete
+        isFetching = false
     }
-    
+
     var currentUserEmail: String {
         Auth.auth().currentUser?.email ?? ""
     }
@@ -280,5 +284,18 @@ final class UserViewModel: ObservableObject {
                 }
             }
         }
+    }
+    
+    func clearData() {
+        self.drafts = []
+        self.username = "@username"
+        self.profileImage = nil
+        self.profilePictureURL = nil
+        self.hasPinSet = false
+        self.storedPin = nil
+        self.isUnlocked = false
+        self.enteredPin = ""
+        self.pinColor = "TextColor"
+        self.isFetching = false // Reset the lock
     }
 }

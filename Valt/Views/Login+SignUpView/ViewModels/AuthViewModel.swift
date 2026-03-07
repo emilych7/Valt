@@ -36,8 +36,9 @@ class AuthViewModel: ObservableObject {
                 }
             } else {
                 self.isAuthenticated = false
-                print("Init: No user authenticated")
-                // isLoading = false
+                self.isProfileComplete = false
+                self.navigationMode = .onboarding
+                // NotificationCenter.default.post(name: NSNotification.Name("UserDidLogout"), object: nil)
             }
         }
     }
@@ -77,10 +78,19 @@ class AuthViewModel: ObservableObject {
 
     func signOut() {
         print("Signing out...")
-        try? Auth.auth().signOut()
-        self.isAuthenticated = false
+        
         self.isProfileComplete = false
         self.navigationMode = .onboarding
+        
+        do {
+            try Auth.auth().signOut()
+            DispatchQueue.main.async {
+                self.isAuthenticated = false
+                self.currentUser = nil
+            }
+        } catch {
+            print("Error signing out: \(error.localizedDescription)")
+        }
     }
     
     deinit {
