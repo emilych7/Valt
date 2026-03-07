@@ -8,20 +8,13 @@ struct NewDraftView: View {
     @EnvironmentObject var tabManager: TabManager
     @FocusState private var isTextFieldFocused: Bool
     
-    init(userViewModel: UserViewModel, onDismiss: @escaping () -> Void) {
-        self.onDismiss = onDismiss
+    init(userViewModel: UserViewModel) {
         _viewModel = StateObject(wrappedValue: HomeViewModel(userViewModel: userViewModel))
     }
-    
-    var onDismiss: () -> Void
-    
+
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 10) {
-                HomeActionButton(icon: "exitDynamicIcon", backgroundColor: "ValtRed") {
-                    onDismiss()
-                }
-                
                 Spacer()
                 
                 HomeActionButton(icon: viewModel.isFavorited ? "Favorite-Active" : "Favorite-Inactive") {
@@ -54,6 +47,7 @@ struct NewDraftView: View {
                     .scrollContentBackground(.hidden)
                     .focused($isTextFieldFocused)
                     .onTapGesture {
+                        tabManager.setTabBarHidden(true)
                         isTextFieldFocused = true
                     }
             }
@@ -66,7 +60,15 @@ struct NewDraftView: View {
             tabManager.setTabBarHidden(true)
             isTextFieldFocused = true
         }
-        .onDisappear { tabManager.setTabBarHidden(false) }
+        .onChange(of: isTextFieldFocused) { oldValue, newValue in
+            withAnimation(.easeInOut(duration: 0.2)) {
+                tabManager.setTabBarHidden(newValue)
+            }
+        }
+        .onDisappear {
+            tabManager.setTabBarHidden(false)
+            isTextFieldFocused = false
+        }
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 HStack {

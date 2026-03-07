@@ -35,10 +35,15 @@ struct PromptSuggestionView: View {
                 unlockedStateView
             }
         }
+        .onChange(of: userViewModel.drafts) { _, newDrafts in
+            viewModel.generatePromptFromOwnDrafts(with: newDrafts)
+        }
+        .onAppear {
+            if !userViewModel.drafts.isEmpty {
+                viewModel.generatePromptFromOwnDrafts(with: userViewModel.drafts)
+            }
+        }
         .padding(.horizontal, 20)
-//        .onAppear {
-//            attemptAutoGeneration(count: userViewModel.draftCount)
-//        }
         .onChange(of: userViewModel.draftCount) { _, newCount in
             if newCount < 3 {
                 viewModel.generatedPrompts = []
@@ -47,15 +52,6 @@ struct PromptSuggestionView: View {
         }
     }
     
-//    private func attemptAutoGeneration(count: Int) {
-//        // Only call the API if there is 3 or more drafts and no prompts stored in the array
-//        // if count >= 3 && viewModel.generatedPrompts.isEmpty && !viewModel.isLoading {
-//        if count >= 3 && viewModel.isLoading {
-//            viewModel.generatePromptFromOwnDrafts(with: userViewModel.drafts)
-//            viewModel.showPrompts = true
-//        }
-//    }
-
     private var lockedStateView: some View {
         VStack(alignment: .leading) {
             Text("Write 3 notes to unlock personalized prompt suggestions. The more you write, the more tailored they become.")

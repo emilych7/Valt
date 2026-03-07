@@ -21,9 +21,9 @@ struct MainTabView: View {
             Group {
                 switch selection {
                     case .home:
-                        HomeView(viewModel: homeViewModel)
+                        NewDraftView(userViewModel: userViewModel)
                     case .explore:
-                        ExploreView()
+                        ExploreView(homeViewModel: homeViewModel)
                     case .profile:
                         ProfileView(mainTabSelection: $selection)
                 }

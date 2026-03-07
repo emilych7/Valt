@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct ExploreView: View {
+    @ObservedObject var homeViewModel: HomeViewModel
     @EnvironmentObject private var tabManager: TabManager
     let placeholder: String = "Search for a username"
     @StateObject private var viewModel = ExploreViewModel()
@@ -10,8 +11,6 @@ struct ExploreView: View {
         NavigationStack {
             VStack(spacing: 0) {
                 VStack(spacing: 10) {
-                    MainHeader(title: "Explore")
-                    
                     HStack(spacing: 12) {
                         HStack {
                             Image(systemName: "magnifyingglass")
@@ -41,11 +40,20 @@ struct ExploreView: View {
                         }
                         .padding(.horizontal, 15)
                         .frame(height: 50)
-                        .background(Color("TextFieldBackground"))
                         .cornerRadius(12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10)
+                                .foregroundColor(Color("TextFieldBackground"))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(Color("TextColor").opacity(0.2), lineWidth: 1)
+                                )
+                        )
+                        //.background(Color("TextFieldBackground"))
                     }
+                    .padding(.top, 10)
                     .padding(.horizontal, 20)
-                    .padding(.bottom, 10)
+                    .padding(.bottom, 15)
                 }
                 .background(Color("AppBackgroundColor"))
                 .overlay(
@@ -58,7 +66,7 @@ struct ExploreView: View {
                 // Content area
                 ZStack {
                     if !isSearchFocused && viewModel.searchText.isEmpty {
-                        exploreGridView
+                        suggestionsView
                             .transition(.opacity)
                     } else {
                         VStack {
@@ -80,6 +88,7 @@ struct ExploreView: View {
                         .transition(.opacity)
                     }
                 }
+                .padding(.top, 5)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color("TextFieldBackground").opacity(0.7))
                 .onTapGesture {
@@ -102,16 +111,13 @@ struct ExploreView: View {
         }
     }
     
-    private var exploreGridView: some View {
-        ScrollView {
-            VStack {
-                Text("Find someone you know. Read their thoughts.")
-                    .foregroundColor(Color("TextColor").opacity(0.7))
-                    .font(.custom("OpenSans-Regular", size: 14))
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.top, 50)
+    private var suggestionsView: some View {
+        VStack {
+            PromptSuggestionView(viewModel: homeViewModel)
+            
+            Spacer()
         }
+        .frame(maxWidth: .infinity)
     }
 
     private func userSearchCell(_ user: OtherUser) -> some View {

@@ -32,12 +32,10 @@ struct Socials: View {
                 
                 // Apple Button
                 Button(action: onAppleTap) {
-                    
-                        Image("appleIcon")
-                            .padding(.vertical, 15)
-                            .frame(maxWidth: .infinity)
-                            .background(Color("AuthOptionsBackground"), in: RoundedRectangle(cornerRadius: 12))
-                    
+                    Image("appleIcon")
+                        .padding(.vertical, 15)
+                        .frame(maxWidth: .infinity)
+                        .background(Color("AuthOptionsBackground"), in: RoundedRectangle(cornerRadius: 12))
                 }
             }
         }

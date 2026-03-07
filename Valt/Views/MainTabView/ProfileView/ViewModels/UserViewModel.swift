@@ -243,6 +243,7 @@ final class UserViewModel: ObservableObject {
                 try await docRef.setData(["hiddenPin": newPin], merge: true)
                 print("PIN successfully saved to Firestore. Setting hasPinSet = true")
                 hasPinSet = true
+                storedPin = newPin
             } catch {
                 print("Error saving PIN: \(error.localizedDescription)")
             }
@@ -262,6 +263,7 @@ final class UserViewModel: ObservableObject {
         // Tiny delay
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             if enteredPin == correctPin {
+                print("Correct PIN")
                 self.pinColor = "TextColor"
                 return self.isUnlocked = true
             } else {
@@ -276,8 +278,6 @@ final class UserViewModel: ObservableObject {
                     self.pinColor = "TextColor"
                     self.enteredPin = ""
                 }
-                
-                return
             }
         }
     }
