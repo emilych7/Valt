@@ -6,7 +6,10 @@ struct ProfileView: View {
     @Namespace private var profileNamespace
     @EnvironmentObject private var userViewModel: UserViewModel
     @EnvironmentObject var settingsViewModel: SettingsViewModel
+    @EnvironmentObject var tabManager: TabManager
+    
     @Binding var mainTabSelection: ContentTabViewSelection
+    
     @State private var selectedDraft: Draft? = nil
     @State private var showNote: Bool = false
     @State private var selectedTab: ProfileTab = .all
@@ -87,6 +90,7 @@ struct ProfileView: View {
                 .background(Color("AppBackgroundColor").ignoresSafeArea())
             }
             .onAppear {
+                tabManager.setTabBarHidden(false)
                 if !userViewModel.isUnlocked {
                     showingPinEntry = true
                 }

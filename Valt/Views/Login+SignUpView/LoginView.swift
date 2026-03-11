@@ -20,7 +20,7 @@ struct LoginView: View {
                             .foregroundColor(Color("TextColor"))
                         Spacer()
                     }
-                    .padding(.horizontal, 30)
+                    .padding(.horizontal, 20)
                     
                     VStack(spacing: 5) {
                         AuthInputField(
@@ -65,7 +65,7 @@ struct LoginView: View {
                                 .multilineTextAlignment(.center)
                         }
                     }
-                    .padding(.horizontal, 25)
+                    .padding(.horizontal, 20)
                     
                     Spacer(minLength: 50)
                 }

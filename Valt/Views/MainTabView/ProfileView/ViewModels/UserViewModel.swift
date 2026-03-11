@@ -10,7 +10,10 @@ final class UserViewModel: ObservableObject {
     @Published var cardLoadingState: ContentLoadingState = .loading
     @Published var userLoadingState: ContentLoadingState = .complete
     @Published var profileLoadingState: ContentLoadingState = .loading
+    
     @Published var username: String = "@username"
+    @Published var followerCount: Int = 0
+    
     @Published var drafts: [Draft] = []
     @Published var profileImage: UIImage? = nil
     @Published var profilePictureURL: URL? = nil

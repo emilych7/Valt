@@ -18,8 +18,18 @@ struct UserInfoView: View {
                 VStack(alignment: .leading, spacing: 5) {
                     Text(userViewModel.username)
                         .font(.custom("OpenSans-SemiBold", size: 21))
-                    Text("\(userViewModel.draftCount) drafts")
-                    Text("\(userViewModel.publishedDraftCount) published")
+                    
+                    Text("\(userViewModel.followerCount) followers")
+                    
+                    HStack(spacing: 10) {
+                        Text("\(userViewModel.draftCount) drafts")
+                        
+                        Circle()
+                            .fill(Color("TextColor"))
+                            .frame(width: 3, height: 3)
+                        
+                        Text("\(userViewModel.publishedDraftCount) published")
+                    }
                 }
                 .font(.custom("OpenSans-Regular", size: 15))
                 .padding(.horizontal, 5)

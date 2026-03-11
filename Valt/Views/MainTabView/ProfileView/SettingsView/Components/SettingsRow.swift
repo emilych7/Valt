@@ -4,6 +4,8 @@ struct SettingsRow: View {
     let title: String
     let icon: String
     
+    var isDestructive: Bool = false
+    
     var body: some View {
         HStack(spacing: 12) {
             Image(icon)
@@ -12,7 +14,7 @@ struct SettingsRow: View {
             
             Text(title)
                 .font(.custom("OpenSans-Regular", size: 17))
-                .foregroundColor(Color("TextColor"))
+                .foregroundColor(isDestructive ? Color("ValtRed") : Color("TextColor"))
             
             Spacer()
             

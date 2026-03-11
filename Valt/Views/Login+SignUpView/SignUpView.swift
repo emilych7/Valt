@@ -38,7 +38,7 @@ struct SignUpView: View {
                                 UsernameSelectionView(viewModel: viewModel)
                         }
                     }
-                    .padding(.horizontal, 25)
+                    .padding(.horizontal, 20)
                     
                     Spacer(minLength: 50)
                 }

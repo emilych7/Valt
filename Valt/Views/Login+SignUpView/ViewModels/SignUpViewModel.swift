@@ -144,6 +144,11 @@ class SignUpViewModel: NSObject, ObservableObject {
             
             let batch = db.batch()
             let userRef = db.collection("users").document(currentUser.uid)
+            let emailRef = db.collection("emails").document(Auth.auth().currentUser?.email ?? self.email)
+            batch.setData([
+                "userID": currentUser.uid,
+            ], forDocument: emailRef)
+            
             let userData: [String: Any] = [
                 "userID": currentUser.uid,
                 "email": Auth.auth().currentUser?.email ?? self.email,

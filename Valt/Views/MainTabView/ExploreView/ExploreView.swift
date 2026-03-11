@@ -49,7 +49,6 @@ struct ExploreView: View {
                                         .stroke(Color("TextColor").opacity(0.2), lineWidth: 1)
                                 )
                         )
-                        //.background(Color("TextFieldBackground"))
                     }
                     .padding(.top, 10)
                     .padding(.horizontal, 20)
