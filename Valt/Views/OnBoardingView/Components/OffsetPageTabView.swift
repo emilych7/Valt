@@ -60,25 +60,25 @@ struct OffsetPageTabView<Content: View>: UIViewRepresentable {
     }
     
     class Coordinator: NSObject, UIScrollViewDelegate {
-            var parent: OffsetPageTabView
-            var isProgrammaticUpdate = false
+        var parent: OffsetPageTabView
+        var isProgrammaticUpdate = false
+        
+        init(_ parent: OffsetPageTabView) {
+            self.parent = parent
+        }
+        
+        func scrollViewDidScroll(_ scrollView: UIScrollView) {
+            guard scrollView.isDragging || scrollView.isDecelerating else { return }
             
-            init(_ parent: OffsetPageTabView) {
-                self.parent = parent
-            }
+            guard !isProgrammaticUpdate else { return }
+            let x = scrollView.contentOffset.x
             
-            func scrollViewDidScroll(_ scrollView: UIScrollView) {
-                guard scrollView.isDragging || scrollView.isDecelerating else { return }
-                
-                guard !isProgrammaticUpdate else { return }
-                let x = scrollView.contentOffset.x
-                
-                // Only update if there is a significant change to prevent jitter
-                if abs(parent.offset - x) > 0.5 {
-                    DispatchQueue.main.async {
-                        self.parent.offset = x
-                    }
+            // Only update if there is a significant change to prevent jitter
+            if abs(parent.offset - x) > 0.5 {
+                DispatchQueue.main.async {
+                    self.parent.offset = x
                 }
             }
         }
+    }
 }

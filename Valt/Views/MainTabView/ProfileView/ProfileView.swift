@@ -26,7 +26,6 @@ struct ProfileView: View {
         NavigationStack {
             ZStack {
                 VStack(spacing: 0) {
-                    // Header Section
                     MainHeader(title: "My Valt", image: "settingsIcon", action: toggleSettings)
                     
                     // Profile Info Section
@@ -128,6 +127,7 @@ struct ProfileView: View {
             .navigationDestination(isPresented: $showSettings) {
                 SettingsView(selectedDraft: $selectedDraft, showNote: $showNote)
                 .navigationBarBackButtonHidden(true)
+                // .navigationBarHidden(true)
             }
             .navigationDestination(isPresented: $showNote) {
                 if let draft = selectedDraft {

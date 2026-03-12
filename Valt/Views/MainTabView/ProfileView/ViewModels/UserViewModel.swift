@@ -7,6 +7,8 @@ import UIKit
 
 @MainActor
 final class UserViewModel: ObservableObject {
+    @Published var navigationMode: AppRoute = .onboarding
+    
     @Published var cardLoadingState: ContentLoadingState = .loading
     @Published var userLoadingState: ContentLoadingState = .complete
     @Published var profileLoadingState: ContentLoadingState = .loading
@@ -64,9 +66,9 @@ final class UserViewModel: ObservableObject {
     }
 
     func fetchAllData() async {
-        // Lock it immediately
         guard !isFetching else { return }
         isFetching = true
+        print("Fetching data...")
         userLoadingState = .loading
         
         guard Auth.auth().currentUser?.uid != nil else {
@@ -74,16 +76,23 @@ final class UserViewModel: ObservableObject {
             userLoadingState = .error("No user found.")
             return
         }
-        
-        isFetching = true
-        
+
         await withTaskGroup(of: Void.self) { group in
-            group.addTask { await self.fetchProfilePicture() }
-            group.addTask { await self.fetchAuthenticatedUsername() }
-            group.addTask { await self.loadDrafts() }
+            group.addTask {
+                await self.fetchAuthenticatedUsername()
+            }
+            
+            group.addTask {
+                await self.fetchProfilePicture()
+            }
+            
+            group.addTask {
+                await self.loadDrafts()
+            }
         }
         userLoadingState = .complete
         isFetching = false
+        self.navigationMode = .onboarding
     }
 
     var currentUserEmail: String {

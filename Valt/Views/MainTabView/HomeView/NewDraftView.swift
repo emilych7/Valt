@@ -34,7 +34,7 @@ struct NewDraftView: View {
             // Note Editor
             ZStack(alignment: .topLeading) {
                 if viewModel.draftText.isEmpty {
-                    Text("Start your draft here")
+                    Text("Start here")
                         .font(.custom("OpenSans-Regular", size: 16))
                         .foregroundColor(Color("TextColor").opacity(0.5))
                         .padding(.top, 8)

@@ -9,10 +9,6 @@ struct OnBoardingView: View {
         ZStack {
             contentLayer
                 .disabled(userViewModel.userLoadingState == .loading)
-
-            if userViewModel.userLoadingState == .loading {
-                loadingOverlay
-            }
         }
     }
 
@@ -33,22 +29,7 @@ struct OnBoardingView: View {
             onBoardingViewModel.resetOnboarding()
         }
     }
-
-    private var loadingOverlay: some View {
-        ZStack {
-            Color("AppBackgroundColor").opacity(0.90)
-                .ignoresSafeArea()
-            
-            VStack(spacing: 15) {
-                ProgressView()
-                    .controlSize(.regular)
-                    .tint(Color("TextColor"))
-            }
-        }
-        .transition(.opacity)
-        .zIndex(1)
-    }
-
+    
     private var ellipseBackground: some View {
         Ellipse()
             .fill(Color("TextFieldBackground"))

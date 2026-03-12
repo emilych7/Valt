@@ -11,10 +11,6 @@ class AuthViewModel: ObservableObject {
     
     private var authHandle: AuthStateDidChangeListenerHandle?
     private let db = Firestore.firestore()
-    
-    enum AppRoute {
-        case onboarding, login, signup
-    }
 
     init() {
         authHandle = Auth.auth().addStateDidChangeListener { [weak self] _, user in
@@ -34,7 +30,10 @@ class AuthViewModel: ObservableObject {
                     self.navigationMode = .signup
                     print("Init: User needs email verification")
                 }
+                print("User is authenticated, navigating to profile...")
+                self.navigationMode = .profile
             } else {
+                print("User is not authenticated.")
                 self.isAuthenticated = false
                 self.isProfileComplete = false
                 self.navigationMode = .onboarding
@@ -53,6 +52,7 @@ class AuthViewModel: ObservableObject {
                 if let snapshot = snapshot, snapshot.exists {
                     self.isProfileComplete = true
                     self.isAuthenticated = true
+                    self.navigationMode = .profile
                     print("Profile is complete, signing in...")
                 } else {
                     self.isProfileComplete = false

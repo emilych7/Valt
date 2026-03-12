@@ -10,38 +10,44 @@ struct SettingsView: View {
     @Binding var showNote: Bool
     
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                
-                SettingsHeader(title: "Settings", buttonTitle: "Exit") {
-                    dismiss()
-                }
-                
-                ScrollView {
-                    VStack(spacing: 15) {
-                        profileSection
-                        
-                        archiveSection
-                        
-                        resetPasswordSection
-                        
-                        // twoFactorAuthenticationSection
-                        
-                        dataSection
-                        
-                        managementSection
+        ZStack {
+            Color("AppBackgroundColor").ignoresSafeArea()
+            
+            Color("TextFieldBackground").ignoresSafeArea(edges: .bottom)
+            
+            ScrollView {
+                LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
+                    Section(header:
+                        SettingsHeader(title: "Settings", buttonTitle: "Exit") {
+                            dismiss()
+                        }
+                        .background(Color("AppBackgroundColor"))
+                        .overlay(
+                            Rectangle()
+                                .fill(Color("TextColor").opacity(0.2))
+                                .frame(height: 1),
+                            alignment: .bottom
+                        )
+                    ) {
+                        VStack(spacing: 10) {
+                            profileSection
+                            archiveSection
+                            resetPasswordSection
+                            dataSection
+                            managementSection
+                            
+                            Spacer()
+                        }
+                        .padding(.top, 10)
+                        .padding(.bottom, 60)
                     }
-                    .padding(.top, 10)
-                    .padding(.bottom, 40)
                 }
-                .background(Color("TextFieldBackground"))
-                
             }
-            .background(Color("AppBackgroundColor").ignoresSafeArea())
-            .onAppear {
-                tabManager.setTabBarHidden(true)
-            }
-            .environmentObject(settingsViewModel)
+        }
+        .navigationBarHidden(true)
+        .navigationBarBackButtonHidden(true)
+        .onAppear {
+            tabManager.setTabBarHidden(true)
         }
     }
     
@@ -58,7 +64,6 @@ struct SettingsView: View {
                 SettingsRow(title: "Email", icon: "emailIcon")
             }
             .padding(.horizontal, 15)
-            // .padding(.bottom, 5)
             
             NavigationLink(destination: UpdateAppearanceView()) { SettingsRow(title: "Appearance", icon: "appearanceIcon") }
                 .padding(.horizontal, 15)
@@ -66,23 +71,12 @@ struct SettingsView: View {
         }
         .background(Color("AppBackgroundColor"))
     }
-    
-//    private var displaySection: some View {
-//        VStack(spacing: 0) {
-//            SectionHeader(title: "Display")
-//            NavigationLink(destination: UpdateAppearanceView()) { SettingsRow(title: "Appearance", icon: "appearanceIcon") }
-//                .padding(.horizontal, 15)
-//                .padding(.bottom, 5)
-//        }
-//        .background(Color("AppBackgroundColor"))
-//    }
-    
+
     private var managementSection: some View {
         VStack(spacing: 0) {
             SectionHeader(title: "Account Management")
             
             Button(action: {
-                // authViewModel.signOut()
                 dismiss()
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     authViewModel.signOut()
@@ -90,7 +84,6 @@ struct SettingsView: View {
             }) {
                 SettingsRow(title: "Log Out", icon: "logoutIcon")
                     .padding(.horizontal, 15)
-                    // .padding(.bottom, 5)
             }
             
             NavigationLink(destination: DeactivateView().navigationBarBackButtonHidden(true)) {
@@ -127,26 +120,13 @@ struct SettingsView: View {
         }
         .background(Color("AppBackgroundColor"))
     }
-    
-//    private var twoFactorAuthenticationSection: some View {
-//        VStack(spacing: 0) {
-//            SectionHeader(title: "Two-Factor Authentication")
-//            
-//            NavigationLink(destination: Text("Two-Factor")) { SettingsRow(title: "Two-Factor", icon: "twoFactorIcon") }
-//                .padding(.horizontal, 15)
-//                .padding(.bottom, 5)
-//            
-//        }
-//        .background(Color("AppBackgroundColor"))
-//    }
-    
+
     private var resetPasswordSection: some View {
         VStack(spacing: 0) {
             SectionHeader(title: "Password Protection")
             
             NavigationLink(destination: Text("Reset Password")) { SettingsRow(title: "Reset Password", icon: "passwordIcon") }
                 .padding(.horizontal, 15)
-                // .padding(.bottom, 5)
             
             NavigationLink(destination: Text("Two-Factor")) { SettingsRow(title: "Two-Factor", icon: "twoFactorIcon") }
                 .padding(.horizontal, 15)
