@@ -12,9 +12,10 @@ struct DeactivateView: View {
                     dismiss()
                 }
                 
-                VStack(spacing: 15) {
+                VStack(spacing: 10) {
                     Text("Deleting Your Valt Account")
-                        .font(.custom("OpenSans-SemiBold", size: 18))
+                        .padding(.top, 5)
+                        .font(.custom("OpenSans-Regular", size: 17))
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .foregroundColor(Color("TextColor"))
                     
@@ -55,7 +56,7 @@ struct DeactivateView: View {
                     .disabled(viewModel.isSaving)
                 }
                 .padding(.horizontal, 20)
-                .padding(.top, 10)
+                .padding(.vertical, 10)
                 .padding(.bottom, 30)
             }
     }

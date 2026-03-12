@@ -32,9 +32,9 @@ struct UpdateFieldView: View {
                     dismiss()
                 }
                 
-                VStack(spacing: 15) {
+                VStack(spacing: 10) {
                     Text(fieldType.subtitle)
-                        .font(.custom("OpenSans-SemiBold", size: 18))
+                        .font(.custom("OpenSans-Regular", size: 17))
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .foregroundColor(Color("TextColor"))
                     

@@ -9,39 +9,33 @@ struct SettingsView: View {
     @Binding var selectedDraft: Draft?
     @Binding var showNote: Bool
     
+    @State var showLogOutConfirmation: Bool = false
+    
     var body: some View {
+        // 1. Use a geometry reader or just a ZStack to ensure the background is solid
         ZStack {
-            Color("AppBackgroundColor").ignoresSafeArea()
-            
-            Color("TextFieldBackground").ignoresSafeArea(edges: .bottom)
+            Color("TextFieldBackground")// .ignoresSafeArea()
             
             ScrollView {
-                LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
-                    Section(header:
-                        SettingsHeader(title: "Settings", buttonTitle: "Exit") {
-                            dismiss()
-                        }
-                        .background(Color("AppBackgroundColor"))
-                        .overlay(
-                            Rectangle()
-                                .fill(Color("TextColor").opacity(0.2))
-                                .frame(height: 1),
-                            alignment: .bottom
-                        )
-                    ) {
-                        VStack(spacing: 10) {
-                            profileSection
-                            archiveSection
-                            resetPasswordSection
-                            dataSection
-                            managementSection
-                            
-                            Spacer()
-                        }
-                        .padding(.top, 10)
-                        .padding(.bottom, 60)
+                // 2. Put the Header INSIDE the VStack that is INSIDE the ScrollView
+                VStack(spacing: 0) {
+                    SettingsHeader(title: "Settings", buttonTitle: "Exit") {
+                        dismiss()
                     }
+                    
+                    profileSection
+                        .padding(.bottom, 10)
+                    archiveSection
+                        .padding(.bottom, 10)
+                    resetPasswordSection
+                        .padding(.bottom, 10)
+                    dataSection
+                        .padding(.bottom, 10)
+                    managementSection
+                    
+                    Spacer()
                 }
+                .padding(.bottom, 60)
             }
         }
         .navigationBarHidden(true)
@@ -77,13 +71,19 @@ struct SettingsView: View {
             SectionHeader(title: "Account Management")
             
             Button(action: {
-                dismiss()
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    authViewModel.signOut()
-                }
+                showLogOutConfirmation =  true
             }) {
                 SettingsRow(title: "Log Out", icon: "logoutIcon")
                     .padding(.horizontal, 15)
+            }
+            .alert("Are you sure you want to log out?", isPresented: $showLogOutConfirmation) {
+                Button("Cancel", role: .cancel) { }
+                Button("Continue") {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        authViewModel.signOut()
+                    }
+                }
+                .foregroundStyle(Color(("TextColor")))
             }
             
             NavigationLink(destination: DeactivateView().navigationBarBackButtonHidden(true)) {

@@ -33,5 +33,11 @@ struct SettingsHeader: View {
         .padding(.bottom, 15)
         .padding(.top, 15)
         .background(Color("AppBackgroundColor"))
+        .overlay(
+            Rectangle()
+                .fill(Color("TextColor").opacity(0.2))
+                .frame(height: 1),
+            alignment: .bottom
+        )
     }
 }

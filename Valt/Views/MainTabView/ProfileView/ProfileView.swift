@@ -127,7 +127,6 @@ struct ProfileView: View {
             .navigationDestination(isPresented: $showSettings) {
                 SettingsView(selectedDraft: $selectedDraft, showNote: $showNote)
                 .navigationBarBackButtonHidden(true)
-                // .navigationBarHidden(true)
             }
             .navigationDestination(isPresented: $showNote) {
                 if let draft = selectedDraft {
