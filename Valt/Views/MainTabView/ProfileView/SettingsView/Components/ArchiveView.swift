@@ -8,28 +8,31 @@ struct ArchiveView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
-                Text("Archived Content")
-                    .font(.custom("OpenSans-SemiBold", size: 24))
-                
-                Spacer()
-                
-                Button {
-                    dismiss()
-                } label: {
-                    ZStack {
-                        Circle()
-                            .frame(width: 40, height: 40)
-                            .foregroundColor(Color("ValtRed"))
-                        Image("exitIcon")
-                            .frame(width: 20, height: 20)
-                    }
-                }
-                .buttonStyle(PlainButtonStyle())
+            SettingsHeader(title: "Archived Content", imageTitle: "backCarrotIcon", buttonTitle: "Back") {
+                dismiss()
             }
-            .padding(.top, 10)
-            .padding(.horizontal, 20)
-            .padding(.bottom, 15)
+//            HStack {
+//                Text("Archived Content")
+//                    .font(.custom("OpenSans-SemiBold", size: 24))
+//                
+//                Spacer()
+//                
+//                Button {
+//                    dismiss()
+//                } label: {
+//                    ZStack {
+//                        Circle()
+//                            .frame(width: 40, height: 40)
+//                            .foregroundColor(Color("ValtRed"))
+//                        Image("exitIcon")
+//                            .frame(width: 20, height: 20)
+//                    }
+//                }
+//                .buttonStyle(PlainButtonStyle())
+//            }
+//            .padding(.top, 10)
+//            .padding(.horizontal, 20)
+//            .padding(.bottom, 15)
             
             let filteredData = getFilteredData()
             
@@ -54,6 +57,8 @@ struct ArchiveView: View {
                         .tint(Color("TextColor"))
                 }
             }
+            .padding(.vertical, 5)
+            .background(Color("TextFieldBackground").opacity(0.7))
         }
         .background(Color("AppBackgroundColor"))
         .foregroundColor(Color("TextColor"))

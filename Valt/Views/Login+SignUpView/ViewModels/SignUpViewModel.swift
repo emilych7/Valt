@@ -26,9 +26,10 @@ class SignUpViewModel: NSObject, ObservableObject {
     @Published var passwordError: String?
     @Published var isSignupComplete = false
     @Published var currentNonce: String?
-
+    
     private let db = Firestore.firestore()
     private let userViewModel: UserViewModel
+    private var verificationTimer: Timer?
     
     var canSubmitStep1: Bool {
         !email.isEmpty &&
@@ -40,21 +41,8 @@ class SignUpViewModel: NSObject, ObservableObject {
     init(userViewModel: UserViewModel) {
         self.userViewModel = userViewModel
         super.init()
-        
-        if let user = Auth.auth().currentUser {
-            let isGoogle = user.providerData.contains { $0.providerID == "google.com" }
-            
-            if !isGoogle && !user.isEmailVerified {
-                self.email = user.email ?? ""
-                self.currentStep = .emailVerification
-                self.startVerificationPolling()
-            } else if isGoogle || user.isEmailVerified {
-                self.email = user.email ?? ""
-                self.currentStep = .chooseUsername
-            }
-        }
     }
-
+    
     func validateAndStartSignup() async {
         errorMessage = nil
         passwordError = nil
@@ -87,7 +75,6 @@ class SignUpViewModel: NSObject, ObservableObject {
             print("Going to email verification step.")
             self.currentStep = .emailVerification
             startVerificationPolling()
-            
         } catch {
             self.errorMessage = error.localizedDescription
         }
@@ -96,18 +83,24 @@ class SignUpViewModel: NSObject, ObservableObject {
     
     func startVerificationPolling() {
         print("Starting verification timer...")
-        Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { timer in
+        verificationTimer?.invalidate()
+        verificationTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { [weak self] timer in
             Task { @MainActor in
                 try? await Auth.auth().currentUser?.reload()
-                
                 if let user = Auth.auth().currentUser, user.isEmailVerified {
                     timer.invalidate()
-                    self.currentStep = .chooseUsername
+                    self?.verificationTimer = nil
+                    self?.currentStep = .chooseUsername
                 }
             }
         }
     }
-
+    
+    func stopVerificationPolling() {
+        verificationTimer?.invalidate()
+        verificationTimer = nil
+    }
+    
     func resendEmail() {
         print("Resending email...")
         Task {
@@ -118,7 +111,7 @@ class SignUpViewModel: NSObject, ObservableObject {
             }
         }
     }
-
+    
     func finalizeUsername() async {
         let uname = username.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         
@@ -180,7 +173,6 @@ class SignUpViewModel: NSObject, ObservableObject {
             isGoogleLoading = false
             return
         }
-
         do {
             let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController)
             let credential = GoogleAuthProvider.credential(withIDToken: result.user.idToken?.tokenString ?? "",
@@ -188,18 +180,14 @@ class SignUpViewModel: NSObject, ObservableObject {
             
             let authResult = try await Auth.auth().signIn(with: credential)
             
-            // Small delay to let the UIKit pop-up dismiss smoothly
             try await Task.sleep(nanoseconds: 600_000_000)
-
-            // Check if user already have a Firestore profile
+            
             let userDoc = try await db.collection("users").document(authResult.user.uid).getDocument()
             
             if userDoc.exists {
-                // Returning User
                 print("Google Login Success: User exists in Firestore.")
                 self.isSignupComplete = true
             } else {
-                // New User/Incomplete Profile
                 print("Google Signup Success: No profile found. Moving to Username step.")
                 self.email = authResult.user.email ?? ""
                 self.currentStep = .chooseUsername
@@ -240,17 +228,13 @@ class SignUpViewModel: NSObject, ObservableObject {
             do {
                 let authResult = try await Auth.auth().signIn(with: credential)
                 
-                // Check if they already have a Firestore profile
                 let userDoc = try await db.collection("users").document(authResult.user.uid).getDocument()
                 
                 if userDoc.exists {
-                    // Returning User
                     self.isSignupComplete = true
                 } else {
-                    // New User: Save their email and move to Username choice
                     self.email = authResult.user.email ?? ""
                     
-                    // If Apple provides a name, its stored here
                     if let name = appleIDCredential.fullName {
                         print("Apple Username: \(name.givenName ?? "")")
                     }
@@ -263,13 +247,11 @@ class SignUpViewModel: NSObject, ObservableObject {
             }
             
         case .failure(let error):
-            // Ignore user cancellations to avoid error message
             if (error as NSError).code != ASAuthorizationError.canceled.rawValue {
                 self.errorMessage = error.localizedDescription
             }
         }
     }
-    
     
     private func randomNonceString(length: Int = 32) -> String {
         let charset: [Character] = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._")
@@ -287,7 +269,7 @@ class SignUpViewModel: NSObject, ObservableObject {
         }
         return result
     }
-
+    
     private func sha256(_ input: String) -> String {
         let inputData = Data(input.utf8)
         let hashedData = SHA256.hash(data: inputData)
@@ -296,14 +278,10 @@ class SignUpViewModel: NSObject, ObservableObject {
     
     func performAppleSignIn() {
         let request = ASAuthorizationAppleIDProvider().createRequest()
-        
         self.startAppleSignIn(request: request)
-        
         let controller = ASAuthorizationController(authorizationRequests: [request])
-        
         controller.delegate = self
         controller.presentationContextProvider = self
-        
         controller.performRequests()
     }
 }
@@ -316,15 +294,13 @@ extension SignUpViewModel: ASAuthorizationControllerDelegate, ASAuthorizationCon
         }
         return window
     }
-
-    // Triggers when the user successfully authenticates with FaceID/TouchID (will add later)
+    
     func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
         Task {
             await handleAppleSignInCompletion(result: .success(authorization))
         }
     }
-
-    // Triggers if the user cancels or an error occurs
+    
     func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
         Task {
             await handleAppleSignInCompletion(result: .failure(error))

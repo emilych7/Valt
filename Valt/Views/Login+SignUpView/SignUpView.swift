@@ -11,7 +11,7 @@ struct SignUpView: View {
     
     @State private var passwordTip = ValidationErrorTip(
         title: Text("Invalid Password"),
-        message: nil // set in the OnChange modifier
+        message: nil
     )
     
     init(userViewModel: UserViewModel) {
@@ -23,19 +23,19 @@ struct SignUpView: View {
             Color("AppBackgroundColor").ignoresSafeArea()
             
             ScrollView {
-                VStack (spacing: 0) {
+                VStack(spacing: 0) {
                     Spacer().frame(height: UIScreen.main.bounds.height * 0.10)
                     
                     Header(title: headerTitle)
                     
                     ZStack {
                         switch viewModel.currentStep {
-                            case .accountDetails:
-                                accountDetailsFields
-                            case .emailVerification:
-                                EmailVerificationView(viewModel: viewModel)
-                            case .chooseUsername:
-                                UsernameSelectionView(viewModel: viewModel)
+                        case .accountDetails:
+                            accountDetailsFields
+                        case .emailVerification:
+                            EmailVerificationView(viewModel: viewModel)
+                        case .chooseUsername:
+                            UsernameSelectionView(viewModel: viewModel)
                         }
                     }
                     .padding(.horizontal, 20)
@@ -45,11 +45,11 @@ struct SignUpView: View {
             }
             .onSubmit {
                 switch focusedField {
-                    case .email: focusedField = .password
-                    case .password: focusedField = .passwordConfirmation
-                    case .passwordConfirmation: focusedField = nil
-                    case .username: focusedField = nil
-                    default: focusedField = nil
+                case .email: focusedField = .password
+                case .password: focusedField = .passwordConfirmation
+                case .passwordConfirmation: focusedField = nil
+                case .username: focusedField = nil
+                default: focusedField = nil
                 }
             }
             .scrollIndicators(.hidden)
@@ -58,14 +58,7 @@ struct SignUpView: View {
         .overlay(
             NavigationBar(onBackTap: {
                 focusedField = nil
-                
-                if viewModel.currentStep == .emailVerification {
-                    viewModel.currentStep = .accountDetails
-                } else {
-                    Task {
-                        authViewModel.navigate(to: .onboarding)
-                    }
-                }
+                handleBackTap()
             }), alignment: .top
         )
         .onTapGesture {
@@ -79,8 +72,21 @@ struct SignUpView: View {
         }
     }
     
+    private func handleBackTap() {
+        switch viewModel.currentStep {
+        case .accountDetails:
+            authViewModel.navigate(to: .onboarding)
+        case .emailVerification:
+            viewModel.stopVerificationPolling()
+            viewModel.currentStep = .accountDetails
+        case .chooseUsername:
+            viewModel.currentStep = .emailVerification
+            viewModel.startVerificationPolling()
+        }
+    }
+    
     private var loginRedirectSection: some View {
-        HStack (spacing: 4) {
+        HStack(spacing: 4) {
             Text("Already have an account?")
                 .foregroundColor(Color("TextColor"))
             

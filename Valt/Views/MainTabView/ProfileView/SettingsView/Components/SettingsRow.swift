@@ -22,6 +22,7 @@ struct SettingsRow: View {
                 .resizable()
                 .frame(width: 14, height: 14)
         }
+        .frame(maxWidth: .infinity)
         .contentShape(Rectangle())
         .padding(.horizontal, 20)
         .padding(.vertical, 12)

@@ -126,7 +126,9 @@ struct ProfileView: View {
             }
             .navigationDestination(isPresented: $showSettings) {
                 SettingsView(selectedDraft: $selectedDraft, showNote: $showNote)
-                .navigationBarBackButtonHidden(true)
+                    .transaction { transaction in
+                        transaction.animation = .spring(response: 0.35, dampingFraction: 1.0)
+                    }
             }
             .navigationDestination(isPresented: $showNote) {
                 if let draft = selectedDraft {

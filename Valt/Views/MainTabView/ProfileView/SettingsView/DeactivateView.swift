@@ -3,12 +3,14 @@ import SwiftUI
 struct DeactivateView: View {
     @EnvironmentObject var viewModel: SettingsViewModel
     @Environment(\.dismiss) var dismiss
+    
     @State private var showingConfirmation = false
+    @State private var password = "" // Store the password input
     
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
-                SettingsHeader(title: "Delete Account", buttonTitle: "Exit") {
+                SettingsHeader(title: "Delete Account", imageTitle: "exitDynamicIcon", buttonTitle: "Exit") {
                     dismiss()
                 }
                 
@@ -19,7 +21,7 @@ struct DeactivateView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .foregroundColor(Color("TextColor"))
                     
-                    Text("Deleting your account is permanent. When you delete your Valt account, your profile, drafts, and bookmarks will be permanently removed.")
+                    Text("Deleting your account is permanent. This will remove your profile, drafts, and bookmarks.")
                         .font(.custom("OpenSans-Regular", size: 14))
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .foregroundColor(Color("TextColor").opacity(0.7))
@@ -34,14 +36,12 @@ struct DeactivateView: View {
                     
                     Spacer()
                     
-                    // Show Delete Confirmation Button
                     Button {
                         showingConfirmation = true
                     } label: {
                         ZStack {
                             if viewModel.isSaving {
-                                ProgressView()
-                                    .tint(.white)
+                                ProgressView().tint(.white)
                             } else {
                                 Text("Continue")
                                     .font(.custom("OpenSans-Bold", size: 16))
@@ -57,34 +57,32 @@ struct DeactivateView: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 10)
-                .padding(.bottom, 30)
             }
-    }
-    .scrollBounceBehavior(.basedOnSize)
-    .background(Color("AppBackgroundColor").ignoresSafeArea())
-    .onAppear {
-        // Clear any old error messages
-        viewModel.errorMessage = nil
-    }
-    .alert("Are you absolutely sure?", isPresented: $showingConfirmation) {
-        Button("Cancel", role: .cancel) { }
-        Button("Delete Everything", role: .destructive) {
-            executeDeletion()
         }
-    } message: {
-        Text("You cannot undo this action.")
-    }
+        .background(Color("AppBackgroundColor").ignoresSafeArea())
+        .alert("Confirm Deletion", isPresented: $showingConfirmation) {
+            SecureField("Enter Password", text: $password)
+            
+            Button("Cancel", role: .cancel) {
+                password = "" // reset on cancel
+            }
+            
+            Button("Delete Permanently", role: .destructive) {
+                executeDeletion(with: password)
+            }
+        } message: {
+            Text("Please enter your password to confirm you want to delete everything.")
+        }
     }
     
-    private func executeDeletion() {
+    private func executeDeletion(with pass: String) {
         Task {
             viewModel.isSaving = true
-            
             do {
                 try await viewModel.deleteAccount()
                 dismiss()
             } catch {
-                print("Actual deletion error: \(error.localizedDescription)")
+                print("Deletion failed: \(error.localizedDescription)")
             }
             viewModel.isSaving = false
         }

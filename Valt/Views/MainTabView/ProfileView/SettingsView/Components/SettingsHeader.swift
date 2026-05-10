@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsHeader: View {
     let title: String
+    let imageTitle: String
     let buttonTitle: String
     let action: () -> Void
     
@@ -14,8 +15,8 @@ struct SettingsHeader: View {
             Spacer()
             
             Button(action: action) {
-                HStack(spacing: 5) {
-                    Image("exitDynamicIcon")
+                HStack(spacing: 3) {
+                    Image(imageTitle)
                         .resizable()
                         .frame(width: 15, height: 15)
                     

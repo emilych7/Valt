@@ -16,7 +16,7 @@ struct ProfileTabView: View {
         .background(Color("AppBackgroundColor"))
         .overlay(
             Rectangle()
-                .fill(Color("TextColor").opacity(0.1))
+                .fill(Color("TextColor").opacity(0.3))
                 .frame(height: 1),
             alignment: .bottom
         )

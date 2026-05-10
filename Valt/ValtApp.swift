@@ -48,7 +48,7 @@ struct ValtApp: App {
 
     var body: some Scene {
         WindowGroup {
-            NavigationView {
+            NavigationStack {
                 ContentView()
             }
         }

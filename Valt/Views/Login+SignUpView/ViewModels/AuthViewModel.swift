@@ -18,26 +18,20 @@ class AuthViewModel: ObservableObject {
             self.currentUser = user
             
             if let user = user {
-                // Check if they are a Google user
                 let isGoogleUser = user.providerData.contains { $0.providerID == "google.com" }
                 
-                // If they are Google OR already verified their email
                 if isGoogleUser || user.isEmailVerified {
                     self.checkFirestoreProfile(uid: user.uid)
                 } else {
-                    // Email user who hasn't verified yet
+                    print("Init: User needs email verification. Staying in Signup flow.")
                     self.isAuthenticated = false
                     self.navigationMode = .signup
-                    print("Init: User needs email verification")
                 }
-                print("User is authenticated, navigating to profile...")
-                self.navigationMode = .profile
             } else {
                 print("User is not authenticated.")
                 self.isAuthenticated = false
                 self.isProfileComplete = false
                 self.navigationMode = .onboarding
-                // NotificationCenter.default.post(name: NSNotification.Name("UserDidLogout"), object: nil)
             }
         }
     }
@@ -46,7 +40,6 @@ class AuthViewModel: ObservableObject {
         print("Checking Firestore Profile...")
         db.collection("users").document(uid).getDocument { [weak self] snapshot, _ in
             DispatchQueue.main.async {
-                
                 guard let self = self else { return }
                 
                 if let snapshot = snapshot, snapshot.exists {
@@ -57,7 +50,6 @@ class AuthViewModel: ObservableObject {
                 } else {
                     self.isProfileComplete = false
                     self.isAuthenticated = false
-                    
                     self.navigationMode = .signup
                     print("Profile is incomplete, staying on onboarding...")
                 }
