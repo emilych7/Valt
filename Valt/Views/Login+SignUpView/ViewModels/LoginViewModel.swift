@@ -97,3 +97,4 @@ class LoginViewModel: ObservableObject {
 }
 
 enum AuthError: Error { case userNotFound, invalidData }
+

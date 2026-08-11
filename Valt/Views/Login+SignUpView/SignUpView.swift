@@ -129,7 +129,9 @@ struct SignUpView: View {
                 isDisabled: !viewModel.canSubmitStep1
             ) {
                 focusedField = nil
-                Task { await viewModel.validateAndStartSignup() }
+                Task { await
+                    viewModel.validateAndStartSignup()
+                }
             }
             
             Socials(title: "or sign up using", isGoogleLoading: viewModel.isGoogleLoading) {
@@ -152,4 +154,10 @@ struct SignUpView: View {
         case .chooseUsername: return "Choose a Username"
         }
     }
+}
+
+#Preview {
+    SignUpView(userViewModel: UserViewModel())
+        .environmentObject(SettingsViewModel())
+        .environmentObject(TabManager())
 }

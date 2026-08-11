@@ -66,6 +66,7 @@ struct UpdateAppearanceView: View {
         .onTapGesture {
             withAnimation {
                 settingsViewModel.selectedAppearance = mode
+                settingsViewModel.updateAppearanceMode(for: settingsViewModel.selectedAppearance, currentPreference: mode)
             }
         }
     }

@@ -65,6 +65,20 @@ class SettingsViewModel: ObservableObject {
         }
     }
     
+    // Saves preference to Firebase
+    func updateAppearanceMode(for appearancePreference: String, currentPreference: String) {
+        let appearancePreference = selectedAppearance
+         
+        let db = Firestore.firestore()
+        guard let uid = Auth.auth().currentUser?.uid else { return }
+        
+        
+        let batch = db.batch()
+        let userProfileRef = db.collection("users").document(uid)
+        batch.updateData(["users": appearancePreference], forDocument: userProfileRef)
+        print("Updated preference to \(appearancePreference) in Firebase")
+    }
+    
     func checkEmailAvailability(for email: String, currentEmail: String) {
         let cleanEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         

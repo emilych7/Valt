@@ -32,3 +32,7 @@ struct MainHeader: View {
         .background(Color("AppBackgroundColor"))
     }
 }
+
+#Preview {
+    MainHeader(title: "Testing Title", image: "deleteIcon", action: { print("Action") })
+}

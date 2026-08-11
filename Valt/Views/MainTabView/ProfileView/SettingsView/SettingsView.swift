@@ -110,22 +110,6 @@ struct SettingsView: View {
         .background(Color("AppBackgroundColor"))
     }
     
-//    private var archiveSection: some View {
-//        VStack(spacing: 0) {
-//            SectionHeader(title: "Archived and Removed Content")
-//            NavigationLink(destination: ArchiveView(selectedDraft: $selectedDraft, showNote: $showNote).navigationBarBackButtonHidden(true)) { SettingsRow(title: "Archived", icon: "archiveIcon") }
-//                .padding(.horizontal, 15)
-//                .padding(.bottom, 5)
-//
-////            NavigationLink(destination: Text("Recently Deleted")) { SettingsRow(title: "Recently Deleted", icon: "deleteIcon") }
-////                .padding(.horizontal, 15)
-////                .padding(.bottom, 5)
-//            
-//            
-//        }
-//        .background(Color("AppBackgroundColor"))
-//    }
-    
     private var dataSection: some View {
         VStack(spacing: 0) {
             SectionHeader(title: "How Valt Uses Your Data")

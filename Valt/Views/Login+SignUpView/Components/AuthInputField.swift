@@ -38,10 +38,11 @@ struct AuthInputField<T: Hashable>: View {
                     .foregroundColor(Color("TextFieldBackground"))
                     .overlay(
                         RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color(borderColor).opacity(0.2), lineWidth: 1)
+                            .stroke(Color("BorderColor"), lineWidth: 1)
                     )
             )
         }
+        
         .padding(.vertical, 5)
     }
 }
@@ -71,6 +72,5 @@ struct AuthActionButton: View {
                 }
             }
         }
-        .padding(.top, 15)
     }
 }

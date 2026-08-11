@@ -146,3 +146,12 @@ struct ProfileView: View {
         }
     }
 }
+
+#Preview {
+    @Previewable @State var tabSelection: ContentTabViewSelection = .profile
+
+    ProfileView(mainTabSelection: $tabSelection)
+        .environmentObject(UserViewModel())
+        .environmentObject(SettingsViewModel())
+        .environmentObject(TabManager())
+}
