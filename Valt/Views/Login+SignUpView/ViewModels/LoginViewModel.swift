@@ -1,12 +1,13 @@
 import Foundation
 import FirebaseAuth
-import FirebaseFirestore
 import Combine
 import GoogleSignIn
 import GoogleSignInSwift
+import AuthenticationServices
+import CryptoKit
 
 @MainActor
-class LoginViewModel: ObservableObject {
+class LoginViewModel: NSObject, ObservableObject {
     enum Field { case identifier, password }
     
     @Published var identifier = ""
@@ -16,8 +17,14 @@ class LoginViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var usernameBorderColor = "TextColor"
     @Published var passwordBorderColor = "TextColor"
+    @Published var currentNonce: String?
     
-    private let db = Firestore.firestore()
+    private let userRepository: UserRepositoryProtocol
+
+    init(userRepository: UserRepositoryProtocol = UserRepository()) {
+        self.userRepository = userRepository
+        super.init()
+    }
 
     func performSignIn() async {
         print("Starting sign in")
@@ -32,36 +39,42 @@ class LoginViewModel: ObservableObject {
             var emailToSignIn = identifier
             
             if !identifier.contains("@") {
-                emailToSignIn = try await lookupEmailByUsername(identifier.lowercased())
+                guard let email = try await userRepository.fetchEmailForUsername(identifier.lowercased()) else {
+                    throw AuthError.userNotFound
+                }
+                emailToSignIn = email
             }
             
             let result = try await Auth.auth().signIn(withEmail: emailToSignIn, password: password)
             
             // Check verification status
             if !result.user.isEmailVerified {
-                print("Login success, but email not verified.")
-            } else {
-                print("Signed in and verified!")
+                print("Login success, but email not verified. Signing out completely.")
+                self.errorMessage = "Please verify your email address before logging in."
+                try? Auth.auth().signOut()
+                return
             }
             
+            // Verify profile exists in Firestore
+            let profileExists = try await userRepository.doesProfileExist(uid: result.user.uid)
+            if !profileExists {
+                print("Login: User exists in Auth but not in Firestore. Signing out completely.")
+                self.errorMessage = "No Valt profile found. Please create an account."
+                try? Auth.auth().signOut()
+                return
+            }
+            
+            print("Signed in and verified!")
         } catch {
             self.errorMessage = error.localizedDescription
             print("Error signing in: \(error.localizedDescription)")
         }
     }
     
-    private func lookupEmailByUsername(_ username: String) async throws -> String {
-        let usernameDoc = try await db.collection("usernames").document(username).getDocument()
-        guard let userID = usernameDoc.data()?["userID"] as? String else { throw AuthError.userNotFound }
-        
-        let userDoc = try await db.collection("users").document(userID).getDocument()
-        guard let email = userDoc.data()?["email"] as? String else { throw AuthError.invalidData }
-        return email
-    }
-    
     func signInWithGoogle(presenting viewController: UIViewController) async {
         print("Starting Google Sign In")
         isGoogleLoading = true
+        errorMessage = nil
         defer { isGoogleLoading = false }
 
         do {
@@ -79,11 +92,14 @@ class LoginViewModel: ObservableObject {
             
             let authResult = try await Auth.auth().signIn(with: credential)
             
-            let userDoc = try await db.collection("users").document(authResult.user.uid).getDocument()
+            let profileExists = try await userRepository.doesProfileExist(uid: authResult.user.uid)
             
-            if !userDoc.exists {
-                // This person signed in but has no username, route them to the Signup flow
-                print("Login success, but profile missing. Routing to setup...")
+            if !profileExists {
+                print("Login: No profile found for Google user. Signing out completely.")
+                self.errorMessage = "No Valt account found for this Google account. Please sign up first."
+                try? Auth.auth().signOut()
+                GIDSignIn.sharedInstance.signOut()
+                return
             }
             
         } catch {
@@ -92,6 +108,103 @@ class LoginViewModel: ObservableObject {
                 errorMessage = error.localizedDescription
             }
             print("Error: \(error.localizedDescription)")
+        }
+    }
+    
+    func performAppleSignIn() {
+        let request = ASAuthorizationAppleIDProvider().createRequest()
+        startAppleSignIn(request: request)
+        let controller = ASAuthorizationController(authorizationRequests: [request])
+        controller.delegate = self
+        controller.presentationContextProvider = self
+        controller.performRequests()
+    }
+    
+    private func startAppleSignIn(request: ASAuthorizationAppleIDRequest) {
+        let nonce = randomNonceString()
+        self.currentNonce = nonce
+        request.requestedScopes = [.fullName, .email]
+        request.nonce = sha256(nonce)
+    }
+    
+    private func handleAppleSignInCompletion(result: Result<ASAuthorization, Error>) async {
+        switch result {
+        case .success(let authResults):
+            guard let appleIDCredential = authResults.credential as? ASAuthorizationAppleIDCredential,
+                  let appleIDToken = appleIDCredential.identityToken,
+                  let idTokenString = String(data: appleIDToken, encoding: .utf8),
+                  let nonce = self.currentNonce else { return }
+            
+            let credential = OAuthProvider.credential(
+                providerID: .apple,
+                idToken: idTokenString,
+                rawNonce: nonce,
+                accessToken: nil
+            )
+            
+            do {
+                let authResult = try await Auth.auth().signIn(with: credential)
+                let profileExists = try await userRepository.doesProfileExist(uid: authResult.user.uid)
+                
+                if !profileExists {
+                    self.errorMessage = "No Valt account found for this Apple ID. Please sign up first."
+                    try? Auth.auth().signOut()
+                    return
+                }
+            } catch {
+                self.errorMessage = error.localizedDescription
+                print("Firebase Apple Sign-In Error: \(error.localizedDescription)")
+            }
+            
+        case .failure(let error):
+            if (error as NSError).code != ASAuthorizationError.canceled.rawValue {
+                self.errorMessage = error.localizedDescription
+            }
+        }
+    }
+    
+    private func randomNonceString(length: Int = 32) -> String {
+        let charset: [Character] = Array("0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._")
+        var result = ""
+        var remainingLength = length
+        while remainingLength > 0 {
+            let randoms: [UInt8] = (0..<16).map { _ in UInt8.random(in: 0...255) }
+            randoms.forEach { random in
+                if remainingLength == 0 { return }
+                if random < charset.count {
+                    result.append(charset[Int(random)])
+                    remainingLength -= 1
+                }
+            }
+        }
+        return result
+    }
+    
+    private func sha256(_ input: String) -> String {
+        let inputData = Data(input.utf8)
+        let hashedData = SHA256.hash(data: inputData)
+        return hashedData.compactMap { String(format: "%02x", $0) }.joined()
+    }
+}
+
+extension LoginViewModel: ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
+    func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = windowScene.windows.first(where: { $0.isKeyWindow }) else {
+            return ASPresentationAnchor()
+        }
+        return window
+    }
+    
+    func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
+        Task {
+            await handleAppleSignInCompletion(result: .success(authorization))
+        }
+    }
+    
+    func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
+        Task {
+            await handleAppleSignInCompletion(result: .failure(error))
         }
     }
 }

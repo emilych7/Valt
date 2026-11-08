@@ -1,14 +1,9 @@
 import Foundation
 import FirebaseAuth
-import FirebaseFirestore
-import FirebaseCore
-import FirebaseStorage
 import UIKit
 
 @MainActor
 final class UserViewModel: ObservableObject {
-    @Published var navigationMode: AppRoute = .onboarding
-    
     @Published var cardLoadingState: ContentLoadingState = .loading
     @Published var userLoadingState: ContentLoadingState = .complete
     @Published var profileLoadingState: ContentLoadingState = .loading
@@ -31,7 +26,9 @@ final class UserViewModel: ObservableObject {
     @Published var shakeAttempts: CGFloat = 0
     
     private let repository: DraftRepositoryProtocol
+    private let userRepository: UserRepositoryProtocol
     private var authHandler: AuthStateDidChangeListenerHandle?
+    private var signOutObserver: NSObjectProtocol?
     private var isFetching = false
     
     private var storedPin: String? = nil
@@ -44,17 +41,42 @@ final class UserViewModel: ObservableObject {
         drafts.filter { $0.isPublished }.count
     }
 
-    init(repository: DraftRepositoryProtocol = DraftRepository()) {
+    init(
+        repository: DraftRepositoryProtocol = DraftRepository(),
+        userRepository: UserRepositoryProtocol = UserRepository()
+    ) {
         self.repository = repository
+        self.userRepository = userRepository
+        
+        signOutObserver = NotificationCenter.default.addObserver(
+            forName: .userDidSignOut,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.clearData()
+            }
+        }
         
         authHandler = Auth.auth().addStateDidChangeListener { [weak self] _, user in
-            guard let self = self, user != nil else {
-                self?.clearData() // Clear data if user is nil
-                return
-            }
-            
-            if !self.isFetching {
-                Task { await self.fetchAllData() }
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                guard let user = user else {
+                    self.clearData()
+                    return
+                }
+                
+                let isFederated = user.providerData.contains { 
+                    $0.providerID == "google.com" || $0.providerID == "apple.com" 
+                }
+                guard isFederated || user.isEmailVerified else {
+                    self.clearData()
+                    return
+                }
+                
+                if !self.isFetching {
+                    await self.fetchAllData()
+                }
             }
         }
     }
@@ -62,6 +84,9 @@ final class UserViewModel: ObservableObject {
     deinit {
         if let handler = authHandler {
             Auth.auth().removeStateDidChangeListener(handler)
+        }
+        if let observer = signOutObserver {
+            NotificationCenter.default.removeObserver(observer)
         }
     }
 
@@ -73,7 +98,7 @@ final class UserViewModel: ObservableObject {
         
         guard Auth.auth().currentUser?.uid != nil else {
             isFetching = false
-            userLoadingState = .error("No user found.")
+            clearData()
             return
         }
 
@@ -92,7 +117,6 @@ final class UserViewModel: ObservableObject {
         }
         userLoadingState = .complete
         isFetching = false
-        self.navigationMode = .onboarding
     }
 
     var currentUserEmail: String {
@@ -106,23 +130,20 @@ final class UserViewModel: ObservableObject {
     func fetchAuthenticatedUsername() async {
         guard let uid = Auth.auth().currentUser?.uid else { return }
         
-        let userRef = Firestore.firestore().collection("users").document(uid)
-        
         do {
-            let snapshot = try await userRef.getDocument()
-            if let data = snapshot.data() {
-                if let uname = data["username"] as? String {
-                    self.username = uname
-                }
-                
-                // Grab the PIN too
-                if let pin = data["hiddenPin"] as? String {
-                    self.storedPin = pin
-                    self.hasPinSet = true
-                }
+            let (uname, pin) = try await userRepository.fetchUserProfile(uid: uid)
+            if let uname = uname {
+                self.username = uname
+            }
+            if let pin = pin {
+                self.storedPin = pin
+                self.hasPinSet = true
             }
         } catch {
             print("Error fetching user profile: \(error.localizedDescription)")
+            if error.isUnauthenticatedError {
+                NotificationCenter.default.post(name: .userSessionInvalidated, object: nil)
+            }
         }
     }
  
@@ -138,7 +159,9 @@ final class UserViewModel: ObservableObject {
             print("Error loading drafts: \(error.localizedDescription)")
             self.cardLoadingState = .error(error.localizedDescription)
             self.drafts = []
-            // self.cardLoadingState = .complete
+            if error.isUnauthenticatedError {
+                NotificationCenter.default.post(name: .userSessionInvalidated, object: nil)
+            }
         }
     }
 
@@ -185,22 +208,11 @@ final class UserViewModel: ObservableObject {
         self.profileLoadingState = .loading
         guard let uid = Auth.auth().currentUser?.uid else { return }
 
-        let thumbRef = Storage.storage().reference().child("profilePictures/\(uid)_thumb.jpg")
         do {
-            if let img = try await downloadImage(ref: thumbRef, maxBytes: 512 * 1024) {
+            let (img, url) = try await userRepository.fetchProfilePicture(uid: uid)
+            if let img = img {
                 self.profileImage = img
-                self.profileLoadingState = .complete
-                return
-            }
-        } catch { }
-
-        let fullRef = Storage.storage().reference().child("profilePictures/\(uid).jpg")
-        do {
-            if let img = try await downloadImage(ref: fullRef, maxBytes: 2 * 1024 * 1024) {
-                self.profileImage = img
-                if let url = try? await fullRef.downloadURL() {
-                    self.profilePictureURL = url
-                }
+                self.profilePictureURL = url
                 self.profileLoadingState = .complete
             } else {
                 self.profileLoadingState = .empty
@@ -211,20 +223,12 @@ final class UserViewModel: ObservableObject {
         }
     }
 
-    private func downloadImage(ref: StorageReference, maxBytes: Int64) async throws -> UIImage? {
-        let url = try await ref.downloadURL()
-        let (data, _) = try await URLSession.shared.data(from: url)
-        return UIImage(data: data)
-    }
-
     func uploadProfilePicture(_ image: UIImage) async {
         self.profileLoadingState = .loading
         guard let uid = Auth.auth().currentUser?.uid else { return }
-        let fullRef = Storage.storage().reference().child("profilePictures/\(uid).jpg")
-        guard let imageData = image.jpegData(compressionQuality: 0.8) else { return }
 
         do {
-            _ = try await fullRef.putDataAsync(imageData, metadata: nil)
+            try await userRepository.uploadProfilePicture(uid: uid, image: image)
             self.profileImage = image
             print("Profile picture uploaded and UI updated.")
             self.profileLoadingState = .complete
@@ -235,9 +239,8 @@ final class UserViewModel: ObservableObject {
     }
     
     func reloadUser() async {
-        guard let user = Auth.auth().currentUser else { return }
         do {
-            try await user.reload()
+            try await userRepository.reloadUser()
             objectWillChange.send()
             await fetchAuthenticatedUsername()
         } catch {
@@ -246,17 +249,14 @@ final class UserViewModel: ObservableObject {
     }
     
     func createPin(newPin: String) {
-        let db = Firestore.firestore()
         guard let uid = Auth.auth().currentUser?.uid else {
             print("Error: No authenticated user found.")
             return
         }
                 
-        let docRef = db.collection("users").document("\(uid)")
-
         Task {
             do {
-                try await docRef.setData(["hiddenPin": newPin], merge: true)
+                try await userRepository.savePin(uid: uid, pin: newPin)
                 print("PIN successfully saved to Firestore. Setting hasPinSet = true")
                 hasPinSet = true
                 storedPin = newPin
@@ -301,13 +301,20 @@ final class UserViewModel: ObservableObject {
     func clearData() {
         self.drafts = []
         self.username = "@username"
+        self.followerCount = 0
         self.profileImage = nil
         self.profilePictureURL = nil
         self.hasPinSet = false
         self.storedPin = nil
         self.isUnlocked = false
         self.enteredPin = ""
+        self.newPin = ""
+        self.confirmNewPin = ""
         self.pinColor = "TextColor"
-        self.isFetching = false // Reset the lock
+        self.shakeAttempts = 0
+        self.isFetching = false
+        self.cardLoadingState = .complete
+        self.userLoadingState = .complete
+        self.profileLoadingState = .empty
     }
 }

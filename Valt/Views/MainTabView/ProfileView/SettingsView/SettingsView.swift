@@ -1,5 +1,4 @@
 import SwiftUI
-import FirebaseAuth
 
 struct SettingsView: View {
     @StateObject private var settingsViewModel = SettingsViewModel()

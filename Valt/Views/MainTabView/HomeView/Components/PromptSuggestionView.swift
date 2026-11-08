@@ -3,6 +3,8 @@ import SwiftUI
 struct PromptSuggestionView: View {
     @ObservedObject var viewModel: HomeViewModel
     @EnvironmentObject var userViewModel: UserViewModel
+    @EnvironmentObject var bannerManager: BannerManager
+    @EnvironmentObject var tabManager: TabManager
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {

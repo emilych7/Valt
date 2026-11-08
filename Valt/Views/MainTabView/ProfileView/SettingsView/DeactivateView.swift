@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DeactivateView: View {
+    @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var viewModel: SettingsViewModel
     @Environment(\.dismiss) var dismiss
     
@@ -79,7 +80,8 @@ struct DeactivateView: View {
         Task {
             viewModel.isSaving = true
             do {
-                try await viewModel.deleteAccount()
+                try await viewModel.deleteAccount(password: pass)
+                authViewModel.signOut()
                 dismiss()
             } catch {
                 print("Deletion failed: \(error.localizedDescription)")

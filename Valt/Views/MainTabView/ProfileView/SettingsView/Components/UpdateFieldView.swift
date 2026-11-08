@@ -1,5 +1,4 @@
 import SwiftUI
-import FirebaseAuth
 
 struct UpdateFieldView: View {
     @EnvironmentObject private var bannerManager: BannerManager
@@ -127,7 +126,7 @@ struct UpdateFieldView: View {
             case .invalid:
                 Image("Caution").resizable()
             case .error:
-                Image("Exit").resizable()
+                Image("exitIcon").resizable()
             case .loading:
                 ProgressView()
                     .controlSize(.small)
@@ -144,7 +143,7 @@ struct UpdateFieldView: View {
         if fieldType == .username {
             settingsViewModel.checkUsernameAvailability(for: value, currentUsername: userViewModel.username)
         } else if fieldType == .email {
-            let currentEmail = Auth.auth().currentUser?.email ?? ""
+            let currentEmail = userViewModel.currentUserEmail
             settingsViewModel.checkEmailAvailability(for: value, currentEmail: currentEmail)
         }
     }
@@ -152,7 +151,7 @@ struct UpdateFieldView: View {
     private func loadInitialValue() {
         switch fieldType {
         case .username: newValue = userViewModel.username
-        case .email:    newValue = Auth.auth().currentUser?.email ?? ""
+        case .email:    newValue = userViewModel.currentUserEmail
         }
     }
 

@@ -34,6 +34,8 @@ struct Draft: Identifiable, Codable, Equatable {
             self.isPublished = value as? Bool ?? self.isPublished
         case "prompt":
             self.prompt = value as? String
+        case "isPrompted":
+            self.isPrompted = value as? Bool ?? self.isPrompted
         default:
             break
         }

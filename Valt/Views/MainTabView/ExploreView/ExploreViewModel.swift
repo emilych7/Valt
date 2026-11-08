@@ -1,6 +1,4 @@
 import Foundation
-import FirebaseAuth
-import FirebaseStorage
 
 @MainActor
 final class ExploreViewModel: ObservableObject {
@@ -49,21 +47,21 @@ final class ExploreViewModel: ObservableObject {
             do {
                 let users = try await repository.searchUsers(prefix: query, limit: 15)
                 
-                // Grabs Storage URLs in parallel
-                let suggestions = await withTaskGroup(of: OtherUser.self) { group in
-                    for var user in users {
+                // Grabs Storage URLs in parallel while preserving order
+                let suggestions = await withTaskGroup(of: (Int, OtherUser).self) { group in
+                    for (index, var user) in users.enumerated() {
                         group.addTask {
                             let url = await self.repository.getProfileImageURL(for: user.id)
                             user.profileImageURL = url
-                            return user
+                            return (index, user)
                         }
                     }
                     
-                    var results: [OtherUser] = []
-                    for await updatedUser in group {
-                        results.append(updatedUser)
+                    var indexedResults: [(Int, OtherUser)] = []
+                    for await item in group {
+                        indexedResults.append(item)
                     }
-                    return results
+                    return indexedResults.sorted { $0.0 < $1.0 }.map { $0.1 }
                 }
                 
                 if !Task.isCancelled {
@@ -88,15 +86,7 @@ final class ExploreViewModel: ObservableObject {
         }
     }
 
-    private func fetchProfileURL(for userID: String) async -> String {
-        let storageRef = Storage.storage().reference().child("profilePictures/\(userID).jpg")
-        do {
-            let url = try await storageRef.downloadURL()
-            return url.absoluteString
-        } catch {
-            return ""
-        }
-    }
+
     
     private func loadPublishedDrafts(for username: String) async {
         do {

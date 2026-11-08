@@ -86,7 +86,7 @@ struct FullNoteView: View {
                 Task {
                     await viewModel.deleteDraft()
                     dismiss()
-                    bannerManager.show("Draft deleted", backgroundColor: Color("ValtRed"), icon: "trash")
+                    bannerManager.show("Draft deleted", backgroundColor: Color("ValtRed"), icon: "trashIcon")
                 }
             }
             Button("Cancel", role: .cancel) {}
@@ -120,7 +120,7 @@ struct FullNoteView: View {
                     bannerManager.show("Draft Is Hidden.", backgroundColor: Color("RequestButtonColor"), icon: "Hide-Dark")
                 
                 case .unhide:
-                    await viewModel.updateStatus(field: "isHidden", value: true)
+                    await viewModel.updateStatus(field: "isHidden", value: false)
                     isTextFieldFocused = false
                     dismiss()
                     bannerManager.show("Draft Is Unhidden.", backgroundColor: Color("RequestButtonColor"), icon: "Hide-Dark")

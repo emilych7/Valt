@@ -52,7 +52,7 @@ struct LoginView: View {
                         Socials(title: "or login using", isGoogleLoading: viewModel.isGoogleLoading) {
                             handleGoogleSignIn()
                         } onAppleTap: {
-                            print("Apple Login button tapped")
+                            viewModel.performAppleSignIn()
                         }
                         
                         signupRedirectSection

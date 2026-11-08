@@ -6,12 +6,13 @@ struct ContentView: View {
     @StateObject var onBoardingViewModel = OnBoardingViewModel()
     @StateObject private var bannerManager = BannerManager()
     @StateObject private var userViewModel = UserViewModel()
+    @StateObject private var tabManager = TabManager()
     @State private var selectedDraft: Draft? = nil
 
     var body: some View {
         Group {
             ZStack {
-                if userViewModel.userLoadingState == .loading {
+                if userViewModel.userLoadingState == .loading && authViewModel.isAuthenticated {
                     loadingOverlay
                 }
                 authFlowView
@@ -20,6 +21,10 @@ struct ContentView: View {
         .preferredColorScheme(settingsViewModel.colorScheme)
         .animation(.easeInOut, value: authViewModel.isAuthenticated)
         .background(Color("AppBackgroundColor"))
+        .environmentObject(tabManager)
+        .onReceive(NotificationCenter.default.publisher(for: .userDidSignOut)) { _ in
+            selectedDraft = nil
+        }
     }
     
     private var loadingOverlay: some View {
@@ -72,6 +77,7 @@ struct ContentView: View {
                         .environmentObject(settingsViewModel)
                         .environmentObject(bannerManager)
                         .environmentObject(userViewModel)
+                        .environmentObject(tabManager)
             }
         }
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: authViewModel.navigationMode)

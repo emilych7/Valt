@@ -1,5 +1,4 @@
 import Foundation
-import FirebaseFirestore
 import FirebaseAuth
 import GoogleSignIn
 import AuthenticationServices
@@ -27,7 +26,7 @@ class SignUpViewModel: NSObject, ObservableObject {
     @Published var isSignupComplete = false
     @Published var currentNonce: String?
     
-    private let db = Firestore.firestore()
+    private let userRepository: UserRepositoryProtocol
     private let userViewModel: UserViewModel
     private var verificationTimer: Timer?
     
@@ -38,8 +37,9 @@ class SignUpViewModel: NSObject, ObservableObject {
         AuthValidator.isValidPassword(password)
     }
     
-    init(userViewModel: UserViewModel) {
+    init(userViewModel: UserViewModel, userRepository: UserRepositoryProtocol = UserRepository()) {
         self.userViewModel = userViewModel
+        self.userRepository = userRepository
         super.init()
     }
     
@@ -124,37 +124,10 @@ class SignUpViewModel: NSObject, ObservableObject {
         errorMessage = nil
         
         do {
-            let usernameRef = db.collection("usernames").document(uname)
-            let snapshot = try await usernameRef.getDocument()
-            
-            if snapshot.exists {
-                self.errorMessage = "This username is already taken."
-                isLoading = false
-                return
-            }
-            
             guard let currentUser = Auth.auth().currentUser else { return }
-            
-            let batch = db.batch()
-            let userRef = db.collection("users").document(currentUser.uid)
-            let emailRef = db.collection("emails").document(Auth.auth().currentUser?.email ?? self.email)
-            batch.setData([
-                "userID": currentUser.uid,
-            ], forDocument: emailRef)
-            
-            let userData: [String: Any] = [
-                "userID": currentUser.uid,
-                "email": Auth.auth().currentUser?.email ?? self.email,
-                "username": uname,
-                "createdAt": FieldValue.serverTimestamp()
-            ]
-            batch.setData(userData, forDocument: userRef)
-            batch.setData(["userID": currentUser.uid], forDocument: usernameRef)
-            
-            try await batch.commit()
-            
+            let emailToUse = currentUser.email ?? self.email
+            try await userRepository.createProfile(uid: currentUser.uid, username: uname, email: emailToUse)
             self.isSignupComplete = true
-            
         } catch {
             self.errorMessage = error.localizedDescription
         }
@@ -182,9 +155,9 @@ class SignUpViewModel: NSObject, ObservableObject {
             
             try await Task.sleep(nanoseconds: 600_000_000)
             
-            let userDoc = try await db.collection("users").document(authResult.user.uid).getDocument()
+            let profileExists = try await userRepository.doesProfileExist(uid: authResult.user.uid)
             
-            if userDoc.exists {
+            if profileExists {
                 print("Google Login Success: User exists in Firestore.")
                 self.isSignupComplete = true
             } else {
@@ -227,10 +200,9 @@ class SignUpViewModel: NSObject, ObservableObject {
             
             do {
                 let authResult = try await Auth.auth().signIn(with: credential)
+                let profileExists = try await userRepository.doesProfileExist(uid: authResult.user.uid)
                 
-                let userDoc = try await db.collection("users").document(authResult.user.uid).getDocument()
-                
-                if userDoc.exists {
+                if profileExists {
                     self.isSignupComplete = true
                 } else {
                     self.email = authResult.user.email ?? ""

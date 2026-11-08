@@ -1,8 +1,4 @@
 import Foundation
-import Firebase
-import FirebaseAuth
-import FirebaseFirestore
-import FirebaseStorage
 import SwiftUI
 
 final class OnBoardingViewModel: ObservableObject {

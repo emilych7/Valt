@@ -3,7 +3,7 @@ import UIKit
 
 struct MainTabView: View {
     @EnvironmentObject private var authViewModel: AuthViewModel
-    @StateObject private var tabManager = TabManager()
+    @EnvironmentObject private var tabManager: TabManager
     @StateObject private var homeViewModel: HomeViewModel
     @EnvironmentObject private var bannerManager: BannerManager
     @EnvironmentObject private var userViewModel: UserViewModel
@@ -46,6 +46,8 @@ struct MainTabView: View {
             }
         }
         .environmentObject(tabManager)
+        .environmentObject(bannerManager)
+        .environmentObject(userViewModel)
         .overlay(alignment: .top) {
             if bannerManager.isVisible {
                 notificationBanner

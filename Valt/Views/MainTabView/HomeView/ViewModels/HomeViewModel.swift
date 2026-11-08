@@ -1,5 +1,4 @@
 import Foundation
-import FirebaseAuth
 import SwiftUI
 
 @MainActor
@@ -18,11 +17,20 @@ final class HomeViewModel: ObservableObject {
     
     private let userViewModel: UserViewModel
     private let repository: DraftRepositoryProtocol
+    private let userRepository: UserRepositoryProtocol
+    private let openAIService: OpenAIServiceProtocol
     private var searchTask: Task<Void, Never>?
 
-    init(userViewModel: UserViewModel, repository: DraftRepositoryProtocol = DraftRepository()) {
+    init(
+        userViewModel: UserViewModel,
+        repository: DraftRepositoryProtocol = DraftRepository(),
+        userRepository: UserRepositoryProtocol = UserRepository(),
+        openAIService: OpenAIServiceProtocol = OpenAIService()
+    ) {
         self.userViewModel = userViewModel
         self.repository = repository
+        self.userRepository = userRepository
+        self.openAIService = openAIService
     }
 
     func generatePromptFromOwnDrafts(with drafts: [Draft]) {
@@ -83,7 +91,7 @@ final class HomeViewModel: ObservableObject {
         Task { [weak self] in
             guard let self = self else { return }
             do {
-                let jsonString = try await self.callChatGPTAPI(history: [initialMessage])
+                let jsonString = try await self.openAIService.callChatGPTAPI(history: [initialMessage])
                 
                 guard let jsonData = jsonString.data(using: .utf8) else {
                     throw NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to convert string to data"])
@@ -117,44 +125,7 @@ final class HomeViewModel: ObservableObject {
     
     // OPENAI
     func callChatGPTAPI(history: [PromptMessage]) async throws -> String {
-        let urlString = "https://api.openai.com/v1/chat/completions"
-        guard let url = URL(string: urlString) else {
-            throw NSError(domain: "ChatAppError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue("Bearer \(Constants.OPENAI_API_KEY)", forHTTPHeaderField: "Authorization")
-
-        let openAIMessages: [[String: String]] = history.map { message in
-            ["role": (message.sender == .user) ? "user" : "assistant", "content": message.content]
-        }
-
-        let requestBody: [String: Any] = [
-            "model": "gpt-4o",
-            "messages": openAIMessages,
-            "max_tokens": 400,
-            "response_format": [ "type": "json_object" ]
-        ]
-        request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
-
-        let (data, response) = try await URLSession.shared.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-            throw NSError(domain: "ChatAppError", code: 2, userInfo: [NSLocalizedDescriptionKey: "API Error"])
-        }
-
-        struct OpenAIResponse: Decodable {
-            struct Choice: Decodable {
-                struct Message: Decodable { let content: String }
-                let message: Message
-            }
-            let choices: [Choice]
-        }
-
-        let openAIResponse = try JSONDecoder().decode(OpenAIResponse.self, from: data)
-        return openAIResponse.choices.first?.message.content.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        try await openAIService.callChatGPTAPI(history: history)
     }
 
     func saveDraftToFirebase() {
@@ -166,7 +137,7 @@ final class HomeViewModel: ObservableObject {
     }
 
     private func saveDraftLogic(promptValue: String?, isPrompted: Bool) {
-        guard let userID = Auth.auth().currentUser?.uid,
+        guard let userID = userRepository.currentUID,
               !draftText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         
         let newDraft = Draft(

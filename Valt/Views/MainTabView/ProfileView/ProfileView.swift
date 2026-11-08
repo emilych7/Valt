@@ -14,6 +14,7 @@ struct ProfileView: View {
     @State private var showNote: Bool = false
     @State private var selectedTab: ProfileTab = .all
     @State private var showSettings: Bool = false
+    @State private var showLargeProfilePicture: Bool = false
     
     @State private var selectedItem: PhotosPickerItem? = nil
     
@@ -40,7 +41,16 @@ struct ProfileView: View {
                             selection: $selectedItem,
                             matching: .images
                         )
-                        
+                        .onLongPressGesture(
+                            minimumDuration: 0.5,
+                            perform: {
+                                showLargeProfilePicture = true
+                            },
+                            onPressingChanged: { pressing in
+                                // Triggered immediately on touch down (true)
+                                // and touch up / cancel (false)
+                            }
+                        )
                         UserInfoView()
                         
                         Spacer()
@@ -87,6 +97,9 @@ struct ProfileView: View {
                     }
                 }
                 .background(Color("AppBackgroundColor").ignoresSafeArea())
+            }
+            .fullScreenCover(isPresented: $showLargeProfilePicture) {
+                LargeProfilePictureView(profileImage: localProfileImage)
             }
             .onAppear {
                 tabManager.setTabBarHidden(false)

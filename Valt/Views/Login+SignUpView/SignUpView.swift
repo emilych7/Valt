@@ -78,10 +78,17 @@ struct SignUpView: View {
             authViewModel.navigate(to: .onboarding)
         case .emailVerification:
             viewModel.stopVerificationPolling()
+            authViewModel.signOut()
             viewModel.currentStep = .accountDetails
         case .chooseUsername:
-            viewModel.currentStep = .emailVerification
-            viewModel.startVerificationPolling()
+            if viewModel.password.isEmpty {
+                // User authenticated via Google or Apple SSO
+                authViewModel.signOut()
+                authViewModel.navigate(to: .onboarding)
+            } else {
+                viewModel.currentStep = .emailVerification
+                viewModel.startVerificationPolling()
+            }
         }
     }
     

@@ -3,6 +3,8 @@ import SwiftUI
 struct ExploreView: View {
     @ObservedObject var homeViewModel: HomeViewModel
     @EnvironmentObject private var tabManager: TabManager
+    @EnvironmentObject private var bannerManager: BannerManager
+    @EnvironmentObject private var userViewModel: UserViewModel
     let placeholder: String = "Search for a username"
     @StateObject private var viewModel = ExploreViewModel()
     @FocusState private var isSearchFocused: Bool

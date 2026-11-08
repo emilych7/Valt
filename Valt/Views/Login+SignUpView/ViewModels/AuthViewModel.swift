@@ -1,5 +1,5 @@
 import FirebaseAuth
-import FirebaseFirestore
+import GoogleSignIn
 
 @MainActor
 class AuthViewModel: ObservableObject {
@@ -9,49 +9,75 @@ class AuthViewModel: ObservableObject {
     @Published var navigationMode: AppRoute = .onboarding
     @Published var isLoading = false
     
+    private let userRepository: UserRepositoryProtocol
     private var authHandle: AuthStateDidChangeListenerHandle?
-    private let db = Firestore.firestore()
+    private var sessionObserver: NSObjectProtocol?
 
-    init() {
+    init(userRepository: UserRepositoryProtocol = UserRepository()) {
+        self.userRepository = userRepository
+        
+        sessionObserver = NotificationCenter.default.addObserver(
+            forName: .userSessionInvalidated,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.signOut()
+            }
+        }
+
         authHandle = Auth.auth().addStateDidChangeListener { [weak self] _, user in
-            guard let self = self else { return }
-            self.currentUser = user
-            
-            if let user = user {
-                let isGoogleUser = user.providerData.contains { $0.providerID == "google.com" }
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                self.currentUser = user
                 
-                if isGoogleUser || user.isEmailVerified {
-                    self.checkFirestoreProfile(uid: user.uid)
+                if let user = user {
+                    let isFederatedUser = user.providerData.contains { 
+                        $0.providerID == "google.com" || $0.providerID == "apple.com" 
+                    }
+                    
+                    if isFederatedUser || user.isEmailVerified {
+                        self.checkFirestoreProfile(uid: user.uid)
+                    } else {
+                        print("Init: User needs email verification. Staying in Signup flow.")
+                        self.isAuthenticated = false
+                        self.navigationMode = .signup
+                    }
                 } else {
-                    print("Init: User needs email verification. Staying in Signup flow.")
-                    self.isAuthenticated = false
-                    self.navigationMode = .signup
+                    print("User is not authenticated. Ensuring complete sign out.")
+                    self.signOut()
                 }
-            } else {
-                print("User is not authenticated.")
-                self.isAuthenticated = false
-                self.isProfileComplete = false
-                self.navigationMode = .onboarding
             }
         }
     }
     
     func checkFirestoreProfile(uid: String) {
-        print("Checking Firestore Profile...")
-        db.collection("users").document(uid).getDocument { [weak self] snapshot, _ in
-            DispatchQueue.main.async {
-                guard let self = self else { return }
-                
-                if let snapshot = snapshot, snapshot.exists {
+        print("Checking User Profile...")
+        Task { [weak self] in
+            guard let self = self else { return }
+            do {
+                let exists = try await self.userRepository.doesProfileExist(uid: uid)
+                if exists {
                     self.isProfileComplete = true
                     self.isAuthenticated = true
                     self.navigationMode = .profile
                     print("Profile is complete, signing in...")
                 } else {
-                    self.isProfileComplete = false
-                    self.isAuthenticated = false
-                    self.navigationMode = .signup
-                    print("Profile is incomplete, staying on onboarding...")
+                    print("Profile is incomplete or does not exist.")
+                    if self.navigationMode != .signup {
+                        print("User profile missing outside signup. Signing out completely.")
+                        self.signOut()
+                    } else {
+                        self.isProfileComplete = false
+                        self.isAuthenticated = false
+                        self.navigationMode = .signup
+                    }
+                }
+            } catch {
+                print("Error checking profile: \(error.localizedDescription)")
+                if error.isUnauthenticatedError {
+                    print("User is unauthenticated. Signing out completely.")
+                    self.signOut()
                 }
             }
         }
@@ -64,30 +90,40 @@ class AuthViewModel: ObservableObject {
     }
     
     func navigate(to route: AppRoute) {
-        print("Navigating...")
+        print("Navigating to \(route)...")
         self.navigationMode = route
     }
 
     func signOut() {
-        print("Signing out...")
+        print("Signing out completely...")
         
-        self.isProfileComplete = false
-        self.navigationMode = .onboarding
+        // 1. Sign out of Google Sign-In
+        GIDSignIn.sharedInstance.signOut()
         
+        // 2. Sign out of Firebase Auth
         do {
             try Auth.auth().signOut()
-            DispatchQueue.main.async {
-                self.isAuthenticated = false
-                self.currentUser = nil
-            }
         } catch {
-            print("Error signing out: \(error.localizedDescription)")
+            print("Error signing out of Firebase Auth: \(error.localizedDescription)")
         }
+        
+        // 3. Clear all authentication state
+        self.currentUser = nil
+        self.isAuthenticated = false
+        self.isProfileComplete = false
+        self.navigationMode = .onboarding
+        self.isLoading = false
+        
+        // 4. Broadcast sign-out notification so other models can clean up
+        NotificationCenter.default.post(name: .userDidSignOut, object: nil)
     }
     
     deinit {
         if let handle = authHandle {
             Auth.auth().removeStateDidChangeListener(handle)
+        }
+        if let observer = sessionObserver {
+            NotificationCenter.default.removeObserver(observer)
         }
     }
 }

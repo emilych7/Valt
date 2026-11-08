@@ -14,6 +14,7 @@ struct NewPromptedDraftView: View {
         VStack(spacing: 0) {
             HStack(spacing: 10) {
                 HomeActionButton(icon: "exitDynamicIcon", backgroundColor: "ValtRed") {
+                    viewModel.isPromptSelected = false
                     dismiss()
                     viewModel.draftText = ""
                 }
@@ -60,7 +61,10 @@ struct NewPromptedDraftView: View {
             tabManager.setTabBarHidden(true)
             isTextFieldFocused = true
         }
-        .onDisappear { tabManager.setTabBarHidden(false) }
+        .onDisappear {
+            tabManager.setTabBarHidden(false)
+            viewModel.isPromptSelected = false
+        }
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 HStack {
@@ -97,6 +101,7 @@ struct NewPromptedDraftView: View {
             viewModel.prompt = selectedPrompt
             viewModel.savePromptedDraftToFirebase()
             isTextFieldFocused = false
+            viewModel.isPromptSelected = false
             dismiss()
             bannerManager.show("Saved Draft!")
         } else if !viewModel.draftText.isEmpty {
