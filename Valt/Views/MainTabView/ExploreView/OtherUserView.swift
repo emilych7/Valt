@@ -55,7 +55,7 @@ struct OtherUserView: View {
                 prompt: draft.prompt,
                 isPrompted: draft.isPrompted,
                 category: draft.isPrompted ? "Prompts" : "Reflections",
-                favoritesCount: 1,
+                favoritesCount: 0,
                 isFavorited: draft.isFavorited,
                 layoutSpan: .standard
             )

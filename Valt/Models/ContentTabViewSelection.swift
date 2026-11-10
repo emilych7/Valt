@@ -16,5 +16,35 @@ enum ContentTabViewSelection {
             return Label("Explore", image: "promptsIcon")
         }
     }
+
+    var index: Int {
+        switch self {
+        case .explore: return 0
+        case .home: return 1
+        case .profile: return 2
+        }
+    }
+
+    var previous: ContentTabViewSelection? {
+        switch self {
+        case .explore:
+            return nil
+        case .home:
+            return .explore
+        case .profile:
+            return .home
+        }
+    }
+    
+    var next: ContentTabViewSelection? {
+        switch self {
+        case .explore:
+            return .home
+        case .home:
+            return .profile
+        case .profile:
+            return nil
+        }
+    }
 }
 

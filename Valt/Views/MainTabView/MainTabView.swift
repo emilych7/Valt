@@ -10,6 +10,7 @@ struct MainTabView: View {
     @EnvironmentObject private var userViewModel: UserViewModel
     @Environment(\.colorScheme) var colorScheme
     @State private var selection: ContentTabViewSelection = .profile
+    @State private var dragOffset: CGFloat = 0.0
     
     init(userViewModel: UserViewModel, selectedDraft: Binding<Draft?>) {
         _homeViewModel = StateObject(wrappedValue: HomeViewModel(userViewModel: userViewModel))
@@ -18,16 +19,37 @@ struct MainTabView: View {
 
     var body: some View {
         ZStack {
-            // Content Layer
-            Group {
-                switch selection {
-                    case .home:
-                        NewDraftView(userViewModel: userViewModel)
-                    case .explore:
+            GeometryReader { geometry in
+                let screenWidth = geometry.size.width
+                let screenHeight = geometry.size.height
+                
+                ZStack(alignment: .leading) {
+                    HStack(spacing: 0) {
                         ExploreView(homeViewModel: homeViewModel)
-                    case .profile:
+                            .frame(width: screenWidth, height: screenHeight)
+                        
+                        NewDraftView(userViewModel: userViewModel, isActive: selection == .home)
+                            .frame(width: screenWidth, height: screenHeight)
+                        
                         ProfileView(mainTabSelection: $selection)
+                            .frame(width: screenWidth, height: screenHeight)
+                    }
+                    .frame(width: screenWidth * 3, height: screenHeight, alignment: .leading)
+                    .offset(x: -CGFloat(selection.index) * screenWidth + dragOffset)
                 }
+                .frame(width: screenWidth, height: screenHeight, alignment: .leading)
+                .clipped()
+                .animation(.spring(response: 0.32, dampingFraction: 0.86), value: selection)
+                .onScreenEdgeSwipe(
+                    canSwipeLeft: selection.next != nil,
+                    canSwipeRight: selection.previous != nil,
+                    onDragChanged: { offset in
+                        dragOffset = offset
+                    },
+                    onDragEnded: { offset, velocity in
+                        handleDragEnded(offset: offset, velocity: velocity, screenWidth: screenWidth)
+                    }
+                )
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .ignoresSafeArea(.keyboard, edges: tabManager.isTabBarHidden ? .bottom : [])
@@ -41,10 +63,12 @@ struct MainTabView: View {
                         CustomTabBar(selection: $selection, userViewModel: userViewModel)
                             .background(Color("AppBackgroundColor"))
                     }
-                    // .ignoresSafeArea(.keyboard, edges: .bottom)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
+        }
+        .onChange(of: selection) { _, _ in
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
         }
         .environmentObject(tabManager)
         .environmentObject(bannerManager)
@@ -58,6 +82,34 @@ struct MainTabView: View {
                     .padding(.horizontal, 20)
             }
         }
+    }
+
+    private func handleDragEnded(offset: CGFloat, velocity: CGFloat, screenWidth: CGFloat) {
+        let threshold = max(50, screenWidth * 0.22)
+        
+        if let prev = selection.previous, (offset > threshold || velocity > 260) && velocity >= -180 {
+            triggerHaptic()
+            withAnimation(.spring(response: 0.32, dampingFraction: 0.86)) {
+                selection = prev
+                dragOffset = 0
+            }
+        } else if let next = selection.next, (offset < -threshold || velocity < -260) && velocity <= 180 {
+            triggerHaptic()
+            withAnimation(.spring(response: 0.32, dampingFraction: 0.86)) {
+                selection = next
+                dragOffset = 0
+            }
+        } else {
+            withAnimation(.spring(response: 0.32, dampingFraction: 0.86)) {
+                dragOffset = 0
+            }
+        }
+    }
+    
+    private func triggerHaptic() {
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.prepare()
+        generator.impactOccurred()
     }
 
     private var notificationBanner: some View {
@@ -89,15 +141,6 @@ struct CustomTabBar: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            // Home Tab
-            TabButton(
-                title: "Create",
-                imageName: "createIcon",
-                tab: .home,
-                selection: $selection,
-                size: iconSize
-            )
-            // Explore Tab
             TabButton(
                 title: "Explore",
                 imageName: "promptsIcon",
@@ -105,8 +148,19 @@ struct CustomTabBar: View {
                 selection: $selection,
                 size: iconSize
             )
-            // Profile Tab
-            Button(action: { selection = .profile }) {
+            TabButton(
+                title: "Create",
+                imageName: "createIcon",
+                tab: .home,
+                selection: $selection,
+                size: iconSize
+            )
+            Button(action: {
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                withAnimation(.spring(response: 0.32, dampingFraction: 0.86)) {
+                    selection = .profile
+                }
+            }) {
                 VStack(spacing: 6) {
                     profileIcon
                     Text("Profile")
@@ -116,8 +170,8 @@ struct CustomTabBar: View {
                 .foregroundColor(selection == .profile ? Color("TextColor") : Color("TextColor").opacity(0.4))
             }
         }
-        .padding(.top, 10)   // Top padding for the icons
-        .padding(.bottom, 5) // Bottom padding (distance away from home slider)
+        .padding(.top, 10)
+        .padding(.bottom, 5)
     }
 
     @ViewBuilder
@@ -157,7 +211,12 @@ struct TabButton: View {
     let size: CGFloat
 
     var body: some View {
-        Button(action: { selection = tab }) {
+        Button(action: {
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            withAnimation(.spring(response: 0.32, dampingFraction: 0.86)) {
+                selection = tab
+            }
+        }) {
             VStack(spacing: 6) {
                 Image(imageName)
                     .resizable()

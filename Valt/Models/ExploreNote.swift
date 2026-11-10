@@ -84,7 +84,7 @@ extension ExploreNote {
             prompt: "What is something non-essential you recently stopped doing?",
             isPrompted: true,
             category: "Reflections",
-            favoritesCount: 142,
+            favoritesCount: 0,
             isFavorited: false,
             layoutSpan: .tall
         ),
@@ -99,7 +99,7 @@ extension ExploreNote {
             prompt: nil,
             isPrompted: false,
             category: "Creative",
-            favoritesCount: 56,
+            favoritesCount: 0,
             isFavorited: false,
             layoutSpan: .compact
         ),
@@ -114,8 +114,8 @@ extension ExploreNote {
             prompt: nil,
             isPrompted: false,
             category: "Thoughts",
-            favoritesCount: 89,
-            isFavorited: true,
+            favoritesCount: 0,
+            isFavorited: false,
             layoutSpan: .compact
         ),
         ExploreNote(
@@ -129,7 +129,7 @@ extension ExploreNote {
             prompt: "What book altered the way you make daily decisions?",
             isPrompted: true,
             category: "Reflections",
-            favoritesCount: 210,
+            favoritesCount: 0,
             isFavorited: false,
             layoutSpan: .standard
         ),
@@ -144,7 +144,7 @@ extension ExploreNote {
             prompt: nil,
             isPrompted: false,
             category: "Creative",
-            favoritesCount: 175,
+            favoritesCount: 0,
             isFavorited: false,
             layoutSpan: .standard
         ),
@@ -159,8 +159,8 @@ extension ExploreNote {
             prompt: "What brought you unexpected peace today?",
             isPrompted: true,
             category: "Prompts",
-            favoritesCount: 320,
-            isFavorited: true,
+            favoritesCount: 0,
+            isFavorited: false,
             layoutSpan: .spotlight
         ),
         ExploreNote(
@@ -174,7 +174,7 @@ extension ExploreNote {
             prompt: nil,
             isPrompted: false,
             category: "Thoughts",
-            favoritesCount: 64,
+            favoritesCount: 0,
             isFavorited: false,
             layoutSpan: .compact
         ),
@@ -189,7 +189,7 @@ extension ExploreNote {
             prompt: nil,
             isPrompted: false,
             category: "Quotes",
-            favoritesCount: 98,
+            favoritesCount: 0,
             isFavorited: false,
             layoutSpan: .compact
         ),
@@ -204,7 +204,7 @@ extension ExploreNote {
             prompt: "Write about an opinion you've changed your mind about.",
             isPrompted: true,
             category: "Prompts",
-            favoritesCount: 245,
+            favoritesCount: 0,
             isFavorited: false,
             layoutSpan: .tall
         ),
@@ -219,7 +219,7 @@ extension ExploreNote {
             prompt: nil,
             isPrompted: false,
             category: "Reflections",
-            favoritesCount: 183,
+            favoritesCount: 0,
             isFavorited: false,
             layoutSpan: .standard
         ),
@@ -234,7 +234,7 @@ extension ExploreNote {
             prompt: "What habit has kept you going through doubt?",
             isPrompted: true,
             category: "Reflections",
-            favoritesCount: 167,
+            favoritesCount: 0,
             isFavorited: false,
             layoutSpan: .standard
         ),
@@ -249,8 +249,8 @@ extension ExploreNote {
             prompt: nil,
             isPrompted: false,
             category: "Quotes",
-            favoritesCount: 312,
-            isFavorited: true,
+            favoritesCount: 0,
+            isFavorited: false,
             layoutSpan: .spotlight
         )
     ]

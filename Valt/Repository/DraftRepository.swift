@@ -50,18 +50,32 @@ final class DraftRepository: DraftRepositoryProtocol {
     }
 
     func fetchPublishedDrafts(forUsername username: String) async throws -> [Draft] {
-        let userDoc = try await db.collection("usernames").document(username).getDocument()
+        let clean = username.replacingOccurrences(of: "@", with: "").lowercased()
         
-        guard let data = userDoc.data(),
-              let userID = data["userID"] as? String else {
-            print("No userID found in 'usernames' for \(username)")
-            return []
+        var userID: String? = nil
+        
+        if let usernameDoc = try? await db.collection("usernames").document(clean).getDocument(),
+           let data = usernameDoc.data(),
+           let uid = data["userID"] as? String {
+            userID = uid
         }
         
-        print("Successfully resolved \(username) to \(userID)")
+        if userID == nil {
+            let userSnapshot = try? await db.collection("users")
+                .whereField("username", isEqualTo: clean)
+                .limit(to: 1)
+                .getDocuments()
+            if let userDoc = userSnapshot?.documents.first {
+                userID = userDoc.documentID
+            }
+        }
+        
+        guard let resolvedUID = userID, !resolvedUID.isEmpty else {
+            return []
+        }
 
         let snapshot = try await db.collection("drafts")
-            .whereField("userID", isEqualTo: userID)
+            .whereField("userID", isEqualTo: resolvedUID)
             .whereField("isPublished", isEqualTo: true)
             .getDocuments()
 
@@ -69,7 +83,7 @@ final class DraftRepository: DraftRepositoryProtocol {
             let data = doc.data()
             return Draft(
                 id: doc.documentID,
-                userID: data["userID"] as? String ?? "",
+                userID: data["userID"] as? String ?? resolvedUID,
                 title: data["title"] as? String ?? "(Untitled)",
                 content: data["content"] as? String ?? "",
                 timestamp: (data["timestamp"] as? Timestamp)?.dateValue() ?? Date(),
@@ -83,7 +97,6 @@ final class DraftRepository: DraftRepositoryProtocol {
         }
     }
 
-    // Fetch all drafts for a user
     func fetchDrafts(for userID: String) async throws -> [Draft] {
         let snapshot = try await db.collection("drafts")
             .whereField("userID", isEqualTo: userID)
@@ -107,7 +120,6 @@ final class DraftRepository: DraftRepositoryProtocol {
         }
     }
 
-    // Fetch drafts by username (resolves to userID)
     func fetchDraftsForUsername(username: String) async throws -> [Draft] {
         let usersQuery = db.collection("users")
             .whereField("username", isEqualTo: username)
@@ -147,6 +159,7 @@ final class DraftRepository: DraftRepositoryProtocol {
     }
     
     func getProfileImageURL(for userID: String) async -> String {
+        guard !userID.isEmpty else { return "" }
         let storageRef = Storage.storage().reference().child("profilePictures/\(userID).jpg")
         do {
             let url = try await storageRef.downloadURL()
@@ -164,8 +177,59 @@ final class DraftRepository: DraftRepositoryProtocol {
                 .getDocuments()
             
             if !snapshot.documents.isEmpty {
+                let sortedDocs = snapshot.documents.sorted { doc1, doc2 in
+                    let t1 = (doc1.data()["timestamp"] as? Timestamp)?.dateValue() ?? .distantPast
+                    let t2 = (doc2.data()["timestamp"] as? Timestamp)?.dateValue() ?? .distantPast
+                    return t1 > t2
+                }
+                
+                let userIDs = Array(Set(sortedDocs.compactMap { $0.data()["userID"] as? String }.filter { !$0.isEmpty }))
+                
+                let authors = await withTaskGroup(of: (String, (username: String, profileImageURL: String)).self) { group in
+                    for uid in userIDs {
+                        group.addTask {
+                            var username = ""
+                            do {
+                                let userDoc = try await self.db.collection("users").document(uid).getDocument()
+                                if let data = userDoc.data(), let name = data["username"] as? String, !name.isEmpty {
+                                    let clean = name.trimmingCharacters(in: .whitespacesAndNewlines)
+                                    username = clean.hasPrefix("@") ? clean : "@\(clean)"
+                                }
+                            } catch { }
+                            
+                            if username.isEmpty {
+                                do {
+                                    let usernameSnapshot = try await self.db.collection("usernames")
+                                        .whereField("userID", isEqualTo: uid)
+                                        .limit(to: 1)
+                                        .getDocuments()
+                                    if let doc = usernameSnapshot.documents.first {
+                                        let name = doc.documentID.trimmingCharacters(in: .whitespacesAndNewlines)
+                                        if !name.isEmpty {
+                                            username = name.hasPrefix("@") ? name : "@\(name)"
+                                        }
+                                    }
+                                } catch { }
+                            }
+                            
+                            if username.isEmpty {
+                                username = "@user"
+                            }
+                            
+                            let photoURL = await self.getProfileImageURL(for: uid)
+                            return (uid, (username: username, profileImageURL: photoURL))
+                        }
+                    }
+                    
+                    var map: [String: (username: String, profileImageURL: String)] = [:]
+                    for await (uid, info) in group {
+                        map[uid] = info
+                    }
+                    return map
+                }
+                
                 var notes: [ExploreNote] = []
-                for (index, doc) in snapshot.documents.enumerated() {
+                for (index, doc) in sortedDocs.enumerated() {
                     let data = doc.data()
                     let userID = data["userID"] as? String ?? ""
                     let title = data["title"] as? String ?? ""
@@ -174,6 +238,10 @@ final class DraftRepository: DraftRepositoryProtocol {
                     let prompt = data["prompt"] as? String
                     let isPrompted = data["isPrompted"] as? Bool ?? (prompt != nil && !prompt!.isEmpty)
                     let isFavorited = data["isFavorited"] as? Bool ?? false
+                    
+                    let authorInfo = authors[userID]
+                    let authorUsername = authorInfo?.username ?? (userID.isEmpty ? "@user" : "@user_\(userID.prefix(5))")
+                    let authorImageURL = authorInfo?.profileImageURL ?? ""
                     
                     let span: ExploreGridSpan
                     switch index % 6 {
@@ -187,14 +255,14 @@ final class DraftRepository: DraftRepositoryProtocol {
                         id: doc.documentID,
                         title: title.isEmpty ? "Community Note" : title,
                         content: content,
-                        authorUsername: "@user_\(userID.prefix(5))",
+                        authorUsername: authorUsername,
                         authorID: userID,
-                        authorProfileImageURL: "",
+                        authorProfileImageURL: authorImageURL,
                         timestamp: timestamp,
                         prompt: prompt,
                         isPrompted: isPrompted,
                         category: isPrompted ? "Prompts" : "Reflections",
-                        favoritesCount: Int.random(in: 12...120),
+                        favoritesCount: 0,
                         isFavorited: isFavorited,
                         layoutSpan: span
                     )

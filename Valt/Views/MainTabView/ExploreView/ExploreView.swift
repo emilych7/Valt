@@ -240,6 +240,25 @@ struct ExploreView: View {
             HStack(alignment: .top, spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 6) {
+                        if let url = URL(string: note.authorProfileImageURL), !note.authorProfileImageURL.isEmpty {
+                            AsyncImage(url: url) { phase in
+                                if let image = phase.image {
+                                    image.resizable().aspectRatio(contentMode: .fill)
+                                } else {
+                                    Image(systemName: "person.circle.fill")
+                                        .resizable()
+                                        .foregroundColor(Color("TextColor").opacity(0.4))
+                                }
+                            }
+                            .frame(width: 16, height: 16)
+                            .clipShape(Circle())
+                        } else {
+                            Image(systemName: "person.circle.fill")
+                                .resizable()
+                                .frame(width: 16, height: 16)
+                                .foregroundColor(Color("TextColor").opacity(0.4))
+                        }
+                        
                         Text(note.authorUsername)
                             .font(.custom("OpenSans-SemiBold", size: 12))
                             .foregroundColor(Color("TextColor").opacity(0.7))

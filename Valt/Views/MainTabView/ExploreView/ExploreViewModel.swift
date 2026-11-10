@@ -183,12 +183,20 @@ final class ExploreViewModel: ObservableObject {
     }
 
     func selectUser(_ user: OtherUser) {
-        self.selectedUser = user
+        var userWithAvatar = user
+        self.selectedUser = userWithAvatar
         self.publishedDraftsForUser = user.publishedDrafts
         self.isLoading = true
         
         Task {
-            await loadPublishedDrafts(for: user.username)
+            if userWithAvatar.profileImageURL.isEmpty && !userWithAvatar.id.isEmpty {
+                let url = await repository.getProfileImageURL(for: userWithAvatar.id)
+                if !url.isEmpty {
+                    userWithAvatar.profileImageURL = url
+                    self.selectedUser = userWithAvatar
+                }
+            }
+            await loadPublishedDrafts(for: userWithAvatar.username)
             self.isLoading = false
         }
     }

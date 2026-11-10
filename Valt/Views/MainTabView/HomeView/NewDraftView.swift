@@ -7,9 +7,11 @@ struct NewDraftView: View {
     @StateObject private var viewModel: HomeViewModel
     @EnvironmentObject var tabManager: TabManager
     @FocusState private var isTextFieldFocused: Bool
+    var isActive: Bool = false
     
-    init(userViewModel: UserViewModel) {
+    init(userViewModel: UserViewModel, isActive: Bool = false) {
         _viewModel = StateObject(wrappedValue: HomeViewModel(userViewModel: userViewModel))
+        self.isActive = isActive
     }
 
     var body: some View {
@@ -31,7 +33,6 @@ struct NewDraftView: View {
             .padding(.horizontal, 25)
             .padding(.vertical, 20)
             
-            // Note Editor
             ZStack(alignment: .topLeading) {
                 if viewModel.draftText.isEmpty {
                     Text("Start here")
@@ -39,6 +40,7 @@ struct NewDraftView: View {
                         .foregroundColor(Color("TextColor").opacity(0.5))
                         .padding(.top, 8)
                         .padding(.leading, 5)
+                        .allowsHitTesting(false)
                 }
                 
                 TextEditor(text: $viewModel.draftText)
@@ -46,10 +48,6 @@ struct NewDraftView: View {
                     .foregroundColor(Color("TextColor"))
                     .scrollContentBackground(.hidden)
                     .focused($isTextFieldFocused)
-                    .onTapGesture {
-                        tabManager.setTabBarHidden(true)
-                        isTextFieldFocused = true
-                    }
             }
             .padding(.horizontal, 25)
             
@@ -57,8 +55,13 @@ struct NewDraftView: View {
         }
         .background(Color("AppBackgroundColor").ignoresSafeArea())
         .onAppear {
-            tabManager.setTabBarHidden(true)
-            isTextFieldFocused = true
+            isTextFieldFocused = false
+        }
+        .onChange(of: isActive) { _, newValue in
+            isTextFieldFocused = false
+            if !newValue {
+                tabManager.setTabBarHidden(false)
+            }
         }
         .onChange(of: isTextFieldFocused) { oldValue, newValue in
             withAnimation(.easeInOut(duration: 0.2)) {
@@ -81,7 +84,7 @@ struct NewDraftView: View {
                 Spacer()
                 
                 Button {
-                    $isTextFieldFocused.wrappedValue = false
+                    isTextFieldFocused = false
                 } label: {
                     Image(systemName: "keyboard.chevron.compact.down")
                         .foregroundColor(Color("TextColor"))
@@ -113,4 +116,3 @@ struct NewDraftView: View {
         }
     }
 }
-
