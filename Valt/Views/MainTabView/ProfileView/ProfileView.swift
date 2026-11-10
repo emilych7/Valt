@@ -7,6 +7,8 @@ struct ProfileView: View {
     @EnvironmentObject private var userViewModel: UserViewModel
     @EnvironmentObject var settingsViewModel: SettingsViewModel
     @EnvironmentObject var tabManager: TabManager
+    @EnvironmentObject var bannerManager: BannerManager
+    @EnvironmentObject var authViewModel: AuthViewModel
     
     @Binding var mainTabSelection: ContentTabViewSelection
     
@@ -20,6 +22,8 @@ struct ProfileView: View {
     
     @State private var isPhotoPickerPresented: Bool = false
     @State private var localProfileImage: UIImage? = nil
+    @State private var imageToCrop: UIImage? = nil
+    @State private var showCropView: Bool = false
     
     @State private var showingPinEntry = false
     
@@ -27,10 +31,10 @@ struct ProfileView: View {
         NavigationStack {
             ZStack {
                 VStack(spacing: 0) {
-                    MainHeader(title: "My Valt", image: "settingsIcon", action: toggleSettings)
+                    MainHeader(title: userViewModel.username, image: "settingsIcon", action: toggleSettings)
                     
                     // Profile Info Section
-                    HStack {
+                    HStack (alignment: .top, spacing: 20) {
                         Avatar(
                             loadingState: userViewModel.profileLoadingState,
                             profileImage: localProfileImage
@@ -42,19 +46,22 @@ struct ProfileView: View {
                             matching: .images
                         )
                         .onLongPressGesture(
-                            minimumDuration: 0.5,
+                            minimumDuration: 0.35,
                             perform: {
-                                showLargeProfilePicture = true
-                            },
-                            onPressingChanged: { pressing in
-                                // Triggered immediately on touch down (true)
-                                // and touch up / cancel (false)
+                                let generator = UIImpactFeedbackGenerator(style: .medium)
+                                generator.prepare()
+                                generator.impactOccurred()
+                                var transaction = Transaction()
+                                transaction.disablesAnimations = true
+                                withTransaction(transaction) {
+                                    showLargeProfilePicture = true
+                                }
                             }
                         )
-                        UserInfoView()
                         
-                        Spacer()
+                        UserInfoView()
                     }
+                    .background(Color("AppBackgroundColor"))
                     .padding(.bottom, 15)
                     .padding(.horizontal, 25)
                     
@@ -97,9 +104,47 @@ struct ProfileView: View {
                     }
                 }
                 .background(Color("AppBackgroundColor").ignoresSafeArea())
+                
+                if showCropView, let image = imageToCrop {
+                    ProfilePhotoCropView(
+                        inputImage: image,
+                        onCrop: { croppedImage in
+                            Task { @MainActor in
+                                await userViewModel.uploadProfilePicture(croppedImage)
+                                bannerManager.show("Updated Profile Picture", backgroundColor: Color("RequestButtonColor"), icon: "checkmarkIcon")
+                            }
+                            tabManager.setTabBarHidden(false)
+                            withAnimation(.easeOut(duration: 0.2)) {
+                                showCropView = false
+                                imageToCrop = nil
+                                selectedItem = nil
+                            }
+                        },
+                        onCancel: {
+                            tabManager.setTabBarHidden(false)
+                            withAnimation(.easeOut(duration: 0.2)) {
+                                showCropView = false
+                                imageToCrop = nil
+                                selectedItem = nil
+                            }
+                        }
+                    )
+                    .ignoresSafeArea()
+                    .transition(.opacity)
+                    .zIndex(100)
+                }
             }
             .fullScreenCover(isPresented: $showLargeProfilePicture) {
                 LargeProfilePictureView(profileImage: localProfileImage)
+                    .environmentObject(userViewModel)
+                    .environmentObject(bannerManager)
+                    .environmentObject(tabManager)
+                    .presentationBackground(.clear)
+            }
+            .transaction { transaction in
+                if showLargeProfilePicture {
+                    transaction.disablesAnimations = true
+                }
             }
             .onAppear {
                 tabManager.setTabBarHidden(false)
@@ -130,15 +175,24 @@ struct ProfileView: View {
                 localProfileImage = newImage
             }
             .onChange(of: selectedItem) { _, newValue in
-                Task {
-                    guard let item = newValue,
-                          let data = try? await item.loadTransferable(type: Data.self),
+                guard let item = newValue else { return }
+                Task { @MainActor in
+                    guard let data = try? await item.loadTransferable(type: Data.self),
                           let uiImage = UIImage(data: data) else { return }
-                    await userViewModel.uploadProfilePicture(uiImage)
+                    imageToCrop = uiImage
+                    tabManager.setTabBarHidden(true)
+                    withAnimation(.easeInOut(duration: 0.25)) {
+                        showCropView = true
+                    }
                 }
             }
             .navigationDestination(isPresented: $showSettings) {
                 SettingsView(selectedDraft: $selectedDraft, showNote: $showNote)
+                    .environmentObject(authViewModel)
+                    .environmentObject(tabManager)
+                    .environmentObject(settingsViewModel)
+                    .environmentObject(userViewModel)
+                    .environmentObject(bannerManager)
                     .transaction { transaction in
                         transaction.animation = .spring(response: 0.35, dampingFraction: 1.0)
                     }
@@ -146,11 +200,19 @@ struct ProfileView: View {
             .navigationDestination(isPresented: $showNote) {
                 if let draft = selectedDraft {
                     FullNoteView(draft: draft, userViewModel: userViewModel)
+                        .environmentObject(userViewModel)
+                        .environmentObject(tabManager)
+                        .environmentObject(bannerManager)
                         .toolbar(.hidden, for: .tabBar)
                         .navigationBarBackButtonHidden(true)
                 }
             }
         }
+        .environmentObject(tabManager)
+        .environmentObject(bannerManager)
+        .environmentObject(userViewModel)
+        .environmentObject(settingsViewModel)
+        .environmentObject(authViewModel)
     }
     
     func toggleSettings() {
@@ -160,11 +222,35 @@ struct ProfileView: View {
     }
 }
 
-#Preview {
+#Preview("Profile - Active Content") {
     @Previewable @State var tabSelection: ContentTabViewSelection = .profile
 
     ProfileView(mainTabSelection: $tabSelection)
-        .environmentObject(UserViewModel())
+        .environmentObject(UserViewModel.preview)
         .environmentObject(SettingsViewModel())
         .environmentObject(TabManager())
+        .environmentObject(BannerManager())
+        .environmentObject(AuthViewModel())
+}
+
+#Preview("Profile - Empty State") {
+    @Previewable @State var tabSelection: ContentTabViewSelection = .profile
+
+    ProfileView(mainTabSelection: $tabSelection)
+        .environmentObject(UserViewModel.previewEmpty)
+        .environmentObject(SettingsViewModel())
+        .environmentObject(TabManager())
+        .environmentObject(BannerManager())
+        .environmentObject(AuthViewModel())
+}
+
+#Preview("Profile - With Tab Bar") {
+    @Previewable @State var selectedDraft: Draft? = nil
+
+    MainTabView(userViewModel: UserViewModel.preview, selectedDraft: $selectedDraft)
+        .environmentObject(AuthViewModel())
+        .environmentObject(SettingsViewModel())
+        .environmentObject(TabManager())
+        .environmentObject(BannerManager())
+        .environmentObject(UserViewModel.preview)
 }

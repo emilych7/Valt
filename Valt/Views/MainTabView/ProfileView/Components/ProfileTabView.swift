@@ -16,7 +16,7 @@ struct ProfileTabView: View {
         .background(Color("AppBackgroundColor"))
         .overlay(
             Rectangle()
-                .fill(Color("TextColor").opacity(0.4))
+                .fill(Color("TextColor").opacity(0.1))
                 .frame(height: 1),
             alignment: .bottom
         )
@@ -32,11 +32,12 @@ struct ProfileTabView: View {
             VStack(spacing: 8) {
                 Image(image)
                     .resizable()
+                    .renderingMode(.template)
                     .scaledToFit()
                     .frame(width: 20, height: 20)
-                    .foregroundColor(selectedTab == tab ? Color("TextColor") : .gray)
+                    .foregroundColor(Color("TextColor"))
+                    .opacity(selectedTab == tab ? 1.0 : 0.4)
                     .padding(.bottom, 2)
-                    .opacity("hideIcon" == image ? 0.4 : 1 )
                 
                 ZStack {
                     Rectangle()
@@ -53,6 +54,7 @@ struct ProfileTabView: View {
                 }
             }
         }
+        .buttonStyle(.plain)
         .frame(maxWidth: .infinity)
     }
 }
@@ -79,4 +81,11 @@ struct LockedTabPlaceholder: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color("TextFieldBackground").opacity(0.7))
     }
+}
+
+#Preview("Profile Tab View") {
+    @Previewable @State var selectedTab: ProfileTab = .all
+    ProfileTabView(selectedTab: $selectedTab)
+        .padding(.vertical)
+        .background(Color("AppBackgroundColor"))
 }

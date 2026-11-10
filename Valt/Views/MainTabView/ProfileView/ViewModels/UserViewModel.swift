@@ -27,6 +27,7 @@ final class UserViewModel: ObservableObject {
     
     private let repository: DraftRepositoryProtocol
     private let userRepository: UserRepositoryProtocol
+    private let isStub: Bool
     private var authHandler: AuthStateDidChangeListenerHandle?
     private var signOutObserver: NSObjectProtocol?
     private var isFetching = false
@@ -43,10 +44,14 @@ final class UserViewModel: ObservableObject {
 
     init(
         repository: DraftRepositoryProtocol = DraftRepository(),
-        userRepository: UserRepositoryProtocol = UserRepository()
+        userRepository: UserRepositoryProtocol = UserRepository(),
+        isStub: Bool = false
     ) {
         self.repository = repository
         self.userRepository = userRepository
+        self.isStub = isStub
+        
+        guard !isStub else { return }
         
         signOutObserver = NotificationCenter.default.addObserver(
             forName: .userDidSignOut,
@@ -225,6 +230,11 @@ final class UserViewModel: ObservableObject {
 
     func uploadProfilePicture(_ image: UIImage) async {
         self.profileLoadingState = .loading
+        if isStub {
+            self.profileImage = image
+            self.profileLoadingState = .complete
+            return
+        }
         guard let uid = Auth.auth().currentUser?.uid else { return }
 
         do {
@@ -235,6 +245,26 @@ final class UserViewModel: ObservableObject {
         } catch {
             print("Error uploading profile picture: \(error.localizedDescription)")
             self.profileLoadingState = .error(error.localizedDescription)
+        }
+    }
+
+    func deleteProfilePicture() async {
+        self.profileLoadingState = .loading
+        if isStub {
+            self.profileImage = nil
+            self.profileLoadingState = .empty
+            return
+        }
+        guard let uid = Auth.auth().currentUser?.uid else { return }
+
+        do {
+            try await userRepository.deleteProfilePicture(uid: uid)
+            self.profileImage = nil
+            self.profileLoadingState = .empty
+            print("Profile picture deleted and UI updated.")
+        } catch {
+            print("Error deleting profile picture: \(error.localizedDescription)")
+            self.profileLoadingState = .complete
         }
     }
     
@@ -316,5 +346,138 @@ final class UserViewModel: ObservableObject {
         self.cardLoadingState = .complete
         self.userLoadingState = .complete
         self.profileLoadingState = .empty
+    }
+}
+
+extension UserViewModel {
+    static var preview: UserViewModel {
+        let vm = UserViewModel(isStub: true)
+        vm.username = "emilyhernandez"
+        vm.followerCount = 128
+        vm.profileLoadingState = .complete
+        vm.cardLoadingState = .complete
+        vm.userLoadingState = .complete
+        vm.hasPinSet = true
+        vm.isUnlocked = true
+        vm.drafts = [
+            Draft(
+                id: "1",
+                userID: "preview",
+                title: "Reflections on Architecture",
+                content: "Exploring clean MVVM architecture with SwiftUI and protocol-oriented repositories.",
+                timestamp: Date(),
+                isFavorited: true,
+                isHidden: false,
+                isArchived: false,
+                isPublished: true,
+                prompt: nil,
+                isPrompted: false
+            ),
+            Draft(
+                id: "2",
+                userID: "preview",
+                title: "Daily Writing Prompt",
+                content: "What is one small decision that completely altered the trajectory of your creative work?",
+                timestamp: Date().addingTimeInterval(-86400),
+                isFavorited: true,
+                isHidden: false,
+                isArchived: false,
+                isPublished: false,
+                prompt: "What is one small decision that changed your creative work?",
+                isPrompted: true
+            ),
+            Draft(
+                id: "3",
+                userID: "preview",
+                title: "Private Vault",
+                content: "This is a hidden note safely secured behind the personal PIN.",
+                timestamp: Date().addingTimeInterval(-172800),
+                isFavorited: false,
+                isHidden: true,
+                isArchived: false,
+                isPublished: false,
+                prompt: nil,
+                isPrompted: false
+            ),
+            Draft(
+                id: "4",
+                userID: "preview",
+                title: "Design System Notes",
+                content: "Minimalist cards with subtle borders, custom typography, and responsive 4-column layout.",
+                timestamp: Date().addingTimeInterval(-259200),
+                isFavorited: false,
+                isHidden: false,
+                isArchived: false,
+                isPublished: true,
+                prompt: nil,
+                isPrompted: false
+            ),
+            Draft(
+                id: "5",
+                userID: "preview",
+                title: "Weekend Ideas",
+                content: "Exploring new creative writing prompts and journal themes.",
+                timestamp: Date().addingTimeInterval(-345600),
+                isFavorited: true,
+                isHidden: false,
+                isArchived: false,
+                isPublished: false,
+                prompt: nil,
+                isPrompted: false
+            ),
+            Draft(
+                id: "6",
+                userID: "preview",
+                title: "Reading List",
+                content: "Atomic Habits, The Psychology of Money, Essentialism, Deep Work.",
+                timestamp: Date().addingTimeInterval(-432000),
+                isFavorited: false,
+                isHidden: false,
+                isArchived: false,
+                isPublished: true,
+                prompt: nil,
+                isPrompted: false
+            ),
+            Draft(
+                id: "7",
+                userID: "preview",
+                title: "Coffee Journal",
+                content: "Ethiopian roast with distinct notes of citrus and jasmine.",
+                timestamp: Date().addingTimeInterval(-518400),
+                isFavorited: false,
+                isHidden: false,
+                isArchived: false,
+                isPublished: false,
+                prompt: nil,
+                isPrompted: false
+            ),
+            Draft(
+                id: "8",
+                userID: "preview",
+                title: "Hidden Secret",
+                content: "Another secret note tucked safely in the hidden tab behind security.",
+                timestamp: Date().addingTimeInterval(-604800),
+                isFavorited: true,
+                isHidden: true,
+                isArchived: false,
+                isPublished: false,
+                prompt: nil,
+                isPrompted: false
+            )
+        ]
+        return vm
+    }
+    
+    static var previewEmpty: UserViewModel {
+        let vm = UserViewModel(isStub: true)
+        vm.username = "newuser"
+        vm.followerCount = 0
+        vm.profileLoadingState = .complete
+        vm.cardLoadingState = .complete
+        vm.userLoadingState = .complete
+        vm.hasPinSet = false
+        vm.isUnlocked = true
+        vm.drafts = []
+        return vm
     }
 }

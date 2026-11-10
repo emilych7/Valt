@@ -51,6 +51,10 @@ final class MockDraftRepository: DraftRepositoryProtocol {
     func getProfileImageURL(for userID: String) async -> String {
         return ""
     }
+    
+    func fetchExploreNotes() async throws -> [ExploreNote] {
+        return ExploreNote.sampleNotes
+    }
 }
 
 final class MockUserRepository: UserRepositoryProtocol {
@@ -77,6 +81,11 @@ final class MockUserRepository: UserRepositoryProtocol {
 
     func uploadProfilePicture(uid: String, image: UIImage) async throws {
         uploadedImage = image
+    }
+
+    func deleteProfilePicture(uid: String) async throws {
+        profilePicture = (nil, nil)
+        uploadedImage = nil
     }
 
     func savePin(uid: String, pin: String) async throws {

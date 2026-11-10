@@ -198,3 +198,13 @@ struct UpdateFieldView: View {
         }
     }
 }
+
+#Preview("Update Username") {
+    NavigationStack {
+        UpdateFieldView(fieldType: .username)
+            .environmentObject(SettingsViewModel())
+            .environmentObject(UserViewModel.preview)
+            .environmentObject(BannerManager())
+            .environmentObject(TabManager())
+    }
+}

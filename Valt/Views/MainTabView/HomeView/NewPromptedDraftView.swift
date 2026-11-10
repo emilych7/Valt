@@ -13,7 +13,7 @@ struct NewPromptedDraftView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 10) {
-                HomeActionButton(icon: "exitDynamicIcon", backgroundColor: "ValtRed") {
+                HomeActionButton(icon: "exitIcon", backgroundColor: "ValtRed") {
                     viewModel.isPromptSelected = false
                     dismiss()
                     viewModel.draftText = ""
@@ -67,31 +67,30 @@ struct NewPromptedDraftView: View {
         }
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
-                HStack {
-                    Button("Clear") {
-                        viewModel.draftText = ""
-                    }
-                    .foregroundColor(.red)
-                    .disabled(viewModel.draftText.isEmpty)
-                    
-                    Spacer()
-                    
-                    Button {
-                        isTextFieldFocused = false
-                    } label: {
-                        Image(systemName: "keyboard.chevron.compact.down")
-                            .foregroundColor(Color("TextColor"))
-                    }
-                    
-                    Spacer()
-                    
-                    Button("Save") {
-                        saveAndDismiss()
-                    }
-                    .foregroundColor(Color("TextColor"))
-                    .disabled(viewModel.draftText.isEmpty)
+                Button("Clear") {
+                    viewModel.draftText = ""
                 }
                 .font(.custom("OpenSans-Regular", size: 16))
+                .foregroundColor(.red)
+                .disabled(viewModel.draftText.isEmpty)
+                
+                Spacer()
+                
+                Button {
+                    isTextFieldFocused = false
+                } label: {
+                    Image(systemName: "keyboard.chevron.compact.down")
+                        .foregroundColor(Color("TextColor"))
+                }
+                
+                Spacer()
+                
+                Button("Save") {
+                    saveAndDismiss()
+                }
+                .font(.custom("OpenSans-Regular", size: 16))
+                .foregroundColor(Color("TextColor"))
+                .disabled(viewModel.draftText.isEmpty)
             }
         }
     }

@@ -10,6 +10,13 @@ protocol DraftRepositoryProtocol {
     func searchUsers(prefix: String, limit: Int) async throws -> [OtherUser]
     func fetchPublishedDrafts(forUsername username: String) async throws -> [Draft]
     func getProfileImageURL(for userID: String) async -> String
+    func fetchExploreNotes() async throws -> [ExploreNote]
+}
+
+extension DraftRepositoryProtocol {
+    func fetchExploreNotes() async throws -> [ExploreNote] {
+        return ExploreNote.sampleNotes
+    }
 }
 
 final class DraftRepository: DraftRepositoryProtocol {
@@ -36,7 +43,7 @@ final class DraftRepository: DraftRepositoryProtocol {
             return OtherUser(
                 id: userID,
                 username: username,
-                profileImageURL: "", // Resolve this in the ExploreViewModel
+                profileImageURL: "",
                 publishedDrafts: []
             )
         }
@@ -145,8 +152,61 @@ final class DraftRepository: DraftRepositoryProtocol {
             let url = try await storageRef.downloadURL()
             return url.absoluteString
         } catch {
-            // Return empty so ExploreView knows to use the default profile pic fallback
             return ""
         }
+    }
+    
+    func fetchExploreNotes() async throws -> [ExploreNote] {
+        do {
+            let snapshot = try await db.collection("drafts")
+                .whereField("isPublished", isEqualTo: true)
+                .limit(to: 30)
+                .getDocuments()
+            
+            if !snapshot.documents.isEmpty {
+                var notes: [ExploreNote] = []
+                for (index, doc) in snapshot.documents.enumerated() {
+                    let data = doc.data()
+                    let userID = data["userID"] as? String ?? ""
+                    let title = data["title"] as? String ?? ""
+                    let content = data["content"] as? String ?? ""
+                    let timestamp = (data["timestamp"] as? Timestamp)?.dateValue() ?? Date()
+                    let prompt = data["prompt"] as? String
+                    let isPrompted = data["isPrompted"] as? Bool ?? (prompt != nil && !prompt!.isEmpty)
+                    let isFavorited = data["isFavorited"] as? Bool ?? false
+                    
+                    let span: ExploreGridSpan
+                    switch index % 6 {
+                    case 0: span = .tall
+                    case 1, 2: span = .compact
+                    case 3, 4: span = .standard
+                    default: span = .spotlight
+                    }
+                    
+                    let note = ExploreNote(
+                        id: doc.documentID,
+                        title: title.isEmpty ? "Community Note" : title,
+                        content: content,
+                        authorUsername: "@user_\(userID.prefix(5))",
+                        authorID: userID,
+                        authorProfileImageURL: "",
+                        timestamp: timestamp,
+                        prompt: prompt,
+                        isPrompted: isPrompted,
+                        category: isPrompted ? "Prompts" : "Reflections",
+                        favoritesCount: Int.random(in: 12...120),
+                        isFavorited: isFavorited,
+                        layoutSpan: span
+                    )
+                    notes.append(note)
+                }
+                if !notes.isEmpty {
+                    return notes
+                }
+            }
+        } catch {
+            print("Failed to fetch explore notes from Firestore: \(error.localizedDescription)")
+        }
+        return ExploreNote.sampleNotes
     }
 }

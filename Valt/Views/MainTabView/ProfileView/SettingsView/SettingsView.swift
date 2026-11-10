@@ -1,9 +1,11 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @StateObject private var settingsViewModel = SettingsViewModel()
+    @EnvironmentObject var settingsViewModel: SettingsViewModel
     @EnvironmentObject var authViewModel: AuthViewModel
     @EnvironmentObject var tabManager: TabManager
+    @EnvironmentObject var userViewModel: UserViewModel
+    @EnvironmentObject var bannerManager: BannerManager
     @Environment(\.dismiss) var dismiss
     @Binding var selectedDraft: Draft?
     @Binding var showNote: Bool
@@ -50,27 +52,52 @@ struct SettingsView: View {
                 transaction.animation = .smooth(duration: 0.0)
             }
         }
+        .environmentObject(settingsViewModel)
+        .environmentObject(userViewModel)
+        .environmentObject(bannerManager)
+        .environmentObject(tabManager)
+        .environmentObject(authViewModel)
      }
     
     private var profileSection: some View {
         VStack(spacing: 0) {
             SectionHeader(title: "Profile")
             
-            NavigationLink(destination: UpdateFieldView(fieldType: .username)) {
+            NavigationLink(destination: 
+                UpdateFieldView(fieldType: .username)
+                    .environmentObject(settingsViewModel)
+                    .environmentObject(userViewModel)
+                    .environmentObject(bannerManager)
+                    .environmentObject(tabManager)
+            ) {
                 SettingsRow(title: "Username", icon: "usernameIcon")
             }
             .padding(.horizontal, 10)
 
-            NavigationLink(destination: UpdateFieldView(fieldType: .email)) {
+            NavigationLink(destination: 
+                UpdateFieldView(fieldType: .email)
+                    .environmentObject(settingsViewModel)
+                    .environmentObject(userViewModel)
+                    .environmentObject(bannerManager)
+                    .environmentObject(tabManager)
+            ) {
                 SettingsRow(title: "Email", icon: "emailIcon")
             }
             .padding(.horizontal, 10)
             
-            NavigationLink(destination: UpdateAppearanceView()) { SettingsRow(title: "Appearance", icon: "appearanceIcon") }
+            NavigationLink(destination: 
+                UpdateAppearanceView()
+                    .environmentObject(settingsViewModel)
+            ) { SettingsRow(title: "Appearance", icon: "appearanceIcon") }
                 .padding(.horizontal, 10)
-                // .padding(.bottom, 5)
             
-            NavigationLink(destination: ArchiveView(selectedDraft: $selectedDraft, showNote: $showNote).navigationBarBackButtonHidden(true)) { SettingsRow(title: "Archived", icon: "archiveIcon") }
+            NavigationLink(destination: 
+                ArchiveView(selectedDraft: $selectedDraft, showNote: $showNote)
+                    .environmentObject(userViewModel)
+                    .environmentObject(tabManager)
+                    .environmentObject(bannerManager)
+                    .navigationBarBackButtonHidden(true)
+            ) { SettingsRow(title: "Archived", icon: "archiveIcon") }
                 .padding(.horizontal, 10)
                 .padding(.bottom, 5)
         }
@@ -100,7 +127,12 @@ struct SettingsView: View {
             NavigationLink(destination: Text("Report an Issue")) { SettingsRow(title: "Report an Issue", icon: "reportIcon") }
                 .padding(.horizontal, 10)
             
-            NavigationLink(destination: DeactivateView().navigationBarBackButtonHidden(true)) {
+            NavigationLink(destination: 
+                DeactivateView()
+                    .environmentObject(authViewModel)
+                    .environmentObject(settingsViewModel)
+                    .navigationBarBackButtonHidden(true)
+            ) {
                 SettingsRow(title: "Delete Account", icon: "trashIcon", isDestructive: true)
                     .padding(.horizontal, 10)
                     .padding(.bottom, 5)
@@ -133,5 +165,19 @@ struct SettingsView: View {
             
         }
         .background(Color("AppBackgroundColor"))
+    }
+}
+
+#Preview("Settings") {
+    @Previewable @State var selectedDraft: Draft? = nil
+    @Previewable @State var showNote: Bool = false
+
+    NavigationStack {
+        SettingsView(selectedDraft: $selectedDraft, showNote: $showNote)
+            .environmentObject(SettingsViewModel())
+            .environmentObject(AuthViewModel())
+            .environmentObject(TabManager())
+            .environmentObject(UserViewModel.preview)
+            .environmentObject(BannerManager())
     }
 }

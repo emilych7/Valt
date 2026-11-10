@@ -8,6 +8,7 @@ protocol UserRepositoryProtocol {
     func fetchUserProfile(uid: String) async throws -> (username: String?, pin: String?)
     func fetchProfilePicture(uid: String) async throws -> (image: UIImage?, downloadURL: URL?)
     func uploadProfilePicture(uid: String, image: UIImage) async throws
+    func deleteProfilePicture(uid: String) async throws
     func savePin(uid: String, pin: String) async throws
     func reloadUser() async throws
     
@@ -80,6 +81,21 @@ final class UserRepository: UserRepositoryProtocol {
             throw NSError(domain: "UserRepository", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to compress image"])
         }
         _ = try await fullRef.putDataAsync(imageData, metadata: nil)
+    }
+
+    func deleteProfilePicture(uid: String) async throws {
+        let fullRef = storage.reference().child("profilePictures/\(uid).jpg")
+        do {
+            try await fullRef.delete()
+        } catch {
+            let nsError = error as NSError
+            if nsError.domain == StorageErrorDomain,
+               let code = StorageErrorCode(rawValue: nsError.code),
+               code == .objectNotFound {
+                return
+            }
+            throw error
+        }
     }
 
     func savePin(uid: String, pin: String) async throws {

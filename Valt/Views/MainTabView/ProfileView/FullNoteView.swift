@@ -16,7 +16,7 @@ struct FullNoteView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 10) {
-                HomeActionButton(icon: "exitDynamicIcon", backgroundColor: "ValtRed") {
+                HomeActionButton(icon: "exitIcon", backgroundColor: "ValtRed") {
                     dismiss()
                 }
                 
@@ -147,23 +147,15 @@ struct FullNoteView: View {
 
     @ToolbarContentBuilder
     private var keyboardToolbarItems: some ToolbarContent {
-        ToolbarItem(placement: .keyboard) {
+        ToolbarItemGroup(placement: .keyboard) {
             Button("Clear") { viewModel.editedContent = "" }
                 .foregroundColor(.red)
-        }
-        ToolbarItem(placement: .keyboard) {
             Spacer()
-        }
-        ToolbarItem(placement: .keyboard) {
             Button { isTextFieldFocused = false } label: {
                 Image(systemName: "keyboard.chevron.compact.down")
                     .foregroundColor(Color("TextColor"))
             }
-        }
-        ToolbarItem(placement: .keyboard) {
             Spacer()
-        }
-        ToolbarItem(placement: .keyboard) {
             Button("Save") {
                 saveAndDismiss()
             }

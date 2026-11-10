@@ -3,11 +3,15 @@ import SwiftUI
 struct OtherUserView: View {
     @EnvironmentObject private var viewModel: ExploreViewModel
     @State private var isBookmarked = false
+    @State private var selectedDraft: Draft? = nil
     
     var body: some View {
         VStack(spacing: 0) {
-            
-            OtherUserHeader(username: viewModel.selectedUser?.username ?? "User", image: isBookmarked ? "bookmarkIcon-Selected" :"bookmarkIcon-Unselected", action: toggleBookmark)
+            OtherUserHeader(
+                username: viewModel.selectedUser?.username ?? "User",
+                image: isBookmarked ? "bookmarkIcon-Selected" : "bookmarkIcon-Unselected",
+                action: toggleBookmark
+            )
             
             ZStack {
                 if viewModel.isLoading {
@@ -27,7 +31,9 @@ struct OtherUserView: View {
                 } else {
                     ScrollView {
                         ResponsiveGridView(items: viewModel.publishedDraftsForUser) { draft in
-                            OtherUserCardView(draft: draft)
+                            OtherUserCardView(draft: draft) {
+                                selectedDraft = draft
+                            }
                         }
                     }
                 }
@@ -37,9 +43,31 @@ struct OtherUserView: View {
             .background(Color("TextFieldBackground").opacity(0.7))
         }
         .background(Color("AppBackgroundColor").ignoresSafeArea())
+        .sheet(item: $selectedDraft) { draft in
+            let note = ExploreNote(
+                id: draft.id,
+                title: draft.title,
+                content: draft.content,
+                authorUsername: viewModel.selectedUser?.username ?? "@user",
+                authorID: draft.userID,
+                authorProfileImageURL: viewModel.selectedUser?.profileImageURL ?? "",
+                timestamp: draft.timestamp,
+                prompt: draft.prompt,
+                isPrompted: draft.isPrompted,
+                category: draft.isPrompted ? "Prompts" : "Reflections",
+                favoritesCount: 1,
+                isFavorited: draft.isFavorited,
+                layoutSpan: .standard
+            )
+            ExploreNoteDetailSheet(
+                note: note,
+                onAuthorTap: { _ in },
+                onFavoriteToggle: { _ in }
+            )
+        }
     }
     
     func toggleBookmark() {
-        self.isBookmarked = !self.isBookmarked
+        self.isBookmarked.toggle()
     }
 }

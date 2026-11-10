@@ -71,33 +71,32 @@ struct NewDraftView: View {
         }
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
-                HStack {
-                    Button("Clear") {
-                        viewModel.draftText = ""
-                    }
-                    .foregroundColor(.red)
-                    .disabled(viewModel.draftText.isEmpty)
-                    
-                    Spacer()
-                    
-                    Button {
-                        $isTextFieldFocused.wrappedValue = false
-                    } label: {
-                        Image(systemName: "keyboard.chevron.compact.down")
-                            .foregroundColor(Color("TextColor"))
-                    }
-                    
-                    Spacer()
-                    
-                    Button("Save") {
-                        Task {
-                            saveAndDismiss()
-                        }
-                    }
-                    .foregroundColor(Color("TextColor"))
-                    .disabled(viewModel.draftText.isEmpty)
+                Button("Clear") {
+                    viewModel.draftText = ""
                 }
                 .font(.custom("OpenSans-Regular", size: 16))
+                .foregroundColor(.red)
+                .disabled(viewModel.draftText.isEmpty)
+                
+                Spacer()
+                
+                Button {
+                    $isTextFieldFocused.wrappedValue = false
+                } label: {
+                    Image(systemName: "keyboard.chevron.compact.down")
+                        .foregroundColor(Color("TextColor"))
+                }
+                
+                Spacer()
+                
+                Button("Save") {
+                    Task {
+                        saveAndDismiss()
+                    }
+                }
+                .font(.custom("OpenSans-Regular", size: 16))
+                .foregroundColor(Color("TextColor"))
+                .disabled(viewModel.draftText.isEmpty)
             }
         }
     }
