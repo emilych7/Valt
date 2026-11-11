@@ -12,9 +12,7 @@ struct InstagramExploreGrid: View {
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 14) {
-                if notes.isEmpty {
-                    emptyStateView
-                } else {
+                if !notes.isEmpty {
                     mosaicContent
                 }
             }
@@ -112,27 +110,6 @@ struct InstagramExploreGrid: View {
             items.append(promptSuggestions[promptIndex])
         }
         return items
-    }
-    
-    private var emptyStateView: some View {
-        VStack(spacing: 14) {
-            Image(systemName: "note.text")
-                .font(.system(size: 44, weight: .light))
-                .foregroundColor(Color("TextColor").opacity(0.35))
-                .padding(.top, 60)
-            
-            Text("No notes found")
-                .font(.custom("OpenSans-SemiBold", size: 17))
-                .foregroundColor(Color("TextColor"))
-            
-            Text("Check back soon or try searching for another term.")
-                .font(.custom("OpenSans-Regular", size: 14))
-                .foregroundColor(Color("TextColor").opacity(0.6))
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 40)
     }
     
     private enum ExploreCluster {

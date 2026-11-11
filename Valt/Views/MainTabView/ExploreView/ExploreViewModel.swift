@@ -14,11 +14,11 @@ final class ExploreViewModel: ObservableObject {
     @Published var searchText: String = ""
     @Published var isSearching: Bool = false
     @Published var isLoading: Bool = false
-    @Published var isNotesLoading: Bool = false
+    @Published var isNotesLoading: Bool = true
     @Published var userSuggestions: [OtherUser] = []
     @Published var selectedUser: OtherUser? = nil
     @Published var publishedDraftsForUser: [Draft] = []
-    @Published var generatedPrompts: [String] = ["Come back when you have at least 3 notes..."]
+    @Published var generatedPrompts: [String] = []
     
     @Published var exploreNotes: [ExploreNote] = []
     @Published var selectedExploreNote: ExploreNote? = nil
@@ -39,7 +39,7 @@ final class ExploreViewModel: ObservableObject {
     init(repository: DraftRepositoryProtocol = DraftRepository(), tabManager: TabManager? = nil) {
         self.repository = repository
         self.tabManager = tabManager
-        self.exploreNotes = ExploreNote.sampleNotes
+        self.exploreNotes = []
         self.refreshPromptSuggestions()
         
         Task {
@@ -72,13 +72,9 @@ final class ExploreViewModel: ObservableObject {
         defer { isNotesLoading = false }
         do {
             let fetched = try await repository.fetchExploreNotes()
-            if !fetched.isEmpty {
-                self.exploreNotes = fetched
-            } else {
-                self.exploreNotes = ExploreNote.sampleNotes
-            }
+            self.exploreNotes = fetched
         } catch {
-            self.exploreNotes = ExploreNote.sampleNotes
+            self.exploreNotes = []
         }
     }
     

@@ -71,6 +71,7 @@ struct ExploreNote: Identifiable, Codable, Equatable, Hashable {
     }
 }
 
+#if DEBUG
 extension ExploreNote {
     static let sampleNotes: [ExploreNote] = [
         ExploreNote(
@@ -255,3 +256,4 @@ extension ExploreNote {
         )
     ]
 }
+#endif

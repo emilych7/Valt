@@ -40,6 +40,9 @@ struct ExploreView: View {
                     if isSearchingActive {
                         searchResultsView
                             .transition(.opacity)
+                    } else if viewModel.isNotesLoading && viewModel.filteredExploreNotes.isEmpty {
+                        ExploreSkeletonGrid()
+                            .transition(.opacity)
                     } else {
                         InstagramExploreGrid(
                             notes: viewModel.filteredExploreNotes,
@@ -63,6 +66,7 @@ struct ExploreView: View {
                         .transition(.opacity)
                     }
                 }
+                .animation(.easeInOut(duration: 0.25), value: viewModel.isNotesLoading)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color("TextFieldBackground").opacity(0.45))
             }

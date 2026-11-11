@@ -15,7 +15,7 @@ protocol DraftRepositoryProtocol {
 
 extension DraftRepositoryProtocol {
     func fetchExploreNotes() async throws -> [ExploreNote] {
-        return ExploreNote.sampleNotes
+        return []
     }
 }
 
@@ -268,13 +268,11 @@ final class DraftRepository: DraftRepositoryProtocol {
                     )
                     notes.append(note)
                 }
-                if !notes.isEmpty {
-                    return notes
-                }
+                return notes
             }
         } catch {
             print("Failed to fetch explore notes from Firestore: \(error.localizedDescription)")
         }
-        return ExploreNote.sampleNotes
+        return []
     }
 }

@@ -11,19 +11,21 @@ struct Shimmer: ViewModifier {
                     LinearGradient(
                         gradient: Gradient(colors: [
                             .clear,
-                            .white.opacity(0.35),
+                            .white.opacity(0.30),
                             .clear
                         ]),
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
+                        startPoint: .top,
+                        endPoint: .bottom
                     )
                     .rotationEffect(.degrees(30))
-                    .offset(x: offset * width * 1.5)
+                    .offset(x: offset * width * 2)
+                    .blendMode(.plusLighter)
                 }
+                .clipped()
             }
             .mask(content)
             .onAppear {
-                withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
+                withAnimation(.linear(duration: 1.2).repeatForever(autoreverses: false)) {
                     offset = 1.0
                 }
             }
