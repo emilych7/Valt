@@ -33,7 +33,7 @@ struct AuthInputField<T: Hashable>: View {
                             .keyboardType(keyboardType)
                     }
                 }
-                .font(.custom("OpenSans-Regular", size: 15))
+                .font(.custom("OpenSans-Regular", size: 16))
                 .foregroundColor(Color("TextColor"))
                 .autocorrectionDisabled(true)
                 .textInputAutocapitalization(.never)
@@ -88,6 +88,7 @@ struct AuthInputField<T: Hashable>: View {
 
 struct AuthActionButton: View {
     let title: String
+    var backgroundColor: Color = Color("ValtAccent")
     let isLoading: Bool
     let isDisabled: Bool
     let action: () -> Void
@@ -111,13 +112,13 @@ struct AuthActionButton: View {
                 }
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 50)
+            .frame(height: 58)
             .background(
                 Capsule(style: .continuous)
-                    .fill(Color("RequestButtonColor"))
+                    .fill(backgroundColor)
                     .opacity(isDisabled ? 0.45 : 1.0)
                     .shadow(
-                        color: Color("RequestButtonColor").opacity(isDisabled ? 0 : 0.25),
+                        color: backgroundColor.opacity(isDisabled ? 0 : 0.25),
                         radius: 8,
                         x: 0,
                         y: 3

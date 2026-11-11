@@ -16,12 +16,13 @@ struct EmailVerificationView: View {
             }
             .padding(.vertical, 10)
             
-            Text("We sent a verification link to \(viewModel.email). Please check your email to verify your account, or continue now and verify later.")
+            Text("A verification link has been sent to \(viewModel.email). Please check your email to verify your account, or continue now and verify later.")
                 .font(.custom("OpenSans-Regular", size: 15))
                 .foregroundColor(Color("TextColor").opacity(0.85))
                 .multilineTextAlignment(.center)
                 .lineSpacing(4)
                 .padding(.horizontal, 10)
+                .padding(.bottom, 25)
             
             VStack(spacing: 12) {
                 AuthActionButton(
@@ -35,13 +36,16 @@ struct EmailVerificationView: View {
                 }
                 
                 Button {
+                    let generator = UIImpactFeedbackGenerator(style: .light)
+                    generator.prepare()
+                    generator.impactOccurred()
                     viewModel.continueLater()
                 } label: {
                     Text("Verify Later")
                         .foregroundColor(Color("TextColor"))
                         .font(.custom("OpenSans-SemiBold", size: 16))
                         .frame(maxWidth: .infinity)
-                        .frame(height: 50)
+                        .frame(height: 58)
                         .background(
                             Capsule(style: .continuous)
                                 .fill(Color("TextFieldBackground"))

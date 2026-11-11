@@ -24,10 +24,22 @@ struct SignUpView: View {
             
             ScrollView {
                 VStack(spacing: 0) {
-                    Spacer().frame(height: 52)
+                    Spacer().frame(height: 100)
                     
-                    Header(title: headerTitle)
-                        .frame(maxWidth: 480, alignment: .leading)
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(headerTitle)
+                            .font(.custom("OpenSans-SemiBold", size: 30))
+                            .foregroundColor(Color("TextColor"))
+                        
+                        if !headerSubtitle.isEmpty {
+                            Text(headerSubtitle)
+                                .font(.custom("OpenSans-Regular", size: 15))
+                                .foregroundColor(Color("TextColor").opacity(0.65))
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 25)
+                    .padding(.bottom, 25)
                     
                     ZStack {
                         switch viewModel.currentStep {
@@ -39,8 +51,8 @@ struct SignUpView: View {
                             EmailVerificationView(viewModel: viewModel)
                         }
                     }
-                    .padding(.horizontal, 20)
-                    .frame(maxWidth: 480)
+                    .padding(.horizontal, 25)
+                    .frame(maxWidth: .infinity)
                     
                     Spacer(minLength: 40)
                 }
@@ -56,15 +68,7 @@ struct SignUpView: View {
             }
             .scrollIndicators(.hidden)
             .scrollBounceBehavior(.basedOnSize)
-        }
-        .overlay(
-            NavigationBar(onBackTap: {
-                focusedField = nil
-                handleBackTap()
-            }), alignment: .top
-        )
-        .onTapGesture {
-            focusedField = nil
+            .scrollDismissesKeyboard(.interactively)
         }
         .ignoresSafeArea(.keyboard, edges: .bottom)
         .onChange(of: viewModel.isSignupComplete) { oldValue, newValue in
@@ -77,23 +81,6 @@ struct SignUpView: View {
         }
     }
     
-    private func handleBackTap() {
-        switch viewModel.currentStep {
-        case .accountDetails:
-            authViewModel.navigate(to: .onboarding)
-        case .chooseUsername:
-            if viewModel.password.isEmpty {
-                authViewModel.signOut()
-                authViewModel.navigate(to: .onboarding)
-            } else {
-                authViewModel.signOut()
-                viewModel.currentStep = .accountDetails
-            }
-        case .emailVerification:
-            viewModel.continueLater()
-        }
-    }
-    
     private var loginRedirectSection: some View {
         HStack(spacing: 4) {
             Text("Already have an account?")
@@ -101,7 +88,7 @@ struct SignUpView: View {
             
             Button {
                 focusedField = nil
-                authViewModel.navigate(to: .login)
+                authViewModel.switchAuthSheet(to: .login)
             } label: {
                 Text("Log in.")
                     .foregroundColor(.blue)
@@ -214,6 +201,13 @@ struct SignUpView: View {
         case .accountDetails: return "Create an Account"
         case .chooseUsername: return "Choose a Username"
         case .emailVerification: return "Verify Your Email"
+        }
+    }
+
+    private var headerSubtitle: String {
+        switch viewModel.currentStep {
+        case .accountDetails: return "Sign up for your Valt account"
+        case .chooseUsername, .emailVerification: return ""
         }
     }
 }

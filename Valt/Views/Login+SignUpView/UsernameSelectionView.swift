@@ -11,11 +11,11 @@ struct UsernameSelectionView: View {
                 .foregroundColor(Color("TextColor").opacity(0.70))
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 4)
-                .padding(.bottom, 2)
+                .padding(.bottom, 25)
             
             AuthInputField(
                 title: "Username",
-                placeholder: "e.g. alex_design",
+                placeholder: "e.g. java_offscript",
                 text: $viewModel.username,
                 field: .username,
                 focusState: $focusedField,

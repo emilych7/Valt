@@ -23,6 +23,7 @@ struct OffsetPageTabView<Content: View>: UIViewRepresentable {
         
         let host = UIHostingController(rootView: content)
         host.view.backgroundColor = .clear
+        context.coordinator.hostingController = host
         
         // Use the host's sizing
         host.view.translatesAutoresizingMaskIntoConstraints = false
@@ -42,6 +43,8 @@ struct OffsetPageTabView<Content: View>: UIViewRepresentable {
     }
     
     func updateUIView(_ scrollView: UIScrollView, context: Context) {
+        context.coordinator.hostingController?.rootView = content
+
         // Prevent fighting with the user's finger
         guard !scrollView.isDragging, !scrollView.isDecelerating else { return }
         
@@ -62,6 +65,7 @@ struct OffsetPageTabView<Content: View>: UIViewRepresentable {
     class Coordinator: NSObject, UIScrollViewDelegate {
         var parent: OffsetPageTabView
         var isProgrammaticUpdate = false
+        var hostingController: UIHostingController<Content>?
         
         init(_ parent: OffsetPageTabView) {
             self.parent = parent

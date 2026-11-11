@@ -25,7 +25,7 @@ struct ForgotPasswordSheet: View {
                             .font(.custom("OpenSans-Regular", size: 14))
                             .foregroundColor(Color("TextColor").opacity(0.7))
                             .multilineTextAlignment(.center)
-                            .padding(.horizontal, 20)
+                            .padding(.horizontal, 25)
                     }
                     
                     VStack(alignment: .leading, spacing: 6) {
@@ -35,7 +35,7 @@ struct ForgotPasswordSheet: View {
                             .padding(.horizontal, 6)
                         
                         TextField("Username or Email", text: $viewModel.resetEmail)
-                            .font(.custom("OpenSans-Regular", size: 15))
+                            .font(.custom("OpenSans-Regular", size: 16))
                             .foregroundColor(Color("TextColor"))
                             .autocorrectionDisabled(true)
                             .textInputAutocapitalization(.never)
@@ -58,7 +58,7 @@ struct ForgotPasswordSheet: View {
                                     .shadow(color: Color.black.opacity(emailFocused ? 0.08 : 0.03), radius: 8, x: 0, y: 3)
                             )
                     }
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, 25)
                     
                     if let success = viewModel.resetSuccessMessage {
                         HStack(spacing: 8) {
@@ -74,7 +74,7 @@ struct ForgotPasswordSheet: View {
                             RoundedRectangle(cornerRadius: 14)
                                 .fill(Color.green.opacity(0.12))
                         )
-                        .padding(.horizontal, 20)
+                        .padding(.horizontal, 25)
                     }
                     
                     if let error = viewModel.resetErrorMessage {
@@ -91,7 +91,7 @@ struct ForgotPasswordSheet: View {
                             RoundedRectangle(cornerRadius: 14)
                                 .fill(Color.red.opacity(0.12))
                         )
-                        .padding(.horizontal, 20)
+                        .padding(.horizontal, 25)
                     }
                     
                     AuthActionButton(
@@ -102,7 +102,7 @@ struct ForgotPasswordSheet: View {
                         emailFocused = false
                         Task { await viewModel.sendPasswordReset() }
                     }
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, 25)
                     
                     Spacer()
                 }

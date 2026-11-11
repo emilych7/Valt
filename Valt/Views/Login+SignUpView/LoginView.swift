@@ -12,20 +12,22 @@ struct LoginView: View {
             
             ScrollView {
                 VStack(spacing: 0) {
-                    Spacer().frame(height: 52)
+                    
+                    Spacer().frame(height: 100)
+                
                     
                     VStack(alignment: .leading, spacing: 6) {
                         Text("Welcome Back")
                             .font(.custom("OpenSans-SemiBold", size: 30))
                             .foregroundColor(Color("TextColor"))
                         
-                        Text("Sign in to your Valt account.")
+                        Text("Sign in to your Valt account")
                             .font(.custom("OpenSans-Regular", size: 15))
                             .foregroundColor(Color("TextColor").opacity(0.65))
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 16)
+                    .padding(.horizontal, 25)
+                    .padding(.bottom, 25)
                     
                     VStack(spacing: 10) {
                         AuthInputField(
@@ -113,8 +115,8 @@ struct LoginView: View {
                         
                         signupRedirectSection
                     }
-                    .padding(.horizontal, 20)
-                    .frame(maxWidth: 480)
+                    .padding(.horizontal, 25)
+                    .frame(maxWidth: .infinity)
                     
                     Spacer(minLength: 40)
                 }
@@ -128,15 +130,7 @@ struct LoginView: View {
             }
             .scrollIndicators(.hidden)
             .scrollBounceBehavior(.basedOnSize)
-        }
-        .overlay(
-            NavigationBar(onBackTap: {
-                focusedField = nil
-                authViewModel.navigate(to: .onboarding)
-            }), alignment: .top
-        )
-        .onTapGesture {
-            focusedField = nil
+            .scrollDismissesKeyboard(.interactively)
         }
         .ignoresSafeArea(.keyboard, edges: .bottom)
         .sheet(isPresented: $viewModel.showForgotPasswordSheet) {
@@ -164,7 +158,7 @@ struct LoginView: View {
             
             Button {
                 focusedField = nil
-                authViewModel.navigate(to: .signup)
+                authViewModel.switchAuthSheet(to: .signup)
             } label: {
                 Text("Sign up.")
                     .foregroundColor(.blue)

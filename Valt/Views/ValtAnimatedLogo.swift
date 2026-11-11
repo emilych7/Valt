@@ -14,111 +14,98 @@ struct ValtAnimatedLogo: View {
     var isActive: Bool = true
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var pulsePhase: Bool = false
-    @State private var rotationAngle: Double = 0.0
+    @State private var startTime: Date? = nil
 
     private var dotDiameter: CGFloat {
         size * 0.30
     }
 
     var body: some View {
-        ZStack {
-            vaultBaseLayer
-            if isPulsing && !reduceMotion {
-                pulsingDotOverlay
+        TimelineView(.animation(paused: !isActive || reduceMotion)) { timeline in
+            let referenceDate = startTime ?? timeline.date
+            let elapsed = max(0.0, timeline.date.timeIntervalSince(referenceDate))
+
+            let angle: Double = {
+                guard isSpinning && !reduceMotion else { return 0.0 }
+                switch spinStyle {
+                case .continuous:
+                    guard spinDuration > 0 else { return 0.0 }
+                    let normalized = (elapsed.truncatingRemainder(dividingBy: spinDuration)) / spinDuration
+                    return normalized * 360.0
+                case .dial:
+                    let dialProgress = sin(elapsed * (2.0 * .pi / 2.2))
+                    return dialProgress * 20.0
+                }
+            }()
+
+            let pulseAmount: CGFloat = {
+                guard isPulsing && !reduceMotion else { return 0.0 }
+                let pulsePeriod = 2.5
+                let cycleProgress = (elapsed.truncatingRemainder(dividingBy: pulsePeriod)) / pulsePeriod
+                return CGFloat(sin(cycleProgress * 2.0 * .pi - (.pi / 2.0)) * 0.5 + 0.5)
+            }()
+
+            ZStack {
+                vaultBaseLayer(angle: angle)
+                if isPulsing && !reduceMotion {
+                    subtlePulsingDotOverlay(pulseAmount: pulseAmount)
+                }
             }
+            .frame(width: size, height: size)
         }
-        .frame(width: size, height: size)
         .onAppear {
-            startAnimations()
-        }
-        .onChange(of: isActive) { active in
-            if active {
-                startAnimations()
+            if startTime == nil {
+                startTime = Date()
             }
         }
         .onDisappear {
-            resetAnimations()
+            startTime = nil
         }
     }
 
-    private var vaultBaseLayer: some View {
+    private func vaultBaseLayer(angle: Double) -> some View {
         Image("launchscreen")
             .resizable()
             .aspectRatio(contentMode: .fit)
             .frame(width: size, height: size)
-            .rotationEffect(.degrees(rotationAngle))
+            .rotationEffect(.degrees(angle))
     }
 
-    private var pulsingDotOverlay: some View {
+    private func subtlePulsingDotOverlay(pulseAmount: CGFloat) -> some View {
         ZStack {
             Circle()
                 .fill(
                     RadialGradient(
                         gradient: Gradient(colors: [
-                            Color("ValtRed").opacity(pulsePhase ? 0.45 : 0.15),
-                            Color("ValtRed").opacity(pulsePhase ? 0.20 : 0.05),
+                            Color("ValtRed").opacity(0.18 * pulseAmount + 0.05),
+                            Color("ValtRed").opacity(0.06 * pulseAmount + 0.01),
                             Color("ValtRed").opacity(0)
                         ]),
                         center: .center,
                         startRadius: dotDiameter * 0.15,
-                        endRadius: dotDiameter * 0.95
+                        endRadius: dotDiameter * 0.85
                     )
                 )
-                .frame(width: dotDiameter * 2.2, height: dotDiameter * 2.2)
-                .scaleEffect(pulsePhase ? 1.25 : 0.90)
-                .blur(radius: pulsePhase ? 10 : 4)
+                .frame(width: dotDiameter * 1.7, height: dotDiameter * 1.7)
+                .scaleEffect(1.0 + 0.10 * pulseAmount)
+                .blur(radius: 4.0 * pulseAmount + 2.0)
 
             Circle()
                 .fill(Color("ValtRed"))
                 .frame(width: dotDiameter, height: dotDiameter)
-                .blur(radius: pulsePhase ? 12 : 5)
-                .opacity(pulsePhase ? 0.75 : 0.25)
-                .scaleEffect(pulsePhase ? 1.15 : 0.95)
+                .blur(radius: 5.0 * pulseAmount + 2.5)
+                .opacity(0.28 * pulseAmount + 0.10)
+                .scaleEffect(0.98 + 0.06 * pulseAmount)
 
             Circle()
                 .fill(Color("ValtRed"))
                 .frame(width: dotDiameter, height: dotDiameter)
-                .scaleEffect(pulsePhase ? 1.05 : 0.97)
+                .scaleEffect(0.98 + 0.04 * pulseAmount)
                 .shadow(
-                    color: Color("ValtRed").opacity(pulsePhase ? 0.7 : 0.3),
-                    radius: pulsePhase ? 8 : 2
+                    color: Color("ValtRed").opacity(0.35 * pulseAmount + 0.15),
+                    radius: 3.5 * pulseAmount + 1.5
                 )
         }
         .allowsHitTesting(false)
-    }
-
-    private func startAnimations() {
-        guard !reduceMotion else { return }
-
-        rotationAngle = 0.0
-        pulsePhase = false
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            if isPulsing {
-                withAnimation(.easeInOut(duration: 1.8).repeatForever(autoreverses: true)) {
-                    pulsePhase = true
-                }
-            }
-
-            if isSpinning {
-                switch spinStyle {
-                case .continuous:
-                    withAnimation(.linear(duration: spinDuration).repeatForever(autoreverses: false)) {
-                        rotationAngle = 360.0
-                    }
-                case .dial:
-                    rotationAngle = -20.0
-                    withAnimation(.easeInOut(duration: 2.2).repeatForever(autoreverses: true)) {
-                        rotationAngle = 20.0
-                    }
-                }
-            }
-        }
-    }
-
-    private func resetAnimations() {
-        pulsePhase = false
-        rotationAngle = 0.0
     }
 }

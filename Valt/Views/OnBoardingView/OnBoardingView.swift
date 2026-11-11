@@ -15,8 +15,12 @@ struct OnBoardingView: View {
     private var contentLayer: some View {
         OffsetPageTabView(offset: $onBoardingViewModel.offset) {
             HStack(spacing: 0) {
-                ForEach(boardingScreens) { screen in
-                    OnBoardingPage(screen: screen)
+                ForEach(boardingScreens.indices, id: \.self) { index in
+                    OnBoardingPage(
+                        screen: boardingScreens[index],
+                        pageIndex: index,
+                        onBoardingViewModel: onBoardingViewModel
+                    )
                 }
             }
         }
@@ -30,16 +34,43 @@ struct OnBoardingView: View {
         }
     }
     
-    private var ellipseBackground: some View {
+    private var ellipseOffsetY: CGFloat {
         let screenWidth = onBoardingViewModel.getScreenBounds().width
         let screenHeight = onBoardingViewModel.getScreenBounds().height
-        let ellipseOffsetY = -screenHeight * (screenHeight < 750 ? 0.18 : 0.22)
+        let baseOffsetY = -screenHeight * (screenHeight < 750 ? 0.18 : 0.22)
+        guard screenWidth > 0 else { return baseOffsetY }
+
+        let slide = onBoardingViewModel.offset / screenWidth
+        let slide2Factor = max(0.0, 1.0 - abs(slide - 1.0))
+        let smoothFactor = sin(slide2Factor * .pi / 2.0)
+        let extraY: CGFloat = screenHeight * (screenHeight < 750 ? 0.045 : 0.052)
+
+        return baseOffsetY + (extraY * smoothFactor)
+    }
+
+    private var ellipseBackground: some View {
+        let screenWidth = onBoardingViewModel.getScreenBounds().width
 
         return Ellipse()
             .fill(Color("TextFieldBackground"))
-            .frame(width: screenWidth - 20, height: screenWidth + 40)
+            .overlay(
+                Ellipse()
+                    .stroke(
+                        LinearGradient(
+                            colors: [
+                                Color("TextFieldBackground"),
+                                Color("ValtRed").opacity(0.60),
+                                Color("ValtRed").opacity(0.95)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1.0
+                    )
+            )
+            .frame(width: screenWidth - 20, height: screenWidth + 50)
             .scaleEffect(2.1)
-            .rotationEffect(.degrees(-40))
+            .rotationEffect(.degrees(-20))
             .rotationEffect(.degrees(onBoardingViewModel.getRotation()))
             .offset(y: ellipseOffsetY)
             .ignoresSafeArea(.keyboard)
@@ -57,10 +88,14 @@ struct OnBoardingView: View {
                         .font(.custom("OpenSans-Bold", size: 17))
                         .foregroundColor(Color("TextColor"))
                         .frame(maxWidth: .infinity)
-                        .frame(height: 52)
+                        .frame(height: 58)
                         .background(
                             Capsule(style: .continuous)
-                                .fill(Color("BubbleColor"))
+                                .fill(Color("AppBackgroundColor"))
+                        )
+                        .overlay(
+                            Capsule(style: .continuous)
+                                .stroke(Color("BubbleColor"), lineWidth: 2)
                         )
                 }
                 .buttonStyle(TactileScaleButtonStyle())
@@ -74,15 +109,12 @@ struct OnBoardingView: View {
                         .font(.custom("OpenSans-Bold", size: 17))
                         .foregroundColor(Color("TextColor"))
                         .frame(maxWidth: .infinity)
-                        .frame(height: 52)
+                        .frame(height: 58)
                         .background(
                             Capsule(style: .continuous)
-                                .fill(Color("AppBackgroundColor"))
+                                .fill(Color("BubbleColor"))
                         )
-                        .overlay(
-                            Capsule(style: .continuous)
-                                .stroke(Color("BubbleColor"), lineWidth: 2)
-                        )
+                        
                 }
                 .buttonStyle(TactileScaleButtonStyle())
             }
@@ -171,18 +203,22 @@ struct TactileScaleButtonStyle: ButtonStyle {
 
 struct OnBoardingPage: View {
     let screen: BoardingScreen
-    @EnvironmentObject private var onBoardingViewModel: OnBoardingViewModel
+    let pageIndex: Int
+    @ObservedObject var onBoardingViewModel: OnBoardingViewModel
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var isCurrentPage: Bool {
-        let index = onBoardingViewModel.getIndex()
-        if screen.image == "screen1" || screen.image == "launchscreen" {
-            return index == 0
-        } else if screen.image == "screen2" {
-            return index == 1
-        } else if screen.image == "screen3" {
-            return index == 2
-        }
-        return false
+        onBoardingViewModel.getIndex() == pageIndex
+    }
+
+    private var progress: CGFloat {
+        guard !reduceMotion else { return 0 }
+        let screenWidth = onBoardingViewModel.getScreenBounds().width
+        guard screenWidth > 0 else { return 0 }
+        let currentOffset = onBoardingViewModel.offset
+        let pageTarget = CGFloat(pageIndex) * screenWidth
+        let p = (currentOffset - pageTarget) / screenWidth
+        return max(min(p, 1.5), -1.5)
     }
 
     private var assetSize: CGFloat {
@@ -195,9 +231,20 @@ struct OnBoardingPage: View {
 
             imageSection
                 .frame(width: onBoardingViewModel.getScreenBounds().width, height: assetSize)
+                .offset(
+                    x: -progress * (1.0 - min(abs(progress), 1.0)) * 22.0,
+                    y: -pow(abs(progress), 1.8) * 48.0
+                )
+                .rotationEffect(.degrees(Double(progress) * 24.0))
+                .opacity(max(0.0, 1.0 - pow(abs(progress), 1.6) * 0.85))
 
             centeredTextSection
                 .padding(.top, 50)
+                .offset(
+                    x: -progress * (1.0 - min(abs(progress), 1.0)) * 32.0,
+                    y: -pow(abs(progress), 1.8) * 64.0
+                )
+                .rotationEffect(.degrees(Double(progress) * 19.0))
 
             Spacer(minLength: 35)
         }
@@ -212,7 +259,7 @@ struct OnBoardingPage: View {
         if screen.image == "screen1" || screen.image == "launchscreen" {
             ValtAnimatedLogo(size: assetSize, isSpinning: true, spinDuration: 15.0, isActive: isCurrentPage)
         } else if screen.image == "screen2" {
-            ValtGlisteningNotes(size: assetSize, isActive: isCurrentPage)
+            ValtTiltCardsView(size: assetSize, isActive: isCurrentPage)
         } else if screen.image == "screen3" {
             ValtThoughtCloud(size: assetSize, isActive: isCurrentPage)
         } else {

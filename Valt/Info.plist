@@ -44,5 +44,7 @@
 		<key>UIImageName</key>
 		<string>launchscreen</string>
 	</dict>
+	<key>NSMotionUsageDescription</key>
+	<string>Valt uses motion to create interactive tilt effects for your notes.</string>
 </dict>
 </plist>

@@ -10,17 +10,17 @@ struct Socials: View {
     var body: some View {
         VStack(spacing: 14) {
             HStack(spacing: 12) {
-                Rectangle()
-                    .fill(Color("TextColor").opacity(0.12))
-                    .frame(height: 1)
+//                Rectangle()
+//                    .fill(Color("TextColor").opacity(0.12))
+//                    .frame(height: 1)
                 
                 Text(title)
-                    .foregroundColor(Color("TextColor").opacity(0.65))
+                    .foregroundColor(Color("TextColor"))
                     .font(.custom("OpenSans-Regular", size: 14))
                 
-                Rectangle()
-                    .fill(Color("TextColor").opacity(0.12))
-                    .frame(height: 1)
+//                Rectangle()
+//                    .fill(Color("TextColor").opacity(0.12))
+//                    .frame(height: 1)
             }
             .padding(.top, 10)
             
@@ -47,15 +47,10 @@ struct Socials: View {
                         }
                     }
                     .frame(maxWidth: .infinity)
-                    .frame(height: 48)
+                    .frame(height: 58)
                     .background(
                         Capsule(style: .continuous)
-                            .fill(Color("TextFieldBackground"))
-                            .overlay(
-                                Capsule(style: .continuous)
-                                    .stroke(Color("TextColor").opacity(0.12), lineWidth: 1)
-                            )
-                            .shadow(color: Color.black.opacity(0.03), radius: 6, x: 0, y: 2)
+                            .fill(Color("BubbleColor"))
                     )
                 }
                 .buttonStyle(.plain)
@@ -78,15 +73,10 @@ struct Socials: View {
                             .foregroundColor(Color("TextColor"))
                     }
                     .frame(maxWidth: .infinity)
-                    .frame(height: 48)
+                    .frame(height: 58)
                     .background(
                         Capsule(style: .continuous)
-                            .fill(Color("TextFieldBackground"))
-                            .overlay(
-                                Capsule(style: .continuous)
-                                    .stroke(Color("TextColor").opacity(0.12), lineWidth: 1)
-                            )
-                            .shadow(color: Color.black.opacity(0.03), radius: 6, x: 0, y: 2)
+                            .fill(Color("BubbleColor"))
                     )
                 }
                 .buttonStyle(.plain)

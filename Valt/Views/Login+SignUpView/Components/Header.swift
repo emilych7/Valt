@@ -10,8 +10,8 @@ struct Header: View {
                 .foregroundColor(Color("TextColor"))
             Spacer()
         }
-        .padding(.horizontal, 20)
-        .padding(.bottom, 15)
+        .padding(.horizontal, 25)
+        .padding(.bottom, 25)
         .padding(.top, 15)
     }
 }

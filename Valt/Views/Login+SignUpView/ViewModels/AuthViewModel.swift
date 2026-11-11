@@ -7,7 +7,9 @@ class AuthViewModel: ObservableObject {
     @Published var isAuthenticated: Bool = false
     @Published var isProfileComplete: Bool = false
     @Published var navigationMode: AppRoute = .onboarding
+    @Published var pendingAuthRoute: AppRoute? = nil
     @Published var isLoading = false
+    @Published var isInitialCheckComplete = false
     
     private let userRepository: UserRepositoryProtocol
     private var authHandle: AuthStateDidChangeListenerHandle?
@@ -39,7 +41,15 @@ class AuthViewModel: ObservableObject {
                     self.isProfileComplete = false
                     self.navigationMode = .onboarding
                     self.isLoading = false
+                    self.isInitialCheckComplete = true
                 }
+            }
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) { [weak self] in
+            guard let self = self else { return }
+            if !self.isInitialCheckComplete {
+                self.isInitialCheckComplete = true
             }
         }
     }
@@ -63,6 +73,7 @@ class AuthViewModel: ObservableObject {
                     self.signOut()
                 }
             }
+            self.isInitialCheckComplete = true
         }
     }
 
@@ -73,6 +84,15 @@ class AuthViewModel: ObservableObject {
     
     func navigate(to route: AppRoute) {
         self.navigationMode = route
+    }
+
+    func switchAuthSheet(to route: AppRoute) {
+        if navigationMode == .login || navigationMode == .signup {
+            pendingAuthRoute = route
+            navigationMode = .onboarding
+        } else {
+            navigationMode = route
+        }
     }
 
     func signOut() {
