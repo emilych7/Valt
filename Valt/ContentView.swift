@@ -9,6 +9,21 @@ struct ContentView: View {
     @StateObject private var tabManager = TabManager()
     @State private var selectedDraft: Draft? = nil
 
+    private var isAuthSheetPresented: Binding<Bool> {
+        Binding<Bool>(
+            get: {
+                authViewModel.navigationMode == .login || authViewModel.navigationMode == .signup
+            },
+            set: { isPresented in
+                if !isPresented {
+                    if authViewModel.navigationMode == .login || authViewModel.navigationMode == .signup {
+                        authViewModel.navigate(to: .onboarding)
+                    }
+                }
+            }
+        )
+    }
+
     var body: some View {
         Group {
             ZStack {
@@ -24,6 +39,7 @@ struct ContentView: View {
         .environmentObject(tabManager)
         .onReceive(NotificationCenter.default.publisher(for: .userDidSignOut)) { _ in
             selectedDraft = nil
+            tabManager.setTabBarHidden(false)
         }
     }
     
@@ -32,11 +48,7 @@ struct ContentView: View {
             Color("AppBackgroundColor")
                 .ignoresSafeArea()
             
-            VStack(spacing: 15) {
-                ProgressView()
-                    .controlSize(.regular)
-                    .tint(Color("TextColor"))
-            }
+            ValtAnimatedLogo(size: 84, isSpinning: true)
         }
         .transition(.opacity)
         .zIndex(1)
@@ -45,41 +57,45 @@ struct ContentView: View {
     @ViewBuilder
     private var authFlowView: some View {
         ZStack {
-            switch authViewModel.navigationMode {
-                case .onboarding:
-                    OnBoardingView()
-                        .environmentObject(onBoardingViewModel)
-                        .environmentObject(authViewModel)
-                        .environmentObject(userViewModel)
-
-                case .login:
-                    LoginView()
-                        .environmentObject(authViewModel)
-                        .environmentObject(bannerManager)
-                        .environmentObject(userViewModel)
-                        .transition(.asymmetric(
-                            insertion: .move(edge: .bottom),
-                            removal: .move(edge: .bottom)
-                        ))
-
-                case .signup:
-                    SignUpView(userViewModel: userViewModel)
-                        .environmentObject(authViewModel)
-                        .environmentObject(bannerManager)
-                        .environmentObject(userViewModel)
-                        .transition(.asymmetric(
-                            insertion: .move(edge: .bottom),
-                            removal: .move(edge: .bottom)
-                    ))
-                case .profile:
-                    MainTabView(userViewModel: userViewModel, selectedDraft: $selectedDraft)
-                        .environmentObject(authViewModel)
-                        .environmentObject(settingsViewModel)
-                        .environmentObject(bannerManager)
-                        .environmentObject(userViewModel)
-                        .environmentObject(tabManager)
+            if authViewModel.navigationMode == .profile {
+                MainTabView(userViewModel: userViewModel, selectedDraft: $selectedDraft)
+                    .environmentObject(authViewModel)
+                    .environmentObject(settingsViewModel)
+                    .environmentObject(bannerManager)
+                    .environmentObject(userViewModel)
+                    .environmentObject(tabManager)
+            } else {
+                OnBoardingView()
+                    .environmentObject(onBoardingViewModel)
+                    .environmentObject(authViewModel)
+                    .environmentObject(userViewModel)
             }
         }
-        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: authViewModel.navigationMode)
+        .sheet(isPresented: isAuthSheetPresented) {
+            authSheetView
+                .presentationDetents([.fraction(0.93)])
+                .presentationDragIndicator(.visible)
+                .presentationCornerRadius(28)
+                .preferredColorScheme(settingsViewModel.colorScheme)
+        }
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: authViewModel.navigationMode == .profile)
+    }
+
+    @ViewBuilder
+    private var authSheetView: some View {
+        Group {
+            if authViewModel.navigationMode == .login {
+                LoginView()
+                    .environmentObject(authViewModel)
+                    .environmentObject(bannerManager)
+                    .environmentObject(userViewModel)
+            } else {
+                SignUpView(userViewModel: userViewModel)
+                    .environmentObject(authViewModel)
+                    .environmentObject(bannerManager)
+                    .environmentObject(userViewModel)
+            }
+        }
+        .animation(.easeInOut(duration: 0.25), value: authViewModel.navigationMode)
     }
 }

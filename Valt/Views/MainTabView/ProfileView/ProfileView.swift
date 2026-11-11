@@ -208,6 +208,11 @@ struct ProfileView: View {
                 }
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .userDidSignOut)) { _ in
+            showSettings = false
+            showNote = false
+            selectedDraft = nil
+        }
         .environmentObject(tabManager)
         .environmentObject(bannerManager)
         .environmentObject(userViewModel)

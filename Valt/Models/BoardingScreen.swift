@@ -9,7 +9,22 @@ struct BoardingScreen: Identifiable {
 }
 
 var boardingScreens: [BoardingScreen] = [
-    BoardingScreen(image: "screen1", title: "Welcome to Valt", subtitle: "A Safe Space for Your Deepest Thoughts", description: "Valt is your private vault. It’s a space to write without fear. No leaks. No judgment. Just you and your thoughts."),
-    BoardingScreen(image: "screen2", title: "Write, Reflect, Grow", subtitle: "Let Your Mind Wander", description: "Create meaningful notes in Home. After 4 entries, Valt’s AI will generate custom prompts that help you dive even deeper."),
-    BoardingScreen(image: "screen3", title: "Discreet & Personal", subtitle: "Your Thoughts. Locked Tight", description: "Only you can access your Valt. Notes stay encrypted and out of sight. Want extra privacy? AI doesn’t need to see it either."),
+    BoardingScreen(
+        image: "screen1",
+        title: "Welcome to Valt",
+        subtitle: "A Home For The Messy Mind",
+        description: "Valt was created for people who have a lot of thought. Sometimes too much to write with pencil on paper or too important to risk losing. It needs to be safe to think honestly."
+    ),
+    BoardingScreen(
+        image: "screen2",
+        title: "Thought Synthesis",
+        subtitle: "Can It Make Sense?",
+        description: "You write some thoughts and save a draft. You save a few more. Valt creates prompts for you to help you make sense of your thoughts."
+    ),
+    BoardingScreen(
+        image: "screen3",
+        title: "Autonomy",
+        subtitle: "We Love Autonomy",
+        description: "Valt is your space. You can keep drafts private forever or publish them. See other people's thoughts, share them, repost them. Run the app without AI. It is your space."
+    ),
 ]

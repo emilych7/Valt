@@ -109,19 +109,17 @@ struct SettingsView: View {
             SectionHeader(title: "Support")
             
             Button(action: {
-                showLogOutConfirmation =  true
+                showLogOutConfirmation = true
             }) {
                 SettingsRow(title: "Log Out", icon: "logoutIcon")
                     .padding(.horizontal, 10)
             }
             .alert("Are you sure you want to log out?", isPresented: $showLogOutConfirmation) {
                 Button("Cancel", role: .cancel) { }
-                Button("Continue") {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        authViewModel.signOut()
-                    }
+                Button("Continue", role: .destructive) {
+                    dismiss()
+                    authViewModel.signOut()
                 }
-                .foregroundStyle(Color(("TextColor")))
             }
             
             NavigationLink(destination: Text("Report an Issue")) { SettingsRow(title: "Report an Issue", icon: "reportIcon") }

@@ -66,15 +66,7 @@ final class UserViewModel: ObservableObject {
         authHandler = Auth.auth().addStateDidChangeListener { [weak self] _, user in
             Task { @MainActor [weak self] in
                 guard let self = self else { return }
-                guard let user = user else {
-                    self.clearData()
-                    return
-                }
-                
-                let isFederated = user.providerData.contains { 
-                    $0.providerID == "google.com" || $0.providerID == "apple.com" 
-                }
-                guard isFederated || user.isEmailVerified else {
+                guard user != nil else {
                     self.clearData()
                     return
                 }

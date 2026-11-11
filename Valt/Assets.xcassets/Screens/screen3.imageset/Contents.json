@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "Onboarding(3:3)-Light.pdf",
+      "filename" : "screen3_light.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
@@ -12,11 +12,12 @@
           "value" : "dark"
         }
       ],
-      "filename" : "Onboarding(3:3)-Dark.pdf",
+      "filename" : "screen3_dark.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
+      "filename" : "screen3_light@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
@@ -27,10 +28,12 @@
           "value" : "dark"
         }
       ],
+      "filename" : "screen3_dark@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
+      "filename" : "screen3_light@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     },
@@ -41,6 +44,7 @@
           "value" : "dark"
         }
       ],
+      "filename" : "screen3_dark@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }

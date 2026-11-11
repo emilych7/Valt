@@ -24,23 +24,25 @@ struct SignUpView: View {
             
             ScrollView {
                 VStack(spacing: 0) {
-                    Spacer().frame(height: UIScreen.main.bounds.height * 0.10)
+                    Spacer().frame(height: 52)
                     
                     Header(title: headerTitle)
+                        .frame(maxWidth: 480, alignment: .leading)
                     
                     ZStack {
                         switch viewModel.currentStep {
                         case .accountDetails:
                             accountDetailsFields
-                        case .emailVerification:
-                            EmailVerificationView(viewModel: viewModel)
                         case .chooseUsername:
                             UsernameSelectionView(viewModel: viewModel)
+                        case .emailVerification:
+                            EmailVerificationView(viewModel: viewModel)
                         }
                     }
                     .padding(.horizontal, 20)
+                    .frame(maxWidth: 480)
                     
-                    Spacer(minLength: 50)
+                    Spacer(minLength: 40)
                 }
             }
             .onSubmit {
@@ -70,32 +72,32 @@ struct SignUpView: View {
                 authViewModel.finalizeAuthTransition()
             }
         }
+        .onAppear {
+            viewModel.syncAuthenticatedUser()
+        }
     }
     
     private func handleBackTap() {
         switch viewModel.currentStep {
         case .accountDetails:
             authViewModel.navigate(to: .onboarding)
-        case .emailVerification:
-            viewModel.stopVerificationPolling()
-            authViewModel.signOut()
-            viewModel.currentStep = .accountDetails
         case .chooseUsername:
             if viewModel.password.isEmpty {
-                // User authenticated via Google or Apple SSO
                 authViewModel.signOut()
                 authViewModel.navigate(to: .onboarding)
             } else {
-                viewModel.currentStep = .emailVerification
-                viewModel.startVerificationPolling()
+                authViewModel.signOut()
+                viewModel.currentStep = .accountDetails
             }
+        case .emailVerification:
+            viewModel.continueLater()
         }
     }
     
     private var loginRedirectSection: some View {
         HStack(spacing: 4) {
             Text("Already have an account?")
-                .foregroundColor(Color("TextColor"))
+                .foregroundColor(Color("TextColor").opacity(0.75))
             
             Button {
                 focusedField = nil
@@ -103,32 +105,84 @@ struct SignUpView: View {
             } label: {
                 Text("Log in.")
                     .foregroundColor(.blue)
+                    .font(.custom("OpenSans-SemiBold", size: 15))
             }
             .buttonStyle(.plain)
         }
-        .padding(.vertical, 15)
-        .font(.custom("OpenSans-Regular", size: 17))
+        .padding(.vertical, 16)
+        .font(.custom("OpenSans-Regular", size: 15))
     }
     
     private var accountDetailsFields: some View {
-        VStack(spacing: 5) {
-            AuthInputField(title: "Email", placeholder: "Email", text: $viewModel.email, keyboardType: .emailAddress, field: .email, focusState: $focusedField, borderColor: viewModel.usernameBorderColor)
-                .submitLabel(.next)
+        VStack(spacing: 10) {
+            AuthInputField(
+                title: "Email",
+                placeholder: "Enter email",
+                text: $viewModel.email,
+                keyboardType: .emailAddress,
+                field: .email,
+                focusState: $focusedField,
+                borderColor: viewModel.usernameBorderColor
+            )
+            .submitLabel(.next)
             
-            AuthInputField(title: "Password", placeholder: "Password", text: $viewModel.password, isSecure: true, field: .password, focusState: $focusedField, borderColor: viewModel.passwordBorderColor)
-                .submitLabel(.next)
-                .popoverTip(passwordTip, arrowEdge: .bottom)
-                .onChange(of: viewModel.passwordError) { _, newValue in
-                    if let errorMessage = newValue {
-                        passwordTip.message = Text(errorMessage)
-                        ValidationErrorTip.passwordHasError = true
-                    } else {
-                        ValidationErrorTip.passwordHasError = false
-                    }
+            AuthInputField(
+                title: "Password",
+                placeholder: "Enter password",
+                text: $viewModel.password,
+                isSecure: true,
+                field: .password,
+                focusState: $focusedField,
+                borderColor: viewModel.passwordBorderColor
+            )
+            .submitLabel(.next)
+            .popoverTip(passwordTip, arrowEdge: .bottom)
+            .onChange(of: viewModel.passwordError) { _, newValue in
+                if let errorMessage = newValue {
+                    passwordTip.message = Text(errorMessage)
+                    ValidationErrorTip.passwordHasError = true
+                } else {
+                    ValidationErrorTip.passwordHasError = false
                 }
+            }
             
-            AuthInputField(title: "Confirm Password", placeholder: "Re-Enter Password", text: $viewModel.passwordConfirmation, isSecure: true, field: .passwordConfirmation, focusState: $focusedField, borderColor: viewModel.passwordBorderColor)
-                .submitLabel(.done)
+            AuthInputField(
+                title: "Confirm Password",
+                placeholder: "Re-enter password",
+                text: $viewModel.passwordConfirmation,
+                isSecure: true,
+                field: .passwordConfirmation,
+                focusState: $focusedField,
+                borderColor: viewModel.passwordBorderColor
+            )
+            .submitLabel(.done)
+            
+            if let errorMessage = viewModel.errorMessage {
+                HStack(alignment: .top, spacing: 10) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 15))
+                        .foregroundColor(.red)
+                        .padding(.top, 2)
+                    
+                    Text(errorMessage)
+                        .foregroundColor(Color("TextColor"))
+                        .font(.custom("OpenSans-Regular", size: 14))
+                        .lineSpacing(3)
+                        .fixedSize(horizontal: false, vertical: true)
+                    
+                    Spacer(minLength: 0)
+                }
+                .padding(14)
+                .background(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(Color.red.opacity(0.10))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .stroke(Color.red.opacity(0.25), lineWidth: 1)
+                        )
+                )
+                .padding(.vertical, 4)
+            }
             
             AuthActionButton(
                 title: "Sign Up",
@@ -136,19 +190,20 @@ struct SignUpView: View {
                 isDisabled: !viewModel.canSubmitStep1
             ) {
                 focusedField = nil
-                Task { await
-                    viewModel.validateAndStartSignup()
+                Task {
+                    await viewModel.validateAndStartSignup()
                 }
             }
+            .padding(.top, 4)
             
-            Socials(title: "or sign up using", isGoogleLoading: viewModel.isGoogleLoading) {
+            Socials(title: "or continue with", isGoogleLoading: viewModel.isGoogleLoading) {
                 Task {
-                    print("Google Sign Up button tapped")
                     await viewModel.signInWithGoogle()
                 }
             } onAppleTap: {
                 viewModel.performAppleSignIn()
             }
+            .padding(.top, 4)
             
             loginRedirectSection
         }
@@ -157,8 +212,8 @@ struct SignUpView: View {
     private var headerTitle: String {
         switch viewModel.currentStep {
         case .accountDetails: return "Create an Account"
-        case .emailVerification: return "Verify Your Email"
         case .chooseUsername: return "Choose a Username"
+        case .emailVerification: return "Verify Your Email"
         }
     }
 }

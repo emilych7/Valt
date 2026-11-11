@@ -6,7 +6,7 @@ import CryptoKit
 
 @MainActor
 class SignUpViewModel: NSObject, ObservableObject {
-    enum SignupStep { case accountDetails, emailVerification, chooseUsername }
+    enum SignupStep { case accountDetails, chooseUsername, emailVerification }
     enum Field { case email, password, passwordConfirmation, username }
     
     @Published var currentStep: SignupStep = .accountDetails
@@ -24,6 +24,7 @@ class SignUpViewModel: NSObject, ObservableObject {
     @Published var emailError: String?
     @Published var passwordError: String?
     @Published var isSignupComplete = false
+    @Published var emailSentConfirmation = false
     @Published var currentNonce: String?
     
     private let userRepository: UserRepositoryProtocol
@@ -41,6 +42,14 @@ class SignUpViewModel: NSObject, ObservableObject {
         self.userViewModel = userViewModel
         self.userRepository = userRepository
         super.init()
+        syncAuthenticatedUser()
+    }
+    
+    func syncAuthenticatedUser() {
+        if let user = Auth.auth().currentUser, currentStep == .accountDetails {
+            self.email = user.email ?? ""
+            self.currentStep = .chooseUsername
+        }
     }
     
     func validateAndStartSignup() async {
@@ -49,7 +58,6 @@ class SignUpViewModel: NSObject, ObservableObject {
         
         if password != passwordConfirmation {
             passwordError = "Passwords do not match."
-            print("Passwords do not match.")
             ValidationErrorTip.passwordHasError = true
             return
         }
@@ -58,23 +66,21 @@ class SignUpViewModel: NSObject, ObservableObject {
             let missing = AuthValidator.getMissingValidation(password)
             passwordBorderColor = "ValtRed"
             passwordError = "Password missing: \(missing.joined(separator: ", "))"
-            print("Error: \(missing.joined(separator: ", "))")
             ValidationErrorTip.passwordHasError = true
             return
         }
         
         ValidationErrorTip.passwordHasError = false
-        await createAccountAndVerify()
+        await createAccountAndProceed()
     }
     
-    private func createAccountAndVerify() async {
+    private func createAccountAndProceed() async {
         isLoading = true
+        errorMessage = nil
         do {
             let result = try await Auth.auth().createUser(withEmail: email, password: password)
-            try await result.user.sendEmailVerification()
-            print("Going to email verification step.")
-            self.currentStep = .emailVerification
-            startVerificationPolling()
+            try? await result.user.sendEmailVerification()
+            self.currentStep = .chooseUsername
         } catch {
             self.errorMessage = error.localizedDescription
         }
@@ -82,7 +88,6 @@ class SignUpViewModel: NSObject, ObservableObject {
     }
     
     func startVerificationPolling() {
-        print("Starting verification timer...")
         verificationTimer?.invalidate()
         verificationTimer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { [weak self] timer in
             Task { @MainActor in
@@ -90,7 +95,7 @@ class SignUpViewModel: NSObject, ObservableObject {
                 if let user = Auth.auth().currentUser, user.isEmailVerified {
                     timer.invalidate()
                     self?.verificationTimer = nil
-                    self?.currentStep = .chooseUsername
+                    self?.isSignupComplete = true
                 }
             }
         }
@@ -101,11 +106,34 @@ class SignUpViewModel: NSObject, ObservableObject {
         verificationTimer = nil
     }
     
+    func continueLater() {
+        stopVerificationPolling()
+        self.isSignupComplete = true
+    }
+    
+    func checkVerificationStatus() async {
+        isLoading = true
+        errorMessage = nil
+        defer { isLoading = false }
+        do {
+            try await Auth.auth().currentUser?.reload()
+            if let user = Auth.auth().currentUser, user.isEmailVerified {
+                stopVerificationPolling()
+                self.isSignupComplete = true
+            } else {
+                self.errorMessage = "Email not yet verified. Check your inbox or tap 'Verify Later'."
+            }
+        } catch {
+            self.errorMessage = error.localizedDescription
+        }
+    }
+    
     func resendEmail() {
-        print("Resending email...")
         Task {
             do {
                 try await Auth.auth().currentUser?.sendEmailVerification()
+                self.emailSentConfirmation = true
+                self.errorMessage = nil
             } catch {
                 self.errorMessage = error.localizedDescription
             }
@@ -124,10 +152,33 @@ class SignUpViewModel: NSObject, ObservableObject {
         errorMessage = nil
         
         do {
-            guard let currentUser = Auth.auth().currentUser else { return }
+            guard let currentUser = Auth.auth().currentUser else {
+                self.errorMessage = "Session expired. Please sign up again."
+                isLoading = false
+                return
+            }
+            
+            let isAvailable = try await userRepository.isUsernameAvailable(uname)
+            guard isAvailable else {
+                self.errorMessage = "This username is already taken."
+                isLoading = false
+                return
+            }
+            
             let emailToUse = currentUser.email ?? self.email
             try await userRepository.createProfile(uid: currentUser.uid, username: uname, email: emailToUse)
-            self.isSignupComplete = true
+            
+            try? await currentUser.reload()
+            let isFederated = currentUser.providerData.contains {
+                $0.providerID == "google.com" || $0.providerID == "apple.com"
+            }
+            
+            if isFederated || currentUser.isEmailVerified {
+                self.isSignupComplete = true
+            } else {
+                self.currentStep = .emailVerification
+                self.startVerificationPolling()
+            }
         } catch {
             self.errorMessage = error.localizedDescription
         }

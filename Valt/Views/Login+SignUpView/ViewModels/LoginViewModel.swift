@@ -19,6 +19,12 @@ class LoginViewModel: NSObject, ObservableObject {
     @Published var passwordBorderColor = "TextColor"
     @Published var currentNonce: String?
     
+    @Published var showForgotPasswordSheet = false
+    @Published var resetEmail = ""
+    @Published var isSendingReset = false
+    @Published var resetErrorMessage: String?
+    @Published var resetSuccessMessage: String?
+    
     private let userRepository: UserRepositoryProtocol
 
     init(userRepository: UserRepositoryProtocol = UserRepository()) {
@@ -27,19 +33,26 @@ class LoginViewModel: NSObject, ObservableObject {
     }
 
     func performSignIn() async {
-        print("Starting sign in")
-        let uname = identifier.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let uname = identifier.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !uname.isEmpty else {
             self.errorMessage = "Username or email is required."
             return
         }
         isLoading = true
+        errorMessage = nil
         defer { isLoading = false }
         do {
-            var emailToSignIn = identifier
+            var emailToSignIn = uname
             
-            if !identifier.contains("@") {
-                guard let email = try await userRepository.fetchEmailForUsername(identifier.lowercased()) else {
+            if emailToSignIn.hasPrefix("@") {
+                let cleanUsername = String(emailToSignIn.dropFirst()).trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                guard let email = try await userRepository.fetchEmailForUsername(cleanUsername) else {
+                    throw AuthError.userNotFound
+                }
+                emailToSignIn = email
+            } else if !emailToSignIn.contains("@") {
+                let cleanUsername = emailToSignIn.lowercased()
+                guard let email = try await userRepository.fetchEmailForUsername(cleanUsername) else {
                     throw AuthError.userNotFound
                 }
                 emailToSignIn = email
@@ -47,27 +60,101 @@ class LoginViewModel: NSObject, ObservableObject {
             
             let result = try await Auth.auth().signIn(withEmail: emailToSignIn, password: password)
             
-            // Check verification status
-            if !result.user.isEmailVerified {
-                print("Login success, but email not verified. Signing out completely.")
-                self.errorMessage = "Please verify your email address before logging in."
-                try? Auth.auth().signOut()
-                return
-            }
-            
-            // Verify profile exists in Firestore
             let profileExists = try await userRepository.doesProfileExist(uid: result.user.uid)
             if !profileExists {
-                print("Login: User exists in Auth but not in Firestore. Signing out completely.")
                 self.errorMessage = "No Valt profile found. Please create an account."
                 try? Auth.auth().signOut()
                 return
             }
-            
-            print("Signed in and verified!")
         } catch {
-            self.errorMessage = error.localizedDescription
-            print("Error signing in: \(error.localizedDescription)")
+            if let authError = error as? AuthError, authError == .userNotFound {
+                self.errorMessage = "No account found with that username."
+            } else {
+                var resolvedEmail = uname
+                if resolvedEmail.hasPrefix("@") {
+                    let clean = String(resolvedEmail.dropFirst()).trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                    if let fetched = try? await userRepository.fetchEmailForUsername(clean) {
+                        resolvedEmail = fetched
+                    }
+                } else if !resolvedEmail.contains("@") {
+                    let clean = resolvedEmail.lowercased()
+                    if let fetched = try? await userRepository.fetchEmailForUsername(clean) {
+                        resolvedEmail = fetched
+                    }
+                }
+                
+                if resolvedEmail.contains("@"), let methods = try? await Auth.auth().fetchSignInMethods(forEmail: resolvedEmail), !methods.isEmpty {
+                    if methods.contains("google.com") && !methods.contains("password") {
+                        self.errorMessage = "This account was created with Google. Please use Google Sign-In, or tap 'Forgot Password' below to set a password."
+                    } else if methods.contains("apple.com") && !methods.contains("password") {
+                        self.errorMessage = "This account was created with Apple. Please use Apple Sign-In, or tap 'Forgot Password' below to set a password."
+                    } else {
+                        self.errorMessage = "Incorrect password. Please try again or tap 'Forgot Password'."
+                    }
+                } else {
+                    let nsError = error as NSError
+                    if nsError.domain == AuthErrorDomain {
+                        if nsError.code == AuthErrorCode.wrongPassword.rawValue || nsError.code == 17004 {
+                            self.errorMessage = "Incorrect password. Please try again or tap 'Forgot Password'."
+                        } else if nsError.code == AuthErrorCode.userNotFound.rawValue {
+                            self.errorMessage = "No account found for that email or username."
+                        } else {
+                            self.errorMessage = error.localizedDescription
+                        }
+                    } else {
+                        self.errorMessage = error.localizedDescription
+                    }
+                }
+            }
+        }
+    }
+    
+    func prepareForgotPassword() {
+        resetErrorMessage = nil
+        resetSuccessMessage = nil
+        let trimmed = identifier.trimmingCharacters(in: .whitespacesAndNewlines)
+        resetEmail = trimmed
+        showForgotPasswordSheet = true
+    }
+    
+    func sendPasswordReset() async {
+        let input = resetEmail.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !input.isEmpty else {
+            resetErrorMessage = "Please enter your email or username."
+            return
+        }
+        
+        isSendingReset = true
+        resetErrorMessage = nil
+        resetSuccessMessage = nil
+        defer { isSendingReset = false }
+        
+        do {
+            var targetEmail = input
+            if targetEmail.hasPrefix("@") {
+                let clean = String(targetEmail.dropFirst()).trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                if let resolved = try await userRepository.fetchEmailForUsername(clean) {
+                    targetEmail = resolved
+                } else {
+                    throw AuthError.userNotFound
+                }
+            } else if !targetEmail.contains("@") {
+                let clean = targetEmail.lowercased()
+                if let resolved = try await userRepository.fetchEmailForUsername(clean) {
+                    targetEmail = resolved
+                } else {
+                    throw AuthError.userNotFound
+                }
+            }
+            
+            try await Auth.auth().sendPasswordReset(withEmail: targetEmail)
+            resetSuccessMessage = "Password reset link sent to \(targetEmail). Check your inbox to create or reset your password."
+        } catch {
+            if let authError = error as? AuthError, authError == .userNotFound {
+                resetErrorMessage = "No account found with that username."
+            } else {
+                resetErrorMessage = error.localizedDescription
+            }
         }
     }
     
@@ -90,18 +177,7 @@ class LoginViewModel: NSObject, ObservableObject {
                 accessToken: user.accessToken.tokenString
             )
             
-            let authResult = try await Auth.auth().signIn(with: credential)
-            
-            let profileExists = try await userRepository.doesProfileExist(uid: authResult.user.uid)
-            
-            if !profileExists {
-                print("Login: No profile found for Google user. Signing out completely.")
-                self.errorMessage = "No Valt account found for this Google account. Please sign up first."
-                try? Auth.auth().signOut()
-                GIDSignIn.sharedInstance.signOut()
-                return
-            }
-            
+            _ = try await Auth.auth().signIn(with: credential)
         } catch {
             // Ignore user cancellation errors to keep the UI clean
             if (error as NSError).code != GIDSignInError.canceled.rawValue {
@@ -143,17 +219,9 @@ class LoginViewModel: NSObject, ObservableObject {
             )
             
             do {
-                let authResult = try await Auth.auth().signIn(with: credential)
-                let profileExists = try await userRepository.doesProfileExist(uid: authResult.user.uid)
-                
-                if !profileExists {
-                    self.errorMessage = "No Valt account found for this Apple ID. Please sign up first."
-                    try? Auth.auth().signOut()
-                    return
-                }
+                _ = try await Auth.auth().signIn(with: credential)
             } catch {
                 self.errorMessage = error.localizedDescription
-                print("Firebase Apple Sign-In Error: \(error.localizedDescription)")
             }
             
         case .failure(let error):
