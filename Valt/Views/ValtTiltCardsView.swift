@@ -197,7 +197,7 @@ struct TiltNoteCard: View {
                     RoundedRectangle(cornerRadius: 10 * scale, style: .continuous)
                         .stroke(Color("TextColor").opacity(0.08), lineWidth: 0.8)
                 )
-                .overlay(specularSheen)
+                //.overlay(specularSheen)
 
             VStack(alignment: .leading, spacing: 3 * scale) {
                 HStack {
@@ -238,23 +238,23 @@ struct TiltNoteCard: View {
         )
     }
 
-    private var specularSheen: some View {
-        LinearGradient(
-            stops: [
-                .init(color: Color.white.opacity(0.0), location: 0.0),
-                .init(color: Color.white.opacity(0.18), location: 0.5),
-                .init(color: Color.white.opacity(0.0), location: 1.0)
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-        .offset(
-            x: CGFloat(roll) * 1.5 * scale,
-            y: CGFloat(pitch) * 1.5 * scale
-        )
-        .blendMode(.overlay)
-        .allowsHitTesting(false)
-    }
+//    private var specularSheen: some View {
+//        LinearGradient(
+//            stops: [
+//                .init(color: Color.white.opacity(0.0), location: 0.0),
+//                .init(color: Color.white.opacity(0.18), location: 0.5),
+//                .init(color: Color.white.opacity(0.0), location: 1.0)
+//            ],
+//            startPoint: .topLeading,
+//            endPoint: .bottomTrailing
+//        )
+//        .offset(
+//            x: CGFloat(roll) * 1.5 * scale,
+//            y: CGFloat(pitch) * 1.5 * scale
+//        )
+//        .blendMode(.overlay)
+//        .allowsHitTesting(false)
+//    }
 
     @ViewBuilder
     private var iconView: some View {
